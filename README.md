@@ -1,5 +1,6 @@
 ## Executing
 To run the OS
+ - First rename long ass _lac.... folder name to mp3
  - Make the kernel using `sudo make`
  - Open the test_debug by running `windows_run.bat` on the windows machine
     - You cannot run this inside of QEMU

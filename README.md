@@ -7,7 +7,7 @@ To run the OS
 
 
 
-##ECE391 MP3 - Package contents
+## ECE391 MP3 - Package contents
 ================================
 
 createfs

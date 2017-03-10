@@ -17,5 +17,5 @@ batch script and remove the -s and -S options in the QEMU command.  This is
 will stop QEMU from waiting for GDB to connect.
 
 
-## Troubleshooting
+Troubleshooting
  - If when running `sudo make` it says it cannot find ./debug.sh, try running `dos2unix debug.sh`, this converts file endings to correct type

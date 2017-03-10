@@ -80,7 +80,7 @@ gdt_ptr:
 
 
 gdt_desc:
-	.word gdt_bottom - gdt_ptr - 1
+	.word gdt_bottom - gdt_ptr - 1 
 	.long gdt_ptr
 
 

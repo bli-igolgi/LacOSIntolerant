@@ -27,6 +27,13 @@ ldt_desc:
 	.long ldt
 
 	.align 4
+
+
+gdt_desc:
+	.word gdt_bottom - gdt - 1 	# Size
+	.long gdt 					# Table offset
+
+
 tss:
 _tss:
 	.rept 104
@@ -79,9 +86,6 @@ gdt_ptr:
 
 
 
-gdt_desc:
-	.word gdt_bottom - gdt_ptr - 1 
-	.long gdt_ptr
 
 
 

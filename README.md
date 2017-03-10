@@ -1,4 +1,4 @@
-## Executing
+# Executing
 To run the OS
  - First rename long ass _lac.... folder name to mp3
  - Make the kernel using `sudo make`
@@ -6,10 +6,7 @@ To run the OS
     - You cannot run this inside of QEMU
  - Run the script to target the test_debug machine by running `gdb -x test_os.sh` on the devel machine
 
-
-
-## ECE391 MP3 - Package contents
-================================
+# ECE391 MP3 - Package contents
 
 #### createfs
 This program takes a flat source directory (i.e. no subdirectories

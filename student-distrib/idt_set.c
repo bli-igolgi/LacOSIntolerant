@@ -18,3 +18,9 @@ void set_idt_handlers() {
     idt[0] = exception_entry;
     return;
 }
+
+void divide_by_zero() {
+    printf("divide_by_zero %d", 0);
+    while(1);
+    return;
+}

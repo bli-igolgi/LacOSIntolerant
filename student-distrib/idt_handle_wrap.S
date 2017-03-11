@@ -12,4 +12,3 @@ _divide_by_zero:
 _debug_exception:
 	call debug_trap
 	iret
-	

@@ -9,7 +9,6 @@
 //	designate idt_desc_t struct as trap gate with default values
 #define SET_TRAP_GATE(str)		do {\
 	str.seg_selector = KERNEL_CS;	\
-	str.reserved4 = 0x00;	\
 	str.reserved3 = 1;	\
     str.reserved2 = 1;	\
     str.reserved1 = 1;	\
@@ -23,6 +22,7 @@
 extern void idt_init(void);
 
 extern void div_zero_fault(void);
+extern void debug_trap(void);
 
 #endif /* ASM */
 

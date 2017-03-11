@@ -16,21 +16,21 @@ main(){
     return 0;
 }
 
-uint32_t resolve_virt_addr(uint32_t virt_addr){
+void * resolve_virt_addr(void * virt_addr){
     uint32_t local_cr_3, return_addr;
-    asm volatile ("movl %%cr3, %0;"
+    asm volatile ("movl %%cr3, %%eax; "
+        "movl %%eax, %0;"
         : "=m"(local_cr_3)
         :
-        : "memory"
+        : "%eax"
     );
-//    printf("%d", local_cr_3);
-//    return 0;
+
     // Find entry in page directory
     uint32_t dir_index = virt_addr & TOP_10_BITS;
     dir_index >>= 22; // bit shift to get top 10 bits to lowest 10
 
     // Get address to page table/large page
-    uint32_t dir_addr = *(local_cr_3+4*dir_index);
+    uint32_t dir_addr = (void *)(local_cr_3+4*dir_index);
 
     // Check if the page table/large page actually exists in memory
     if(!(dir_addr & 0x00000001))
@@ -59,5 +59,27 @@ uint32_t resolve_virt_addr(uint32_t virt_addr){
         table_addr += page_index;
         return_addr = table_addr;
     }
-    return return_addr;
+    return (void *)return_addr;
+}
+
+void
+map_page(void * physaddr, void * virtualaddr, unsigned int flags){
+{
+    // Make sure that both addresses are page-aligned. 
+    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
+    unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+ 
+    unsigned long * pd = (unsigned long *)0xFFFFF000;
+    // Here you need to check whether the PD entry is present.
+    // When it is not present, you need to create a new empty PT and
+    // adjust the PDE accordingly.
+ 
+    unsigned long * pt = ((unsigned long *)0xFFC00000) + (0x400 * pdindex);
+    // Here you need to check whether the PT entry is present.
+    // When it is, then there is already a mapping present. What do you do now?
+ 
+    pt[ptindex] = ((unsigned long)physaddr) | (flags & 0xFFF) | 0x01; // Present
+ 
+    // Now you need to flush the entry in the TLB
+    // or you might not notice the change.
 }

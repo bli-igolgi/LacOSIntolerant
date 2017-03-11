@@ -7,7 +7,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
-#include "idt_set.h"
+#include "idt_handle.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */

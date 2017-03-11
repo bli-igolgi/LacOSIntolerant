@@ -1,23 +1,33 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include "types.h"
 
-// Bit masks to isolate portions of the virtual address.
-#define TOP_10_BITS 0xFFC00000
-#define MIDDLE_10_BITS 0x003FF000
-#define LAST_12_BITS 0x00000FFF
+// bit masks to isolate portions of the virtual address.
+#define TOP_10_BITS 0xFFC00000                  // dirctory bits
+#define MIDDLE_10_BITS 0x003FF000               // table bits
+#define LAST_12_BITS 0x00000FFF                 // 12 offset bits for small offset
+#define LAST_22_BITS 0x003FFFFF                 // last 22 bits for large offest
+
+// bit mask to ignore the last 12 bits when examining the page directory or a page table
 #define ALL_BUT_LAST_12_BITS 0xFFFFF000
-#define LAST_22_BITS 0x003FFFFF
 
-uint32_t resolve_virt_addr(uint32_t);
 
+/************ code for testing ************/
+void * resolve_virt_addr(void * virt_addr);
 int
 main(){
     resolve_virt_addr(0);
     return 0;
 }
+/******************************************/
+
 
 void * resolve_virt_addr(void * virt_addr){
     uint32_t local_cr_3, return_addr;
+    uint32_t dir_index, table_index, page_index;
+    uint32_t dir_addr, table_addr; 
+
+
+    // goal: store the contents of cr3 in local_cr_3
     asm volatile ("movl %%cr3, %%eax; "
         "movl %%eax, %0;"
         : "=m"(local_cr_3)
@@ -25,45 +35,54 @@ void * resolve_virt_addr(void * virt_addr){
         : "%eax"
     );
 
-    // Find entry in page directory
-    uint32_t dir_index = virt_addr & TOP_10_BITS;
-    dir_index >>= 22; // bit shift to get top 10 bits to lowest 10
+    // Compute the offset for the page directory -- bit shifting to get top 10 bits in lowest 10
+    dir_index = (uint32_t)virt_addr & TOP_10_BITS;
+    dir_index >>= 22;
 
-    // Get address to page table/large page
-    uint32_t dir_addr = (void *)(local_cr_3+4*dir_index);
+    // Get the address of the page table or large page -- each entry is 4 bytes
+    dir_addr = *(uint32_t *)(local_cr_3 + 4*dir_index);
 
-    // Check if the page table/large page actually exists in memory
+    // Check if the page table/large page actually exists in memory -- check least significant bit
     if(!(dir_addr & 0x00000001))
         return NULL;
     
     // Check if this is page table or large page
-    if(dir_addr & 0x00000080){
-        // This is a 4MB page.
-        uint32_t page_index = virt_addr & LAST_22_BITS;
-        dir_addr &= ALL_BUT_LAST_12_BITS;
-        dir_addr += page_index;
-        return_addr = dir_addr;
-    }
-    else{
-        // This is a page table. Find entry in page table
-        uint32_t table_index = virt_addr & MIDDLE_10_BITS;
+    if(dir_addr & 0x00000080)
+    {
+        // 4MB page -- compute the physical address
+        page_index = (uint32_t)virt_addr & LAST_22_BITS;
+        return_addr = dir_addr & ALL_BUT_LAST_12_BITS;
+        return_addr += page_index;
+    } 
+    else 
+    {
+        // page table -- find the correct entry in the page table
+
+        // compute the offset of the page table entry -- bit shift to get the offset in the lowest 10 bits
+        table_index = (uint32_t)virt_addr & MIDDLE_10_BITS;
         table_index >>= 12;
-        // Get address to small page
+
+        // compute the address to the 4kb page
         dir_addr &= ALL_BUT_LAST_12_BITS;
-        uint32_t table_addr = *(dir_addr+4*table_index);
-        // Check if the page table/large page actually exists in memory
+        table_addr = *(uint32_t *)(dir_addr + 4*table_index);
+
+        // Check if the page table/large page exists
         if(!(table_addr & 0x00000001))
             return NULL;
-        uint32_t page_index = virt_addr & LAST_12_BITS;
-        table_addr &= ALL_BUT_LAST_12_BITS;
-        table_addr += page_index;
-        return_addr = table_addr;
+
+        // compute the offset from the start of the page
+        page_index = (uint32_t)virt_addr & LAST_12_BITS;
+
+        // compute the physical address of the page
+        return_addr = (table_addr & ALL_BUT_LAST_12_BITS) + page_index;
     }
     return (void *)return_addr;
 }
 
+
+
 void
-map_page(void * physaddr, void * virtualaddr, unsigned int flags){
+map_page(void * physaddr, void * virtualaddr, unsigned int flags)
 {
     // Make sure that both addresses are page-aligned. 
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;
@@ -82,4 +101,10 @@ map_page(void * physaddr, void * virtualaddr, unsigned int flags){
  
     // Now you need to flush the entry in the TLB
     // or you might not notice the change.
+
 }
+
+
+// what guy next to me said:
+// flash the tlb before you try paging
+// the very last thing you do is to enable paging

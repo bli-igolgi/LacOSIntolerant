@@ -1,5 +1,3 @@
-//#include <stdio.h>
-#include "types.h"
 
 // bit masks to isolate portions of the virtual address.
 #define TOP_10_BITS 0xFFC00000                  // dirctory bits
@@ -12,21 +10,10 @@
 #define ALL_BUT_LAST_22_BITS 0xFFC00000
 
 
-/**************** code for testing ****************/
-void * resolve_virt_addr(void * virt_addr);
-int
-main(){
-    resolve_virt_addr(0);
-    return 0;
-}
-/**************************************************/
-
-
 void * resolve_virt_addr(void * virt_addr){
     uint32_t local_cr_3, return_addr;
     uint32_t dir_index, table_index, page_index;
     uint32_t dir_addr, table_addr; 
-
 
     // goal: store the contents of cr3 in local_cr_3
     asm volatile ("movl %%cr3, %%eax; "
@@ -35,8 +22,6 @@ void * resolve_virt_addr(void * virt_addr){
         :
         : "%eax"
     );
-
-    // do we need a NULL check for the cr3 here?
 
     // Compute the offset for the page directory -- bit shifting to get top 10 bits in lowest 10
     dir_index = (uint32_t)virt_addr & TOP_10_BITS;
@@ -82,10 +67,32 @@ void * resolve_virt_addr(void * virt_addr){
     return (void *)return_addr;
 }
 
+void paging_init()
+{
+    // clear the page directory
+    int index;
+    for (index=0; index < NUM_ENTRIES; index++)
+        page_directory[index] = 0;
+
+    // map the kenal in the page directory
+    map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 0); // NEED TO CHANGE THE PARAMETERS
+
+    // map the video memory in the page directory
+    map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0); // NEED TO CHANGE THE PARAMETERS
 
 
-void
-map_page(void * physaddr, void * virtualaddr, unsigned int flags)
+    // setting the bits to enable paging
+    asm volatile (
+        "movl  %0, %%cr3;\n"           // store the address of the page directory in cr3
+        "orl   $0x10, %%cr4;\n"        // set PSE flag in cr4 to enable 4Mb pages
+        "orl   $0x80000000, %%cr0;\n"  // set bit 31 of cr0 to enable paging
+        :
+        : "r"(page_directory)
+    );
+}
+
+
+void map_page(void * physaddr, void * virtualaddr, unsigned int flags)
 {
     // Make sure that both addresses are page-aligned. 
     unsigned long pdindex = (unsigned long)virtualaddr >> 22;

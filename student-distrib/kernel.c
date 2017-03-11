@@ -7,6 +7,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
+#include "idt_set.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -143,6 +144,8 @@ entry (unsigned long magic, unsigned long addr)
 		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
+	set_idt_handlers();
+	int x = 1/0;
 
 	/* Init the PIC */
 	i8259_init();

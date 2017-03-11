@@ -1,7 +1,7 @@
 # Executing
 To run the OS
  - First rename long ass _lac.... folder name to mp3
- - Make the kernel using `sudo make`
+ - Make the kernel using `sudo make` inside student-distrib
  - Open the test_debug by running `windows_run.bat` on the windows machine
     - You cannot run this inside of QEMU
  - Run the script to target the test_debug machine by running `gdb -x test_os.sh` on the devel machine

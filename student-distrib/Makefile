@@ -31,7 +31,7 @@ dep: Makefile.dep
 Makefile.dep: $(SRC)
 	$(CC) -MM $(CPPFLAGS) $(SRC) > $@
 
-.PHONY: clean
+.PHONY: clean bootimg
 clean:
 	rm -f *.o */*.o Makefile.dep
 

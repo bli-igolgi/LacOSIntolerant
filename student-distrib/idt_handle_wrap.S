@@ -1,4 +1,4 @@
-#define ASM		1
+#define ASM     1
 
 .text
 
@@ -10,5 +10,5 @@ _divide_by_zero:
     iret
 
 _debug_exception:
-	call debug_trap
-	iret
+    call debug_trap
+    iret

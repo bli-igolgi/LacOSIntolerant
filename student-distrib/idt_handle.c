@@ -9,14 +9,13 @@ void idt_init(){
     
     SET_TRAP_GATE(except_entry);
     
-    for(i = 0; i < 4; i++) {
-        SET_IDT_ENTRY(except_entry, _idt_handler_table + i*6);
+    for(i = 0; i < 20; i++) {
+        SET_IDT_ENTRY(except_entry, _idt_handler_table + i*32);
         idt[i] = except_entry;
     }
 
     return;
 }
-
 
 /* ========== C Interrupt Handlers ========== */
 /* The following functions are all the C handling functions for interrupts */

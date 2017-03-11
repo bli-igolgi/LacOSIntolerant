@@ -155,7 +155,6 @@ entry (unsigned long magic, unsigned long addr)
     int *x;
     int y = *x;
 
-
     /* Init the PIC */
     i8259_init();
 

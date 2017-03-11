@@ -9,16 +9,17 @@
 
 // bit mask to ignore the last 12 bits when examining the page directory or a page table
 #define ALL_BUT_LAST_12_BITS 0xFFFFF000
+#define ALL_BUT_LAST_22_BITS 0xFFC00000
 
 
-/************ code for testing ************/
+/**************** code for testing ****************/
 void * resolve_virt_addr(void * virt_addr);
 int
 main(){
     resolve_virt_addr(0);
     return 0;
 }
-/******************************************/
+/**************************************************/
 
 
 void * resolve_virt_addr(void * virt_addr){
@@ -34,6 +35,8 @@ void * resolve_virt_addr(void * virt_addr){
         :
         : "%eax"
     );
+
+    // do we need a NULL check for the cr3 here?
 
     // Compute the offset for the page directory -- bit shifting to get top 10 bits in lowest 10
     dir_index = (uint32_t)virt_addr & TOP_10_BITS;
@@ -51,7 +54,7 @@ void * resolve_virt_addr(void * virt_addr){
     {
         // 4MB page -- compute the physical address
         page_index = (uint32_t)virt_addr & LAST_22_BITS;
-        return_addr = dir_addr & ALL_BUT_LAST_12_BITS;
+        return_addr = dir_addr & ALL_BUT_LAST_22_BITS;
         return_addr += page_index;
     } 
     else 

@@ -120,6 +120,8 @@ void ss_fault() {
     while(1);
     return;
 }
+<<<<<<< HEAD
+=======
 
 /* function header here */
 void gen_pro_fault() {
@@ -169,3 +171,4 @@ void simd_fpe_fault() {
     while(1);
     return;
 }
+>>>>>>> 209a8f791a0a4a3975159e78c4a2a58d56810ecb

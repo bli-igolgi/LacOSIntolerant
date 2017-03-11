@@ -145,8 +145,8 @@ entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS);
     }
     idt_init();
-    asm volatile("int 3");
-    int x = 1/0;
+    //asm volatile("int 3");
+    //int x = 1/0;
 
     /* Init the PIC */
     i8259_init();

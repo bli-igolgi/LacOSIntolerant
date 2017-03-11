@@ -20,7 +20,7 @@ do {                                \
 } while(0)
 	
 //  designate idt_desc_t struct as interrupt gate with default values
-#define SET_TRAP_GATE(str)          \
+#define SET_INTR_GATE(str)          \
 do {                                \
     str.seg_selector = KERNEL_CS;   \
     str.reserved3 = 0;              \

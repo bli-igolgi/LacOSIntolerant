@@ -15,10 +15,10 @@ int32_t page_directory[NUM_ENTRIES] __attribute__((aligned (4096)));
 // functions related to paging
 extern void * resolve_virt_addr(void * virt_addr);
 extern void paging_init();
-extern void map_page(void * physaddr, void * virtualaddr, unsigned int flags);
-
+extern int map_page(void * phys_addr, void * virtual_addr, int page_size, int privileges, int write);
 
 
 #include "paging.c"
 
 #endif
+

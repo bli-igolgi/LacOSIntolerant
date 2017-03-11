@@ -74,11 +74,11 @@ void paging_init()
     for (index=0; index < NUM_ENTRIES; index++)
         page_directory[index] = 0;
 
-    // map the kenal in the page directory
-    map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 0); // NEED TO CHANGE THE PARAMETERS
+    // map the kenal in the page directory -- large page, kernal privileges, read/write
+    map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 1, 1, 1);
 
-    // map the video memory in the page directory
-    map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0); // NEED TO CHANGE THE PARAMETERS
+    // map the video memory in the page directory -- small page, user privileges, read/write
+    map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0, 0, 1);
 
 
     // setting the bits to enable paging
@@ -91,11 +91,45 @@ void paging_init()
     );
 }
 
-
-void map_page(void * physaddr, void * virtualaddr, unsigned int flags)
+// returns 0 on success, -1 on failure
+int map_page(void * phys_addr, void * virtual_addr, int page_size, int privileges, int write)
 {
+    unsigned long page_dir_index, local_cr_3;
+
+    // check for valid pointers
+    if (phys_addr == NULL || virtual_addr == NULL)
+        return -1;
+
+    // goal: store the contents of cr3 in local_cr_3
+    asm volatile ("movl %%cr3, %%eax; "
+        "movl %%eax, %0;"
+        : "=m"(local_cr_3)
+        :
+        : "%eax"
+    );
+
+    // Find appropriate page directory index.
+    page_dir_index = (unsigned long)virtualaddr >> 22;
+
+    // check for existing
+    if() 
+    {
+        // 
+    }
+
+        // case: does exists
+        // check if we are trying for large or small
+            // large: return
+            // small: continue
+
+        // case: does not exist
+        // set up the page directory
+        // if small
+            // set up page table
+
+
+
     // Make sure that both addresses are page-aligned. 
-    unsigned long pdindex = (unsigned long)virtualaddr >> 22;
     unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
  
     unsigned long * pd = (unsigned long *)0xFFFFF000;
@@ -111,6 +145,9 @@ void map_page(void * physaddr, void * virtualaddr, unsigned int flags)
  
     // Now you need to flush the entry in the TLB
     // or you might not notice the change.
+
+
+
 
 }
 

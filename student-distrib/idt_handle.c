@@ -5,16 +5,11 @@
 */
 void idt_init(){
     idt_desc_t except_entry;
-    int i;                  // Loop index
     
     SET_TRAP_GATE(except_entry);
+    SET_IDT_ENTRY(except_entry, _divide_by_zero);
     
-    for(i = 0; i < 20; i++) {
-        SET_IDT_ENTRY(except_entry, _idt_handler_table + i*32);
-        idt[i] = except_entry;
-    }
-
-    return;
+    return
 }
 
 

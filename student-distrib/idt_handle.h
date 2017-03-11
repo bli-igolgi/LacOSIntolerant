@@ -35,9 +35,6 @@ do {                                \
 //  initializes interrupt descriptor table
 extern void idt_init(void);
 
-//	handler-specific jump table exported from idt wrapper asm
-extern uint32_t _idt_handler_table;
-
 /*	exception handlers #0 - #19 defined by i386	*/
 
 

@@ -18,7 +18,6 @@ void idt_init(){
 }
 
 
-
 /* ========== C Interrupt Handlers ========== */
 /* The following functions are all the C handling functions for interrupts */
 
@@ -31,22 +30,36 @@ void div_zero_fault() {
 }
 
 /* function header here */
-void debug_trap() {
-    printf("Exception 0x01: Debug exception thrown. Waiting indefinitely...");
+void reserved_fault() {
+    printf("Exception 0x01: RESERVED. For intel used only...");
     while(1);
     return;
 }
 
 /* function header here */
-void nmi_trap() {
-    printf("Exception 0x02: NMI trap. Not sure what to do");
+void nmi_intr() {
+    printf("Exception 0x02: Non-maskable interrupt. Hardware wants attention.");
     while(1);
     return;
 }
 
 /* function header here */
 void breakpoint_trap() {
-    printf("Exception 0x03: Breakpoint thrown. Waiting indefinitely...");
+    printf("Exception 0x03: Breakpoint thrown. How long is this going to take?");
+    while(1);
+    return;
+}
+
+/* function header here */
+void seg_np_fault() {
+	printf("Exception 0x0B: Seg");
+    while(1);
+    return;
+}
+
+/* function header here */
+void ss_fault() {
+	printf("Exception 0x0C: Segmentation Fault. HF debugging.");
     while(1);
     return;
 }

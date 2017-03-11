@@ -12,25 +12,36 @@ uint8_t slave_mask; /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void
-i8259_init(void)
-{
+i8259_init(void) {
+    unsigned long flags;
+    
+
+    // Set up the master's control words
+    outb_p(ICW1, MASTER_8259_PORT);
+    outb_p(ICW2_MASTER, MASTER_8259_PORT + 1);
+    outb_p(ICW3_MASTER, MASTER_8259_PORT + 1);
+    outb_p(ICW4, MASTER_8259_PORT + 1);
+
+    // Set up the slave's control words
+    outb_p(ICW1, SLAVE_8259_PORT);
+    outb_p(ICW2_SLAVE, SLAVE_8259_PORT + 1);
+    outb_p(ICW3_SLAVE, SLAVE_8259_PORT + 1);
+    outb_p(ICW4, SLAVE_8259_PORT + 1);
 }
 
 /* Enable (unmask) the specified IRQ */
 void
-enable_irq(uint32_t irq_num)
-{
+enable_irq(uint32_t irq_num) {
+
 }
 
 /* Disable (mask) the specified IRQ */
 void
-disable_irq(uint32_t irq_num)
-{
+disable_irq(uint32_t irq_num) {
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void
-send_eoi(uint32_t irq_num)
-{
+send_eoi(uint32_t irq_num) {
 }
 

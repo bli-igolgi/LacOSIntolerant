@@ -13,6 +13,10 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
+static void interrupt(int temp, int i_num) {
+    asm volatile("int $1");
+}
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
@@ -145,8 +149,12 @@ entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS);
     }
     idt_init();
-    asm volatile("int 3");
-    int x = 1/0;
+    // interrupt(1, 3);
+    // int x = 1/0;
+
+    // int *x = NULL
+    // *x = 4;
+    
 
     /* Init the PIC */
     i8259_init();

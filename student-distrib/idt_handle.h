@@ -22,7 +22,7 @@ do {                                \
 //  initializes interrupt descriptor table
 extern void idt_init(void);
 
-extern void div_zero_fault(void);
+// extern void div_zero_fault(void);
 extern void debug_trap(void);
 
 extern uint32_t _idt_handler_table;

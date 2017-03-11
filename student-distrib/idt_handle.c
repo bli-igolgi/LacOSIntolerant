@@ -23,20 +23,30 @@ void idt_init(){
 /* The following functions are all the C handling functions for interrupts */
 
 
-/*
-    function header here 
-*/
+/* function header here */
 void div_zero_fault() {
     printf("Exception 0x00: Divide-by-zero fault occurred. Do you even math?");
     while(1);
     return;
 }
 
-/*
-    function header here 
-*/
+/* function header here */
 void debug_trap() {
     printf("Exception 0x01: Debug exception thrown. Waiting indefinitely...");
+    while(1);
+    return;
+}
+
+/* function header here */
+void nmi_trap() {
+    printf("Exception 0x02: NMI trap. Not sure what to do");
+    while(1);
+    return;
+}
+
+/* function header here */
+void breakpoint_trap() {
+    printf("Exception 0x03: Breakpoint thrown. Waiting indefinitely...");
     while(1);
     return;
 }

@@ -33,7 +33,6 @@ void idt_init(){
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
-    idt[15] = empty_entry;       // intel reserved - not used
     
     //  fill in interrupt gate entries BELOW
     SET_INTR_GATE(idt_entry);

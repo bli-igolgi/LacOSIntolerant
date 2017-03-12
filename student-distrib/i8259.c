@@ -35,14 +35,14 @@ i8259_init(void) {
 /* Enable (unmask) the specified IRQ */
 void
 enable_irq(uint32_t irq_num) {
-    // printf("Enabling IRQ%d\n", irq_num);
     // Master interrupt
-    if(irq_num < 8) {
+    if(irq_num <= MASTER_IRQ_NUM) {
         master_mask &= ~(1 << irq_num);
         outb(master_mask, MASTER_8259_PORT_2);
     }
     // Slave interrupt
-    else if(irq_num < 16) {
+    else if(irq_num <= SLAVE_IRQ_NUM) {
+        // Put slave irqs in 0-7 range
         slave_mask &= ~(1 << (irq_num - 8));
         outb(slave_mask, SLAVE_8259_PORT_2);
     }
@@ -54,14 +54,14 @@ enable_irq(uint32_t irq_num) {
 /* Disable (mask) the specified IRQ */
 void
 disable_irq(uint32_t irq_num) {
-    // printf("Disabling IRQ%d\n", irq_num);
     // Master interrupt
-    if(irq_num < 8) {
+    if(irq_num <= MASTER_IRQ_NUM) {
         master_mask |= 1 << irq_num;
         outb(master_mask, MASTER_8259_PORT_2);
     }
     // Slave interrupt
-    else if(irq_num < 16) {
+    else if(irq_num <= SLAVE_IRQ_NUM) {
+        // Put slave irqs in 0-7 range
         slave_mask |= 1 << (irq_num - 8);
         outb(slave_mask, SLAVE_8259_PORT_2);
     }
@@ -73,10 +73,12 @@ disable_irq(uint32_t irq_num) {
 void
 send_eoi(uint32_t irq_num) {
     // Master interrupt
-    if(irq_num < 8) outb(irq_num | EOI, MASTER_8259_PORT);
+    if(irq_num <= MASTER_IRQ_NUM) outb(irq_num | EOI, MASTER_8259_PORT);
     // Slave interrupt
     else {
+        // Put slave irqs in 0-7 range, and enable this interrupt
         outb((irq_num - 8) | EOI, SLAVE_8259_PORT);
+        // Enable the IRQ2 on master
         outb(2 | EOI, MASTER_8259_PORT);
     }
 }

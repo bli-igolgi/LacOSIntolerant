@@ -1,6 +1,6 @@
 #include "idt_handle.h"
 
-//  function pointer array for all 20 default exception handlers (wrapper)
+// function pointer array for all 20 default exception handlers (wrapper)
 void (*except_ptr[20]) = {
     _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,
     _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,
@@ -8,7 +8,7 @@ void (*except_ptr[20]) = {
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except
 };
 
-//	function pointer array for all 16 PIC interrupt lines handlers (wrapper)
+// function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
     0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC
 	_rtc_intr, 0, 0, 0, 0, 0, 0, 0              // slave PIC
@@ -37,6 +37,7 @@ void idt_init(){
 	
 	// Entries 0x20 - 0x2F map to master & slave PICs interrupts
 	SET_INTR_GATE(idt_entry);
+    // There are 0xF interrupt vectors
 	for(i = 0; i <= 0x0F; i++)
 		if(intr_ptr[i]) {
 			SET_IDT_ENTRY(idt_entry, intr_ptr[i]);
@@ -51,7 +52,8 @@ void idt_init(){
     // 0x80 is the system call entry in the IDT
     idt[0x80] = idt_entry;
     
-    return;
+    // Load the interrupt table
+    lidt(idt_desc_ptr);
 }
 
 /* ========== System Call Handler ========== */

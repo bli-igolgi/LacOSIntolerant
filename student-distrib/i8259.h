@@ -27,6 +27,11 @@
 // Mask for hiding all interrupts
 #define OFF_MASK 0xFF
 
+// Master IRQs are on 0-7
+#define MASTER_IRQ_NUM 	7
+// Slave IRQs are on 8-15
+#define SLAVE_IRQ_NUM 	15
+
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */

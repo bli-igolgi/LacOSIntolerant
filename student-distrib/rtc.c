@@ -4,10 +4,14 @@
 
 /* Initialize the rtc */
 void rtc_init() {
-    outb(0x70, 0x8B);           // select register B, and disable NMI
-    char prev = inb(0x71);      // read the current value of register B
-    outb(0x70, 0x8B);           // set the index again (a read will reset the index to register D)
-    outb(0x71, prev | 0x40);    // write the previous value ORed with 0x40. This turns on bit 6 of register B
+    // Select register B, and disable NMI
+    outb(CONTROL_REG_B, CMOS_REG_1);
+    // Get data from register B
+    char prev = inb(CMOS_REG_2);
+    // Sets the index again (a read will reset the index to register D)
+    outb(CONTROL_REG_B, CMOS_REG_1);
+    // Write previous value with bit 6 enabled to turn on interrupts
+    outb(prev | BIT_6, CMOS_REG_2);
 
     // Enables the RTC on the slave's IRQ0
     enable_irq(RTC_IRQ);
@@ -19,8 +23,8 @@ void rtc_interrupt() {
     // test_interrupts();
 
     // Need to read from register C so that new interrupts can be processed
-    outb(0x70, 0x0C);   // select register C
-    inb(0x71);          // just throw away contents
+    outb(CMOS_REG_1, 0x0C);   // select register C
+    inb(CMOS_REG_2);          // just throw away contents
 
     send_eoi(RTC_IRQ);
 }

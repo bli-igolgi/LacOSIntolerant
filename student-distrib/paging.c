@@ -100,7 +100,7 @@ void paging_init()
             video_table[index] += PRESENT_BIT;
         }
     }
-
+// */
     // setting the bits to enable paging
     asm volatile (
         "movl  %%cr4, %%edi;\n"        // set PSE flag in cr4 to enable 4Mb pages
@@ -120,6 +120,7 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
 {
     unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;
+    int index;
 
     // check for valid pointers
     if (phys_addr == NULL || virtual_addr == NULL)
@@ -157,11 +158,12 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
         }
         else{
             page_dir_entry = PAGE_TABLE_STARTADDR + SIZEOFDIR*page_dir_index;
-//            page_dir_entry = (unsigned long)((PLACEHOLDER) & ALL_BUT_LAST_12_BITS);
             // to make lines 172+ easier, set the base address of the new page table
             page_table_addr = (unsigned long *)page_dir_entry;
-            // and have the 
             page_table_index = (unsigned long)virtual_addr >> 12 & 0x03FF;
+            // initialize all page table entries
+            for(index=0;index<NUM_ENTRIES;++index)
+                page_table_addr[index] = 0;
             page_table_entry = page_table_addr[page_table_index];
             page_dir_entry += privileges*US_BIT;
             page_dir_entry += write*RW_BIT;

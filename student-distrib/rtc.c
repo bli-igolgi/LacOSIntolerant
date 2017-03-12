@@ -1,4 +1,6 @@
-/* Driver for the system real time clock */
+/*
+ * Driver for the system real time clock
+ */
 
 #include "rtc.h"
 
@@ -20,7 +22,7 @@ void rtc_init() {
     outb(prev | BIT_6, CMOS_REG_2);
 
     // Enables the RTC on the slave's IRQ0
-    enable_irq(RTC_IRQ);
+    // enable_irq(RTC_IRQ);
 }
 
 /*

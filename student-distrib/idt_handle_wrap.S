@@ -1,4 +1,8 @@
-#define ASM     1
+/*
+ * The assembly wrapper functions for vector interruptions
+ */
+
+ #define ASM     1
 
 .text
 
@@ -11,7 +15,41 @@
 
 .globl _system_call                     # 0x80
 
+    
+/* ========= SYSTEM CALL ========= */
+
+_system_call:
+    # Push the necessary registers
+    pushl   %edx
+    pushl   %ecx
+    pushl   %ebx
+    pushl   %eax
+    call    syscall
+    leal    16(%esp), %esp
+    iret
+    
+/* ========= INTERRUPTS ========= */
+/*
+ * Push all registers, call the device interrupt, and return from interrupt
+ */
+ 
+_keyboard_intr:
+    pushal
+    call keyboard_interrupt
+    popal
+    iret
+
+_rtc_intr:
+    pushal
+    call rtc_interrupt
+    popal
+    iret
+
 /* ========= EXCEPTIONS ========= */
+/*
+ * All of these call their respective C exception handler
+ * and return from interrupt, though this will never happen
+ */
 
 _divide_by_zero:
     call    div_zero_fault
@@ -91,30 +129,4 @@ _machine_check:
     
 _floating_point_except:
     call    simd_fpe_fault
-    iret
-    
-
-/* ========= SYSTEM CALL ========= */
-
-_system_call:
-    pushl   %edx
-    pushl   %ecx
-    pushl   %ebx
-    pushl   %eax
-    call    syscall
-    leal    16(%esp), %esp
-    iret
-    
-/* ========= INTERRUPTS ========= */
-
-_keyboard_intr:
-    pushal
-    call keyboard_interrupt
-    popal
-    iret
-
-_rtc_intr:
-    pushal
-    call rtc_interrupt
-    popal
     iret

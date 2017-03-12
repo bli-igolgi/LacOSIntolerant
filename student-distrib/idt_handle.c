@@ -1,6 +1,10 @@
+/*
+ * Sets up the IDT, filling the table with the respective handling functions
+ */
+
 #include "idt_handle.h"
 
-// function pointer array for all 20 default exception handlers (wrapper)
+// Function pointer array for all 20 default exception handlers (wrapper)
 void (*except_ptr[20]) = {
     _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,
     _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,
@@ -8,7 +12,7 @@ void (*except_ptr[20]) = {
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except
 };
 
-// function pointer array for all 16 PIC interrupt lines handlers (wrapper)
+// Function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
     0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC
 	_rtc_intr, 0, 0, 0, 0, 0, 0, 0              // slave PIC
@@ -67,7 +71,10 @@ int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3) {
 }
 
 /* ========== Exception Handlers ========== */
-/* The following functions are all the C handling functions for exceptions */
+/*
+ * The following functions are all the C handling functions for exceptions
+ * They all print a sarcastic message of what happened, and loop indefinitely
+ */
 
 void div_zero_fault() {
     printf("Exception 0x00: Divide-by-zero fault occurred. Do you even math?\n");

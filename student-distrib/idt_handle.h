@@ -11,7 +11,7 @@
 #include "keyboard.h"
 #include "rtc.h"
 
-//  designate idt_desc_t struct as trap gate with default values
+// Designate idt_desc_t struct as trap gate with default values, used for exceptions
 #define SET_TRAP_GATE(str)          \
 do {                                \
     str.seg_selector = KERNEL_CS;   \
@@ -25,7 +25,7 @@ do {                                \
     str.present = 1;                \
 } while(0)
 	
-// Designate idt_desc_t struct as interrupt gate with default values
+// Designate idt_desc_t struct as interrupt gate with default values, used for interrupts
 #define SET_INTR_GATE(str)          \
 do {                                \
     str.seg_selector = KERNEL_CS;   \

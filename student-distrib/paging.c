@@ -93,7 +93,8 @@ void paging_init()
     // map the video memory in the page directory -- small page, user privileges, read/write
     map_page((void *)VIDEO, (void *)VIDEO, 0, 1, 1);
 
-    uint32_t * video_table = (uint32_t *)((uint32_t)page_directory & ALL_BUT_LAST_12_BITS);
+    // get address of first page table
+    uint32_t * video_table = (uint32_t *)((uint32_t)(*page_directory) & ALL_BUT_LAST_12_BITS);
     for(index=0;index<NUM_ENTRIES;index++){
         if(index != (VIDEO & MIDDLE_10_BITS) >> 12){
             video_table[index] += PRESENT_BIT;
@@ -117,7 +118,7 @@ void paging_init()
 // returns 0 on success, -1 on failure (last three parameters are either 0 or 1)
 int map_page(void * phys_addr, void * virtual_addr, int page_size, int privileges, int write)
 {
-    unsigned long page_dir_index, page_dir_entry, page_table_index = 0, page_table_entry;
+    unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;
 
     // check for valid pointers
@@ -159,8 +160,9 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
 //            page_dir_entry = (unsigned long)((PLACEHOLDER) & ALL_BUT_LAST_12_BITS);
             // to make lines 172+ easier, set the base address of the new page table
             page_table_addr = (unsigned long *)page_dir_entry;
-            // and have the default page_table_index be 0
-            page_table_entry = *(page_table_addr);
+            // and have the 
+            page_table_index = (unsigned long)virtual_addr >> 12 & 0x03FF;
+            page_table_entry = page_table_addr[page_table_index];
             page_dir_entry += privileges*US_BIT;
             page_dir_entry += write*RW_BIT;
             page_dir_entry += PRESENT_BIT;

@@ -28,12 +28,12 @@ i8259_init(void) {
     outb(ICW2_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW3_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW4, SLAVE_8259_PORT_2);
-
 }
 
 /* Enable (unmask) the specified IRQ */
 void
 enable_irq(uint32_t irq_num) {
+    // printf("Enabling IRQ%d\n", irq_num);
     // Put the mask at the correct location
     uint32_t mask = ~(1 << irq_num);
     // Master interrupt
@@ -51,6 +51,7 @@ enable_irq(uint32_t irq_num) {
 /* Disable (mask) the specified IRQ */
 void
 disable_irq(uint32_t irq_num) {
+    // printf("Disabling IRQ%d\n", irq_num);
     // Put the mask at the correct location
     uint32_t mask = 1 << irq_num;
     // Master interrupt
@@ -68,6 +69,7 @@ disable_irq(uint32_t irq_num) {
 /* Send end-of-interrupt signal for the specified IRQ */
 void
 send_eoi(uint32_t irq_num) {
+    printf("Sending EOI for IRQ%d\n", irq_num);
     uint32_t signal = irq_num | EOI;
     // Master interrupt
     if(irq_num < 8) outb(signal, MASTER_8259_PORT_2);

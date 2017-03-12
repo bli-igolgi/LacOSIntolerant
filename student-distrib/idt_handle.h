@@ -8,6 +8,9 @@
 #include "keyboard.h"
 #include "rtc.h"
 
+// How many exceptions we are using
+#define USED_EXCEPTIONS 20
+
 //  designate idt_desc_t struct as trap gate with default values
 #define SET_TRAP_GATE(str)          \
 do {                                \
@@ -35,6 +38,7 @@ do {                                \
     str.dpl = 0;                    \
     str.present = 1;                \
 } while(0)
+
 
 //  initializes interrupt descriptor table
 extern void idt_init(void);

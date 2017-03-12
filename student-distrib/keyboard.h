@@ -5,6 +5,6 @@
 #include "i8259.h"
 
 extern void keyboard_init();
-extern void keyboard_interrupt();
+extern void keyboard_interrupt(char c);
 
 #endif

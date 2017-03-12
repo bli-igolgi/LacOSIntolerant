@@ -1,15 +1,15 @@
 #include "idt_handle.h"
 
-//  function pointer array for exception handlers (wrapper)
+//  function pointer array for all default exception handlers (wrapper)
 uint32_t (*except_ptr[20]) = {
     _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,				            // 0x00 - 0x04
     _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,    // 0x05 - 0x09
-    _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault,			    // 0x0A - 0x0E
+    _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault,             // 0x0A - 0x0E
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except        // 0x0F - 0x13
 };
 
-uint32_t (*intr_ptr[16]) = {
-    0, keyboard_interrupt, rtc_interrupt
+uint32_t (*intr_ptr[2]) = {
+    keyboard_interrupt, rtc_interrupt
 };
     
 /*
@@ -23,23 +23,29 @@ void idt_init(){
     
     //  fill in idt table entries #0 - #19 as trap gates
     SET_TRAP_GATE(idt_entry);
-    for(i = 0; i < 20; i++){
+    for(i = 0; i < USED_EXCEPTIONS; i++){
         if(i == 15)
-            idt[i] = empty_entry;       //intel reserved - not used
+            idt[i] = empty_entry;       // intel reserved - not used
         
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
     
-    // entries #20 - #31 are empty : intel reserved
-    for(i = 20; i < 32; i++)
+    /*  entries #20 - #31 are empty : intel reserved
+        entries #32 - #256 are user-defined         */
+    for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
     
-    // fill in idt table interrupt entries here
+    //  fill in interrupt gate entries BELOW
     SET_INTR_GATE(idt_entry);
     
-    // define rest of the entries as empty
-    for()
+    //  set keyboard interrupt at table entry #33 (Master IRQ1)
+    SET_IDT_ENTRY(idt_entry, intr_ptr[0]);
+    idt[0x21] = idt_entry;
+
+    //  set RTC interrupt at table entry #40 (Slave IRQ0)
+    SET_IDT_ENTRY(idt_entry, intr_ptr[1]);
+    idt[0x28] = idt_entry;
     
     //  fill in idt table entry #128 with system call handler
     SET_TRAP_GATE(idt_entry);
@@ -129,55 +135,55 @@ void tss_fault() {
 }
 
 void seg_np_fault() {
-	printf("Exception 0x0B: Segment not present. That's the wrong segment!");
+    printf("Exception 0x0B: Segment not present. That's the wrong segment!");
     while(1);
     return;
 }
 
 void ss_fault() {
-	printf("Exception 0x0C: Stack segment fault. Have fun debugging.");
+    printf("Exception 0x0C: Stack segment fault. Have fun debugging.");
     while(1);
     return;
 }
 
 void gen_pro_fault() {
-	printf("Exception 0x0D: General protection fault. You're violating me.");
+    printf("Exception 0x0D: General protection fault. You're violating me.");
     while(1);
     return;
 }
 
 void page_fault() {
-	printf("Exception 0x0E: Page fault. Cache me osside, how bow dat?");
+    printf("Exception 0x0E: Page fault. Cache me osside, how bow dat?");
     while(1);
     return;
 }
 
 void dne_entry() {
-	printf("Exception 0x0F: Intel reserved. Why are you even using this?");
+    printf("Exception 0x0F: Intel reserved. Why are you even using this?");
     while(1);
     return;
 }
 
 void fpu_math_fault() {
-	printf("Exception 0x10: x87 FPU Floating-Point Error.");
+    printf("Exception 0x10: x87 FPU Floating-Point Error.");
     while(1);
     return;
 }
 
 void align_fault() {
-	printf("Exception 0x11: Alignment check fault. Guess your brain needs re-alignment.");
+    printf("Exception 0x11: Alignment check fault. Guess your brain needs re-alignment.");
     while(1);
     return;
 }
 
 void machine_chk_abort() {
-	printf("Exception 0x12: Machine check abort! Another RIP, GG.");
+    printf("Exception 0x12: Machine check abort! Another RIP, GG.");
     while(1);
     return;
 }
 
 void simd_fpe_fault() {
-	printf("Exception 0x13: Floating point exception.");
+    printf("Exception 0x13: Floating point exception.");
     while(1);
     return;
 }

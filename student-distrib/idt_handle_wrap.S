@@ -107,7 +107,9 @@ _system_call:
 
 _keyboard_intr:
     pushal
+    pushl %eax              # Push the character that was pressed
     call keyboard_interrupt
+    popl %eax
     popal
     iret
 

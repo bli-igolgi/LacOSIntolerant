@@ -50,7 +50,7 @@ void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _bre
     _floating_point_error(void), _alignment_check(void), _machine_check(void), _floating_point_except(void);
 
 // Interrupt handler functions 
-void _keyboard_intr(void), _rtc_intr(void);
+extern void _keyboard_intr(void), _rtc_intr(void);
     
 // System call function 0x80
 void _system_call();

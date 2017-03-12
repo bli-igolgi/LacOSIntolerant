@@ -27,7 +27,7 @@ void * resolve_virt_addr(void * virt_addr){
 
     // Compute the offset for the page directory -- bit shifting to get top 10 bits in lowest 10
     dir_index = (uint32_t)virt_addr & TOP_10_BITS;
-    dir_index >>= 22;
+    dir_index >>= SHIFT_FOR_DIRENTRY;
 
     // Get the address of the page table or large page -- each entry is 4 bytes
     dir_addr = *(uint32_t *)(local_cr_3 + 4*dir_index);
@@ -50,7 +50,7 @@ void * resolve_virt_addr(void * virt_addr){
 
         // compute the offset of the page table entry -- bit shift to get the offset in the lowest 10 bits
         table_index = (uint32_t)virt_addr & MIDDLE_10_BITS;
-        table_index >>= 12;
+        table_index >>= SHIFT_FOR_TABLEENTRY;
 
         // compute the address to the 4kb page
         dir_addr &= ALL_BUT_LAST_12_BITS;
@@ -148,7 +148,7 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
     );
 
     // Find appropriate page directory entry using index from virtual address
-    page_dir_index = (unsigned long)virtual_addr >> 22;
+    page_dir_index = (unsigned long)virtual_addr >> SHIFT_FOR_DIRENTRY;
     page_dir_entry = page_dir_addr[page_dir_index];
 
     // check if the page directory entry is empty
@@ -176,7 +176,7 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
 
             // to make lines 172+ easier, set the base address of the new page table
             page_table_addr = (unsigned long *)page_dir_entry;
-            page_table_index = (unsigned long)virtual_addr >> 12 & 0x03FF;
+            page_table_index = (unsigned long)virtual_addr >> SHIFT_FOR_TABLEENTRY & LAST_10_BITS;
 
             // initialize all page table entries
             for(index=0;index<NUM_ENTRIES;++index)
@@ -200,7 +200,7 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
             return -1;
 
         // else keep going and check page table
-        page_table_index = (unsigned long)virtual_addr >> 12 & 0x03FF;
+        page_table_index = (unsigned long)virtual_addr >> SHIFT_FOR_TABLEENTRY & LAST_10_BITS;
         page_table_addr = (unsigned long *)(page_dir_entry & ALL_BUT_LAST_12_BITS);
         page_table_entry = page_table_addr[page_table_index];
 

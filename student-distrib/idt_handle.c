@@ -1,14 +1,14 @@
 #include "idt_handle.h"
 
 //  function pointer array for all default exception handlers (wrapper)
-uint32_t (*except_ptr[20]) = {
-    _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,				            // 0x00 - 0x04
-    _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,    // 0x05 - 0x09
-    _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault,             // 0x0A - 0x0E
-    _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except        // 0x0F - 0x13
+void (*except_ptr[20]) = {
+    _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,
+    _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,
+    _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault,
+    _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except
 };
 
-uint32_t (*intr_ptr[2]) = {
+void (*intr_ptr[2]) = {
     keyboard_interrupt, rtc_interrupt
 };
     

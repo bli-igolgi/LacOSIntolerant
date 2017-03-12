@@ -2,10 +2,11 @@
 
 .text
 
-.globl  _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow                         # vector 0x00-0x04
-.globl  _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun # 0x05 - 0x09
-.globl  _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault          # 0x0A - 0x0E
-.globl  _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except    # 0x0F - 0x13
+.globl _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow                         # vector 0x00-0x04
+.globl _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun # 0x05 - 0x09
+.globl _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault          # 0x0A - 0x0E
+.globl _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except    # 0x0F - 0x13
+.globl _keyboard_intr, _rtc_intr
 
 /* ========= EXCEPTIONS ========= */
 
@@ -91,14 +92,14 @@ _floating_point_except:
     
 /* ========= INTERRUPTS ========= */
 
-_keyboard_interrupt:
+_keyboard_intr:
     pushal
-    call keyboard_int
+    call keyboard_interrupt
     popal
     iret
 
-_rtc_interrupt:
+_rtc_intr:
     pushal
-    call rtc_int
+    call rtc_interrupt
     popal
     iret

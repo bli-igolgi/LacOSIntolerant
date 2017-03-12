@@ -5,6 +5,8 @@
 
 #include "x86_desc.h"
 #include "lib.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 //  designate idt_desc_t struct as trap gate with default values
 #define SET_TRAP_GATE(str)          \

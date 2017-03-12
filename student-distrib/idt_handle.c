@@ -11,7 +11,7 @@ void (*except_ptr[20]) = {
 //	function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
     0, _keyboard_intr, 0, 0, 0, 0, 0, 0,				// master PIC
-	_rtc_intr, 0, 0, 0, 0, 0, 0, 0						// slave PIC
+	0, 0, 0, 0, 0, 0, 0, 0						// slave PIC
 };
     
 /*
@@ -34,7 +34,8 @@ void idt_init(){
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
 
-	//	
+	
+	//	entries #32 - #47 map to master & slave PICs interrupts
 	SET_INTR_GATE(idt_entry);
 	for(i = 0x20; i <= 0x2F; i++)
 		if(intr_ptr[i - 0x20]){

@@ -11,7 +11,7 @@ void keyboard_init() {
 }
 
 void keyboard_interrupt() {
-    int c = inb(0x60);
+    uint8_t c = inb(0x60);
     putc(c);
     send_eoi(KEYBOARD_IRQ);
 }

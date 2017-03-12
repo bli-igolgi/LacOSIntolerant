@@ -10,5 +10,6 @@ void rtc_init() {
 
 /* When the rtc receives an interrupt call */
 void rtc_interrupt() {
+    printf("RTC interrupt occured");
     test_interrupts();
 }

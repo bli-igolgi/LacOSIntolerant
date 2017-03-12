@@ -13,10 +13,6 @@ uint8_t slave_mask; /* IRQs 8-15 */
 /* Initialize the 8259 PIC */
 void
 i8259_init(void) {
-    // Disable all interrupts
-    outb(MASK, MASTER_8259_PORT_2);
-    outb(MASK, SLAVE_8259_PORT_2);
-
     // Set up the master's control words
     outb(ICW1, MASTER_8259_PORT);
     outb(ICW2_MASTER, MASTER_8259_PORT_2);
@@ -28,6 +24,10 @@ i8259_init(void) {
     outb(ICW2_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW3_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW4, SLAVE_8259_PORT_2);
+
+    // Disable all interrupts
+    outb(MASK, MASTER_8259_PORT_2);
+    outb(MASK, SLAVE_8259_PORT_2);
 }
 
 /* Enable (unmask) the specified IRQ */

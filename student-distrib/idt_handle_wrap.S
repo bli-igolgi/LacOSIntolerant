@@ -9,6 +9,8 @@
 .globl _empty_handler
 .globl _keyboard_intr, _rtc_intr
 
+.globl _system_call
+
 /* ========= EXCEPTIONS ========= */
 
 _divide_by_zero:
@@ -95,7 +97,19 @@ _floating_point_except:
 _empty_handler:
     iret
     
+    .align  4
+_system_call:
+    pushl   %edx
+    pushl   %ecx
+    pushl   %ebx
+    pushl   %eax
+    call    syscall
+  
+  leal    16(%esp), %esp
+    iret
+    
 /* ========= INTERRUPTS ========= */
+    .align  4
 
 _keyboard_intr:
     pushal

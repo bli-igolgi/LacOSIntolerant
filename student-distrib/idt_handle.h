@@ -8,6 +8,9 @@
 #include "keyboard.h"
 #include "rtc.h"
 
+// How many exceptions we are using
+#define USED_EXCEPTIONS 20
+
 //  designate idt_desc_t struct as trap gate with default values
 #define SET_TRAP_GATE(str)          \
 do {                                \
@@ -36,24 +39,20 @@ do {                                \
     str.present = 1;                \
 } while(0)
 
-// How many exceptions we are using
-#define USED_EXCEPTIONS 20
-// Total number of exceptions
-#define NUM_EXCEPTIONS  32
-// The sys vector number
-#define SYS_VECTOR      0x80
-
 
 //  initializes interrupt descriptor table
 extern void idt_init(void);
 
-/*	exception handler functions #0 - #19 defined by i386	*/
+//	exception handler functions #0 - #19
 void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _breakpoint(void), _overflow(void), _bound_range_exceeded(void), 
     _undefined_opcode(void), _no_math_coprocessor(void), _double_fault(void), _coprocessor_overrun(void), _invalid_tss(void), _segment_not_present(void), 
     _stack_segment_fault(void), _general_protection(void), _page_fault(void), _intel_reserved(void), _floating_point_error(void), _alignment_check(void), 
     _machine_check(void), _floating_point_except(void), _empty_handler(void);
 
-// void _system_call(void);
+void _keyboard_intr(void), _rtc_intr(void);
+    
+//  system call function #128
+void _system_call();
 
 #endif /* ASM */
 

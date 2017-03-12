@@ -19,12 +19,13 @@
 /* ========= SYSTEM CALL ========= */
 
 _system_call:
-    # Push the necessary registers
+    # Push the necessary registers (up for 4 parameters for syscall)
     pushl   %edx
     pushl   %ecx
     pushl   %ebx
     pushl   %eax
     call    syscall
+	# Pop the 4 passed param, and return value is stored in eax
     leal    16(%esp), %esp
     iret
     

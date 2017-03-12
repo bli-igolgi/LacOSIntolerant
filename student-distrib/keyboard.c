@@ -46,20 +46,35 @@ static unsigned char keyboard_map[128] =
     0,	/* All other keys are undefined */
 };
 
-/* 
-Initializes the keyboard - should prob have a full function header
-*/
+/*
+ * void keyboard_init(void);
+ *   Inputs: void
+ *   Return Value: none
+ *   Function: Sets up keyboard to allow interrupts to commence,
+ *              and unmasks the corresponding IRQ on the PIC
+ */
 void keyboard_init() {
-    // Enables the keyboard on the master IRQ1's
     enable_irq(KEYBOARD_IRQ);
 }
 
+/*
+ * void keyboard_interrupt(void);
+ *   Inputs: void
+ *   Return Value: none
+ *   Function:	Gets kb scan code from data port when status register's input bit is set.
+ *				Convert scan code into ASCII, then write it to screen.
+ */
 void keyboard_interrupt() {
-    char c = inb(0x60);
-    putc(keyboard_map[c]);
-    send_eoi(KEYBOARD_IRQ);
+	char c;
+	
+	//	wait until status register indicates that data is ready to be read
+	while(!(inb(STATUS_PORT) & INBUF_MASK)){
+		//	only output positive scan codes (key presses) and disregard neg ones (key release)
+		if((c = inb(DATA_PORT)) >= 0)
+			putc(keyboard_map[(unsigned char)c]);
+		
+		break;
+	}
+	send_eoi(KEYBOARD_IRQ);
 }
 
-void free_keyboard(){
-	disable_irq(KEYBOARD_IRQ);
-}

@@ -22,7 +22,7 @@ void rtc_init() {
     outb(prev | BIT_6, CMOS_REG_2);
 
     // Enables the RTC on the slave's IRQ0
-    // enable_irq(RTC_IRQ);
+    enable_irq(RTC_IRQ);
 }
 
 /*
@@ -34,7 +34,7 @@ void rtc_init() {
  */
 void rtc_interrupt() {
     // printf("RTC interrupt occured");
-    test_interrupts();
+    // test_interrupts();
 
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C

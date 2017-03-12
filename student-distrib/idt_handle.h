@@ -53,7 +53,7 @@ void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _bre
 extern void _keyboard_intr(void), _rtc_intr(void);
     
 // System call function 0x80
-void _system_call();
+uint32_t _system_call();
 
 #endif /* ASM */
 

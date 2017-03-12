@@ -8,6 +8,7 @@
 #include "i8259.h"
 #include "debug.h"
 #include "idt_set.h"
+#include "paging.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -145,13 +146,13 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 	set_idt_handlers();
-	int x = 1/0;
 
 	/* Init the PIC */
 	i8259_init();
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
+	paging_init();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

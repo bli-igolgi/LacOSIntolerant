@@ -1,4 +1,5 @@
 #include "paging.h"
+#include "lib.h"
 #include "types.h"
 
 // bit masks to isolate portions of the virtual address.
@@ -10,6 +11,7 @@
 #define RW_BIT 0x2                              // is read/write set?
 #define US_BIT 0x4                              // is user/supervisor set?
 #define PAGE_SIZE_BIT 0x80                      // is this a 4MB page or a 4KB page?
+#define VIDEO 0xB8000                           // start of video memory, from lib.c
 
 // bit mask to ignore the last 12 bits when examining the page directory or a page table
 #define ALL_BUT_LAST_12_BITS 0xFFFFF000
@@ -79,16 +81,27 @@ void paging_init()
     for (index=0; index < NUM_ENTRIES; index++)
         page_directory[index] = 0;
 
+    asm volatile (
+        "movl  %0, %%cr3;\n"           // store the address of the page directory in cr3
+        :
+        : "r"(page_directory)
+    );
+
     // map the kenal in the page directory -- large page, kernal privileges, read/write
-    map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 1, 1, 1);
+    map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 1, 0, 1);
 
     // map the video memory in the page directory -- small page, user privileges, read/write
-    map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0, 0, 1);
+    map_page((void *)VIDEO, (void *)VIDEO, 0, 1, 1);
 
+    uint32_t * video_table = (uint32_t *)((uint32_t)page_directory & ALL_BUT_LAST_12_BITS);
+    for(index=0;index<NUM_ENTRIES;index++){
+        if(index != (VIDEO & MIDDLE_10_BITS) >> 12){
+            video_table[index] += PRESENT_BIT;
+        }
+    }
 
     // setting the bits to enable paging
     asm volatile (
-        "movl  %0, %%cr3;\n"           // store the address of the page directory in cr3
         "movl  %%cr4, %%edi;\n"        // set PSE flag in cr4 to enable 4Mb pages
         "orl   $0x10, %%edi;\n"
         "movl  %%edi, %%cr4;\n"
@@ -96,15 +109,15 @@ void paging_init()
         "orl   $0x80000000, %%edi;\n"
         "movl  %%edi, %%cr0;\n"
         :
-        : "r"(page_directory)
+        : 
         : "%edi"
     );
 }
 
-// returns 0 on success, -1 on failure
+// returns 0 on success, -1 on failure (last three parameters are either 0 or 1)
 int map_page(void * phys_addr, void * virtual_addr, int page_size, int privileges, int write)
 {
-    unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
+    unsigned long page_dir_index, page_dir_entry, page_table_index = 0, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;
 
     // check for valid pointers
@@ -126,7 +139,33 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
     // check if empty
     if(!(page_dir_entry & PRESENT_BIT)){
         // it's empty! set up the page/page table
-        ;
+        // is this 4kB or 4MB?
+        if(page_size == 1){
+            // store physical address in page directory entry
+            page_dir_entry = (unsigned long)phys_addr & ALL_BUT_LAST_12_BITS;
+            // make sure that it's marked as having 4MB
+            page_dir_entry += PAGE_SIZE_BIT;
+            // set the user/supervisor bit
+            page_dir_entry += privileges*US_BIT;
+            // set the read/write bit
+            page_dir_entry += write*RW_BIT;
+            // set the present bit
+            page_dir_entry += PRESENT_BIT;
+            // save this entry to the page directory
+            page_dir_addr[page_dir_index] = page_dir_entry;
+        }
+        else{
+            page_dir_entry = PAGE_TABLE_STARTADDR + SIZEOFDIR*page_dir_index;
+//            page_dir_entry = (unsigned long)((PLACEHOLDER) & ALL_BUT_LAST_12_BITS);
+            // to make lines 172+ easier, set the base address of the new page table
+            page_table_addr = (unsigned long *)page_dir_entry;
+            // and have the default page_table_index be 0
+            page_table_entry = *(page_table_addr);
+            page_dir_entry += privileges*US_BIT;
+            page_dir_entry += write*RW_BIT;
+            page_dir_entry += PRESENT_BIT;
+            page_dir_addr[page_dir_index] = page_dir_entry;
+        }
     }
     // otherwise
     else{
@@ -143,20 +182,14 @@ int map_page(void * phys_addr, void * virtual_addr, int page_size, int privilege
             return -1;
     }
 
+    if(page_size == 0){
+        page_table_entry = (unsigned long)phys_addr & ALL_BUT_LAST_12_BITS;
+        page_table_entry += privileges*US_BIT;
+        page_table_entry += write*RW_BIT;
+        page_table_entry += PRESENT_BIT;
+        page_table_addr[page_table_index] = page_table_entry;
+    }
 
-    // Make sure that both addresses are page-aligned. 
- 
-/*    unsigned long * pd = (unsigned long *)0xFFFFF000;
-    // Here you need to check whether the PD entry is present.
-    // When it is not present, you need to create a new empty PT and
-    // adjust the PDE accordingly.
- 
-    unsigned long * pt = ((unsigned long *)0xFFC00000) + (0x400 * pdindex);
-    // Here you need to check whether the PT entry is present.
-    // When it is, then there is already a mapping present. What do you do now?
- 
-    pt[ptindex] = ((unsigned long)physaddr) | (flags & 0xFFF) | 0x01; // Present
- 
     // Now you need to flush the entry in the TLB
     // or you might not notice the change.
 

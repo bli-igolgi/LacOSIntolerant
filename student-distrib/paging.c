@@ -98,14 +98,6 @@ void paging_init()
     // map the video memory in the page directory -- small page, user privileges, read/write
     map_page((void *)VIDEO, (void *)VIDEO, 0, 1, 1);
 
-    // get address of first page table
-    uint32_t * video_table = (uint32_t *)((uint32_t)(*page_directory) & ALL_BUT_LAST_12_BITS);
-    for(index=0;index<NUM_ENTRIES;index++){
-        if(index != (VIDEO & MIDDLE_10_BITS) >> 12){
-            video_table[index] += PRESENT_BIT;
-        }
-    }
-
     // setting the bits to enable paging
     asm volatile (
         // set PSE flag in cr4 to enable 4MB pages

@@ -21,10 +21,12 @@ void idt_init(){
     empty_entry.present = 0;
     int i;
     
+    for(i = 0; i < NUM_VEC; i++)
+        idt[i] = empty_entry;
+
     //  fill in idt table entries #0 - #19 as trap gates
     SET_TRAP_GATE(idt_entry);
-    for(i = 0; i < USED_EXCEPTIONS; i++)
-    {
+    for(i = 0; i < USED_EXCEPTIONS; i++){
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
@@ -37,12 +39,12 @@ void idt_init(){
     
     //  fill in interrupt gate entries BELOW
     SET_INTR_GATE(idt_entry);
-    
-    //  set keyboard interrupt at table entry #33 (Master IRQ1)
+
+    // Set the keyboard entry
     SET_IDT_ENTRY(idt_entry, intr_ptr[0]);
     idt[0x21] = idt_entry;
 
-    //  set RTC interrupt at table entry #40 (Slave IRQ0)
+    // Set the rtc entry
     SET_IDT_ENTRY(idt_entry, intr_ptr[1]);
     idt[0x28] = idt_entry;
     

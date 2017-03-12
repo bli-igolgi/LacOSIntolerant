@@ -100,8 +100,7 @@ _system_call:
     pushl   %ebx
     pushl   %eax
     call    syscall
-  
-  leal    16(%esp), %esp
+    leal    16(%esp), %esp
     iret
     
 /* ========= INTERRUPTS ========= */
@@ -109,9 +108,7 @@ _system_call:
 
 _keyboard_intr:
     pushal
-    pushl %eax              # Push the character that was pressed
     call keyboard_interrupt
-    popl %eax
     popal
     iret
 

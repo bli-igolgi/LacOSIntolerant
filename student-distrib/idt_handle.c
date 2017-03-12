@@ -1,6 +1,6 @@
 #include "idt_handle.h"
 
-//  function pointer array for all default exception handlers (wrapper)
+//  function pointer array for all 20 default exception handlers (wrapper)
 void (*except_ptr[20]) = {
     _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,
     _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,
@@ -21,9 +21,6 @@ void idt_init(){
     empty_entry.present = 0;
     int i;
     
-    for(i = 0; i < NUM_VEC; i++)
-        idt[i] = empty_entry;
-
     //  fill in idt table entries #0 - #19 as trap gates
     SET_TRAP_GATE(idt_entry);
     for(i = 0; i < USED_EXCEPTIONS; i++){
@@ -40,11 +37,11 @@ void idt_init(){
     //  fill in interrupt gate entries BELOW
     SET_INTR_GATE(idt_entry);
 
-    // Set the keyboard entry
+    // set keyboard interrupt as entry #33 (Master IRQ1)
     SET_IDT_ENTRY(idt_entry, intr_ptr[0]);
     idt[0x21] = idt_entry;
 
-    // Set the rtc entry
+    // set RTC interrupt as entry #40 (Slave IRQ0)
     SET_IDT_ENTRY(idt_entry, intr_ptr[1]);
     idt[0x28] = idt_entry;
     

@@ -33,7 +33,7 @@ i8259_init(void) {
 /* Enable (unmask) the specified IRQ */
 void
 enable_irq(uint32_t irq_num) {
-    // printf("Enabling IRQ%d\n", irq_num);
+    printf("Enabling IRQ%d\n", irq_num);
     // Master interrupt
     if(irq_num < 8) {
         master_mask &= ~(1 << irq_num);

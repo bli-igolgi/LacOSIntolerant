@@ -93,7 +93,9 @@ _floating_point_except:
     call    simd_fpe_fault
     iret
     
-    .align  4
+
+/* ========= SYSTEM CALL ========= */
+
 _system_call:
     pushl   %edx
     pushl   %ecx
@@ -104,7 +106,6 @@ _system_call:
     iret
     
 /* ========= INTERRUPTS ========= */
-    .align  4
 
 _keyboard_intr:
     pushal

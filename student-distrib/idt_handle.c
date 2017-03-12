@@ -10,8 +10,8 @@ void (*except_ptr[20]) = {
 
 //	function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
-    0, _keyboard_intr, 0, 0, 0, 0, 0, 0,				// master PIC
-	0, 0, 0, 0, 0, 0, 0, 0						// slave PIC
+    0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC
+	_rtc_intr, 0, 0, 0, 0, 0, 0, 0              // slave PIC
 };
     
 /*
@@ -35,18 +35,20 @@ void idt_init(){
         idt[i] = empty_entry;
 
 	
-	//	entries #32 - #47 map to master & slave PICs interrupts
+	// Entries 0x20 - 0x2F map to master & slave PICs interrupts
 	SET_INTR_GATE(idt_entry);
-	for(i = 0x20; i <= 0x2F; i++)
-		if(intr_ptr[i - 0x20]){
-			SET_IDT_ENTRY(idt_entry, intr_ptr[i-0x20]);
-			idt[i] = idt_entry;
+	for(i = 0; i <= 0x0F; i++)
+		if(intr_ptr[i]) {
+			SET_IDT_ENTRY(idt_entry, intr_ptr[i]);
+            // Add 0x20 to offset to the interrupt entry section
+			idt[i + 0x20] = idt_entry;
 		}
     
     // Fill in idt table entry 0x80 with system call handler (as trap)
     SET_TRAP_GATE(idt_entry);
     idt_entry.dpl = 3;
     SET_IDT_ENTRY(idt_entry, _system_call);
+    // 0x80 is the system call entry in the IDT
     idt[0x80] = idt_entry;
     
     return;

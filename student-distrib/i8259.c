@@ -29,10 +29,6 @@ i8259_init(void) {
     outb(ICW3_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW4, SLAVE_8259_PORT_2);
 
-    // Restore the old interrupts
-    outb(0xFF, MASTER_8259_PORT_2);
-    outb(0xFF, SLAVE_8259_PORT_2);
-    
     printf("pic initialized\n");
 }
 

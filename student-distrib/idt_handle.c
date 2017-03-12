@@ -30,7 +30,7 @@ void idt_init(){
     }
     
     /* entries #20 - #31 are empty : intel reserved
-       entries #32 - #256 are user-defined : devices will request them as needed */
+       entries #32 - #255 are user-defined : devices will request them as needed */
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
 

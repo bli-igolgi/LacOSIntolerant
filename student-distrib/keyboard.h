@@ -7,6 +7,7 @@
 #define KEYBOARD_IRQ 1
 
 extern void keyboard_init();
-extern void keyboard_interrupt(char c);
+extern void keyboard_interrupt();
+extern void free_keyboard();
 
 #endif

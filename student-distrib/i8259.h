@@ -25,7 +25,7 @@
 #define ICW4          0x01
 
 // Mask for hiding all interrupts
-#define MASK 0xFF
+#define OFF_MASK 0xFF
 
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC

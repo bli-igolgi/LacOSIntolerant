@@ -8,9 +8,10 @@ void (*except_ptr[20]) = {
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except
 };
 
-//
-void (*intr_ptr[2]) = {
-    _keyboard_intr, _rtc_intr
+//	function pointer array for all 16 PIC interrupt lines handlers (wrapper)
+void (*intr_ptr[16]) = {
+    0, _keyboard_intr, 0, 0, 0, 0, 0, 0,				// master PIC
+	_rtc_intr, 0, 0, 0, 0, 0, 0, 0						// slave PIC
 };
     
 /*
@@ -27,25 +28,21 @@ void idt_init(){
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
-    idt[15] = empty_entry;       // intel reserved - not used
     
     /*  entries #20 - #31 are empty : intel reserved
-        entries #32 - #256 are user-defined : we'll define them below as needed */
+        entries #32 - #256 are user-defined : devices will request them as needed */
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
-    
-    //  fill in interrupt gate entries BELOW
-    SET_INTR_GATE(idt_entry);
 
-    // set keyboard interrupt as entry #33 (Master IRQ1)
-    SET_IDT_ENTRY(idt_entry, intr_ptr[0]);
-    idt[0x21] = idt_entry;
-
-    // set RTC interrupt as entry #40 (Slave IRQ0)
-    SET_IDT_ENTRY(idt_entry, intr_ptr[1]);
-    idt[0x28] = idt_entry;
+	//	
+	SET_INTR_GATE(idt_entry);
+	for(i = 0x20; i <= 0x2F; i++)
+		if(intr_ptr[i]){
+			SET_IDT_ENTRY(idt_entry, intr_ptr[i-0x20]);
+			idt[i] = idt_entry;
+		}
     
-    //  fill in idt table entry #128 with system call handler
+    //  fill in idt table entry #128 with system call handler (as trap)
     SET_TRAP_GATE(idt_entry);
     idt_entry.dpl = 3;
     SET_IDT_ENTRY(idt_entry, _system_call);
@@ -54,12 +51,10 @@ void idt_init(){
     return;
 }
 
-/*
-    function header here 
-*/
+/* ========== System Call Handler ========== */
 int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3)
 {
-    printf("The system call you've called is not available right now. Please try again later.");
+    printf("The system call you've called is not available right now. Please try again later.\n");
     return 0;
 }
 
@@ -67,121 +62,121 @@ int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3)
 /* The following functions are all the C handling functions for interrupts */
 
 void div_zero_fault() {
-    printf("Exception 0x00: Divide-by-zero fault occurred. Do you even math?");
+    printf("Exception 0x00: Divide-by-zero fault occurred. Do you even math?\n");
     while(1);
     return;
 }
 
 void reserved_fault() {
-    printf("Exception 0x01: RESERVED. For intel used only...");
+    printf("Exception 0x01: RESERVED. For intel used only...\n");
     while(1);
     return;
 }
 
 void nmi_intr() {
-    printf("Exception 0x02: Non-maskable interrupt. Hardware wants attention.");
+    printf("Exception 0x02: Non-maskable interrupt. Hardware wants attention.\n");
     while(1);
     return;
 }
 
 void breakpoint_trap() {
-    printf("Exception 0x03: Breakpoint thrown. How long is this going to take?");
+    printf("Exception 0x03: Breakpoint thrown. How long is this going to take?\n");
     while(1);
     return;
 }
 
 void overflow_trap() {
-    printf("Exception 0x04: Overflow detected. It's too big.");
+    printf("Exception 0x04: Overflow detected. It's too big.\n");
     while(1);
     return;
 }
 
 void bound_range_fault() {
-    printf("Exception 0x05: Bounds exceeded. Try a tigher fit.");
+    printf("Exception 0x05: Bounds exceeded. Try a tigher fit.\n");
     while(1);
     return;
 }
 
 void invalid_opcode_fault() {
-    printf("Exception 0x06: Invalid opcode used. This is x86, bruh...");
+    printf("Exception 0x06: Invalid opcode used. This is x86, bruh...\n");
     while(1);
     return;
 }
 
 void device_na_fault() {
-    printf("Exception 0x07: Device not available. You gonna wait today.");
+    printf("Exception 0x07: Device not available. You gonna wait today.\n");
     while(1);
     return;
 }
 
 void double_fault_abort() {
-    printf("Exception 0x08: Double fault abort! RIP, GG.");
+    printf("Exception 0x08: Double fault abort! RIP, GG.\n");
     while(1);
     return;
 }
 
 void seg_overrun_fault() {
-    printf("Exception 0x09: Coprocessor Segment Overrun (reserved).");
+    printf("Exception 0x09: Coprocessor Segment Overrun (reserved).\n");
     while(1);
     return;
 }
 
 void tss_fault() {
-    printf("Exception 0x0A: Invalid task state segment. No task switching for you, ha.");
+    printf("Exception 0x0A: Invalid task state segment. No task switching for you, ha.\n");
     while(1);
     return;
 }
 
 void seg_np_fault() {
-    printf("Exception 0x0B: Segment not present. That's the wrong segment!");
+    printf("Exception 0x0B: Segment not present. That's the wrong segment!\n");
     while(1);
     return;
 }
 
 void ss_fault() {
-    printf("Exception 0x0C: Stack segment fault. Have fun debugging.");
+    printf("Exception 0x0C: Stack segment fault. Have fun debugging.\n");
     while(1);
     return;
 }
 
 void gen_pro_fault() {
-    printf("Exception 0x0D: General protection fault. You're violating me.");
+    printf("Exception 0x0D: General protection fault. You're violating me.\n");
     while(1);
     return;
 }
 
 void page_fault() {
-    printf("Exception 0x0E: Page fault. Cache me osside, how bow dat?");
+    printf("Exception 0x0E: Page fault. Cache me osside, how bow dat?\n");
     while(1);
     return;
 }
 
 void dne_entry() {
-    printf("Exception 0x0F: Intel reserved. Why are you even using this?");
+    printf("Exception 0x0F: Intel reserved. Why are you even using this?\n");
     while(1);
     return;
 }
 
 void fpu_math_fault() {
-    printf("Exception 0x10: x87 FPU Floating-Point Error.");
+    printf("Exception 0x10: x87 FPU Floating-Point Error.\n");
     while(1);
     return;
 }
 
 void align_fault() {
-    printf("Exception 0x11: Alignment check fault. Guess your brain needs re-alignment.");
+    printf("Exception 0x11: Alignment check fault. Guess your brain needs re-alignment.\n");
     while(1);
     return;
 }
 
 void machine_chk_abort() {
-    printf("Exception 0x12: Machine check abort! Another RIP, GG.");
+    printf("Exception 0x12: Machine check abort! Another RIP, GG.\n");
     while(1);
     return;
 }
 
 void simd_fpe_fault() {
-    printf("Exception 0x13: Floating point exception.");
+    printf("Exception 0x13: Floating point exception.\n");
     while(1);
     return;
 }

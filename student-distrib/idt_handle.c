@@ -13,10 +13,14 @@ void (*intr_ptr[16]) = {
     0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC
 	_rtc_intr, 0, 0, 0, 0, 0, 0, 0              // slave PIC
 };
-    
+
 /*
-    function header here 
-*/
+ * void idt_init(void);
+ *   Inputs: void
+ *   Return Value: none
+ *   Function: Puts the exceptions, interrupts, and system call
+ *              vectors inside the IDT, with their associated wrappers
+ */
 void idt_init(){
     idt_desc_t idt_entry, empty_entry;
     empty_entry.present = 0;

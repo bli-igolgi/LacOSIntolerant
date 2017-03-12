@@ -10,7 +10,13 @@
 uint8_t master_mask; /* IRQs 0-7 */
 uint8_t slave_mask; /* IRQs 8-15 */
 
-/* Initialize the 8259 PIC */
+
+/*
+ * void i8259_init(void);
+ *   Inputs: none
+ *   Return Value: none
+ *   Function: Sends the control words to master and slave PICs
+ */
 void
 i8259_init(void) {
     // Set up the master's control words
@@ -32,7 +38,12 @@ i8259_init(void) {
     slave_mask = OFF_MASK;
 }
 
-/* Enable (unmask) the specified IRQ */
+/*
+ * void enable_irq(uint32_t irq_num);
+ *   Inputs: irq_num = number of the irq to enable
+ *   Return Value: none
+ *   Function: Unmasks the IQR number
+ */
 void
 enable_irq(uint32_t irq_num) {
     // Master interrupt
@@ -51,7 +62,12 @@ enable_irq(uint32_t irq_num) {
         printf("Valid range: IRQ0 - IRQ15. Check yo'self befo' you rekt yo'self.\n");
 }
 
-/* Disable (mask) the specified IRQ */
+/*
+ * void disable_irq(uint32_t irq_num);
+ *   Inputs: irq_num = number of the irq to disable
+ *   Return Value: none
+ *   Function: Masks the IQR number
+ */
 void
 disable_irq(uint32_t irq_num) {
     // Master interrupt
@@ -69,7 +85,12 @@ disable_irq(uint32_t irq_num) {
         printf("Nothing to disable. Why are you like this?\n");
 }
 
-/* Send end-of-interrupt signal for the specified IRQ */
+/*
+ * void send_eoi(void);
+ *   Inputs: none
+ *   Return Value: none
+ *   Function: Send end-of-interrupt signal for the specified IRQ
+ */
 void
 send_eoi(uint32_t irq_num) {
     // Master interrupt

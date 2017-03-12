@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "i8259.h"
 
+// The IRQ number on the PIC
 #define RTC_IRQ 		8
 // The control register B for RTC
 #define CONTROL_REG_B 	0x8B

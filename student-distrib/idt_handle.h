@@ -43,7 +43,7 @@ void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _bre
     _stack_segment_fault(void), _general_protection(void), _page_fault(void), _intel_reserved(void), _floating_point_error(void), _alignment_check(void), 
     _machine_check(void), _floating_point_except(void);
 
-void _system_call(void);
+// void _system_call(void);
 
 #endif /* ASM */
 

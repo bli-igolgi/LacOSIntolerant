@@ -29,7 +29,6 @@ i8259_init(void) {
     outb(ICW3_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW4, SLAVE_8259_PORT_2);
 
-    printf("pic initialized\n");
 }
 
 /* Enable (unmask) the specified IRQ */

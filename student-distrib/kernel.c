@@ -152,15 +152,10 @@ entry (unsigned long magic, unsigned long addr)
         tss.esp0 = 0x800000;
         ltr(KERNEL_TSS);
     }
-    // uint8_t i_num = 3;
-    // interrupt(i_num);
-    // int x = 1/0;
-
-    // int *x;
-    // int y = *x;
-
     /* Init the PIC */
     i8259_init();
+    
+    /* Initialize IDT */
     idt_init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the

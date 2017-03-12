@@ -73,10 +73,10 @@ disable_irq(uint32_t irq_num) {
 void
 send_eoi(uint32_t irq_num) {
     // Master interrupt
-    if(irq_num < 8) outb(irq_num | EOI, MASTER_8259_PORT_2);
+    if(irq_num < 8) outb(irq_num | EOI, MASTER_8259_PORT);
     // Slave interrupt
     else {
-        outb((irq_num - 8) | EOI, SLAVE_8259_PORT_2);
-        outb(2 | EOI, MASTER_8259_PORT_2);
+        outb((irq_num - 8) | EOI, SLAVE_8259_PORT);
+        outb(2 | EOI, MASTER_8259_PORT);
     }
 }

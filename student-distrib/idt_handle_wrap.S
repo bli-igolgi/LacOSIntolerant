@@ -99,7 +99,8 @@ _system_call:
     pushl   %ebx
     pushl   %eax
     call    syscall
-    leal    16(%esp), %esp
+  
+  leal    16(%esp), %esp
     iret
     
 /* ========= INTERRUPTS ========= */

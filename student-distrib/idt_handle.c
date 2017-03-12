@@ -9,7 +9,7 @@ void (*except_ptr[20]) = {
 };
 
 void (*intr_ptr[2]) = {
-    keyboard_interrupt, rtc_interrupt
+    _keyboard_intr, _rtc_intr
 };
     
 /*
@@ -23,13 +23,12 @@ void idt_init(){
     
     //  fill in idt table entries #0 - #19 as trap gates
     SET_TRAP_GATE(idt_entry);
-    for(i = 0; i < USED_EXCEPTIONS; i++){
-        if(i == 15)
-            idt[i] = empty_entry;       // intel reserved - not used
-        
+    for(i = 0; i < USED_EXCEPTIONS; i++)
+    {
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
+    idt[15] = empty_entry;       // intel reserved - not used
     
     /*  entries #20 - #31 are empty : intel reserved
         entries #32 - #256 are user-defined         */

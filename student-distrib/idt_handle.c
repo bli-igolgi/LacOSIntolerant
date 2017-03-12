@@ -19,7 +19,7 @@ void idt_init(){
     idt_desc_t idt_entry, empty_entry;
     empty_entry.present = 0;
     empty_entry.dpl = 0;
-    empty_entry.seg_selector = 0;
+    empty_entry.seg_selector = KERNEL_CS;
     empty_entry.reserved4 = 0;
     SET_IDT_ENTRY(empty_entry, _empty_handler);
     int i;

@@ -22,28 +22,28 @@ void idt_init(){
     empty_entry.present = 0;
     int i;
     
-    //  fill in idt table entries #0 - #19 as trap gates
+    // Fill in idt table entries #0 - #19 as trap gates
     SET_TRAP_GATE(idt_entry);
-    for(i = 0; i < USED_EXCEPTIONS; i++){
+    for(i = 0; i < USED_EXCEPTIONS; i++) {
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
     
-    /*  entries #20 - #31 are empty : intel reserved
-        entries #32 - #256 are user-defined : devices will request them as needed */
+    /* entries #20 - #31 are empty : intel reserved
+       entries #32 - #256 are user-defined : devices will request them as needed */
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
 
 	
 	//	entries #32 - #47 map to master & slave PICs interrupts
 	SET_INTR_GATE(idt_entry);
-	for(i = 32; i < 48; i++)
-		if(intr_ptr[i-32]){
-			SET_IDT_ENTRY(idt_entry, intr_ptr[i-32]);
+	for(i = 0x20; i <= 0x2F; i++)
+		if(intr_ptr[i - 0x20]){
+			SET_IDT_ENTRY(idt_entry, intr_ptr[i-0x20]);
 			idt[i] = idt_entry;
 		}
     
-    //  fill in idt table entry #128 with system call handler (as trap)
+    // Fill in idt table entry 0x80 with system call handler (as trap)
     SET_TRAP_GATE(idt_entry);
     idt_entry.dpl = 3;
     SET_IDT_ENTRY(idt_entry, _system_call);
@@ -53,14 +53,13 @@ void idt_init(){
 }
 
 /* ========== System Call Handler ========== */
-int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3)
-{
+int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3) {
     printf("The system call you've called is not available right now. Please try again later.\n");
     return 0;
 }
 
 /* ========== Exception Handlers ========== */
-/* The following functions are all the C handling functions for interrupts */
+/* The following functions are all the C handling functions for exceptions */
 
 void div_zero_fault() {
     printf("Exception 0x00: Divide-by-zero fault occurred. Do you even math?\n");

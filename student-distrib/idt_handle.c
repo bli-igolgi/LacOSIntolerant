@@ -8,6 +8,7 @@ void (*except_ptr[20]) = {
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except
 };
 
+//
 void (*intr_ptr[2]) = {
     _keyboard_intr, _rtc_intr
 };
@@ -16,8 +17,7 @@ void (*intr_ptr[2]) = {
     function header here 
 */
 void idt_init(){
-    idt_desc_t idt_entry;
-    idt_desc_t empty_entry;
+    idt_desc_t idt_entry, empty_entry;
     empty_entry.present = 0;
     int i;
     
@@ -31,7 +31,7 @@ void idt_init(){
     idt[15] = empty_entry;       // intel reserved - not used
     
     /*  entries #20 - #31 are empty : intel reserved
-        entries #32 - #256 are user-defined         */
+        entries #32 - #256 are user-defined : we'll define them below as needed */
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
     

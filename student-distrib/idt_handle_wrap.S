@@ -6,9 +6,10 @@
 .globl _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun # 0x05 - 0x09
 .globl _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault          # 0x0A - 0x0E
 .globl _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except    # 0x0F - 0x13
-.globl _keyboard_intr, _rtc_intr
 
-.globl _system_call
+.globl _keyboard_intr, _rtc_intr        # 0x21, 0x28
+
+.globl _system_call                     # 0x80
 
 /* ========= EXCEPTIONS ========= */
 

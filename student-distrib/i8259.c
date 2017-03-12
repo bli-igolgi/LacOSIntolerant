@@ -34,16 +34,14 @@ i8259_init(void) {
 void
 enable_irq(uint32_t irq_num) {
     // printf("Enabling IRQ%d\n", irq_num);
-    // Put the mask at the correct location
-    uint32_t mask = ~(1 << irq_num);
     // Master interrupt
     if(irq_num < 8) {
-        master_mask &= mask;
+        master_mask &= ~(1 << irq_num);
         outb(master_mask, MASTER_8259_PORT_2);
     }
     // Slave interrupt
     else {
-        slave_mask &= mask;
+        slave_mask &= ~(1 << (irq_num - 8));
         outb(slave_mask, SLAVE_8259_PORT_2);
     }
 }
@@ -51,17 +49,15 @@ enable_irq(uint32_t irq_num) {
 /* Disable (mask) the specified IRQ */
 void
 disable_irq(uint32_t irq_num) {
-    // printf("Disabling IRQ%d\n", irq_num);
-    // Put the mask at the correct location
-    uint32_t mask = 1 << irq_num;
+    printf("Disabling IRQ%d\n", irq_num);
     // Master interrupt
     if(irq_num < 8) {
-        master_mask |= mask;
+        master_mask |= 1 << irq_num;
         outb(master_mask, MASTER_8259_PORT_2);
     }
     // Slave interrupt
     else {
-        slave_mask |= mask;
+        slave_mask |= 1 << (irq_num - 8);
         outb(slave_mask, SLAVE_8259_PORT_2);
     }
 }
@@ -70,9 +66,11 @@ disable_irq(uint32_t irq_num) {
 void
 send_eoi(uint32_t irq_num) {
     printf("Sending EOI for IRQ%d\n", irq_num);
-    uint32_t signal = irq_num | EOI;
     // Master interrupt
-    if(irq_num < 8) outb(signal, MASTER_8259_PORT_2);
+    if(irq_num < 8) outb(irq_num | EOI, MASTER_8259_PORT_2);
     // Slave interrupt
-    else outb(signal, SLAVE_8259_PORT_2);
+    else {
+        outb((irq_num - 8) | EOI, SLAVE_8259_PORT_2);
+        outb(2 | EOI, MASTER_8259_PORT_2);
+    }
 }

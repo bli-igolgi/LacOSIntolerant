@@ -164,13 +164,13 @@ entry (unsigned long magic, unsigned long addr)
 
     // Init the PIC
     i8259_init();
+    // Initialize the IDT
+    idt_init();
     // Init the keyboard
     keyboard_init();
     // Init the rtc
     rtc_init();
 
-    // Initialize the IDT
-    idt_init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */

@@ -16,34 +16,34 @@ void (*intr_ptr[2]) = {
     function header here 
 */
 void idt_init(){
-    idt_desc_t idt_entry;
-    idt_desc_t empty_entry;
+    idt_desc_t idt_entry, empty_entry;
     empty_entry.present = 0;
+    empty_entry.dpl = 0;
+    empty_entry.seg_selector = 0;
+    empty_entry.reserved4 = 0;
+    SET_IDT_ENTRY(empty_entry, _empty_handler);
     int i;
     
+    for(i = 0; i < NUM_VEC; i++)
+        idt[i] = empty_entry;
+
     //  fill in idt table entries #0 - #19 as trap gates
     SET_TRAP_GATE(idt_entry);
     for(i = 0; i < USED_EXCEPTIONS; i++){
-        if(i == 15)
-            idt[i] = empty_entry;       // intel reserved - not used
-        
         SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
     
-    // entries #20 - #31 are empty : intel reserved
-    for(i = USED_EXCEPTIONS; i < NUM_EXCEPTIONS; i++)
-        idt[i] = empty_entry;
     
     // fill in idt table interrupt entries here
     SET_INTR_GATE(idt_entry);
 
     // Set the keyboard entry
-    SET_IDT_ENTRY(idt_entry, intr_ptr[0]);
+    SET_IDT_ENTRY(idt_entry, keyboard_interrupt);
     idt[0x21] = idt_entry;
 
     // Set the rtc entry
-    SET_IDT_ENTRY(idt_entry, intr_ptr[1]);
+    SET_IDT_ENTRY(idt_entry, rtc_interrupt);
     idt[0x28] = idt_entry;
     
     //  fill in idt table entry #128 as system call

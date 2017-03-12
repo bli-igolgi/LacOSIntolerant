@@ -1,15 +1,15 @@
 #include "idt_handle.h"
 
 //  function pointer array for exception handlers (wrapper)
-void (*except_ptr[20]) = {
+uint32_t (*except_ptr[20]) = {
     _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,				            // 0x00 - 0x04
     _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,    // 0x05 - 0x09
     _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault,			    // 0x0A - 0x0E
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except        // 0x0F - 0x13
 };
 
-void (*intr_ptr[2]) = {
-    keyboard_interrupt, rtc_interrupt
+uint32_t (*intr_ptr[16]) = {
+    0, keyboard_interrupt, rtc_interrupt
 };
     
 /*
@@ -38,17 +38,25 @@ void idt_init(){
     // fill in idt table interrupt entries here
     SET_INTR_GATE(idt_entry);
     
+    // define rest of the entries as empty
+    for()
     
-    //  fill in idt table entry #128 as system call
+    //  fill in idt table entry #128 with system call handler
     SET_TRAP_GATE(idt_entry);
     idt_entry.dpl = 3;
-    // SET_IDT_ENTRY(idt_entry, _system_call);
+    SET_IDT_ENTRY(idt_entry, _system_call);
     idt[0x80] = idt_entry;
     
-    // define rest of the entries as empty
-    
-    
     return;
+}
+
+/*
+    function header here 
+*/
+int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3)
+{
+    printf("The system call you've called is not available right now. Please try again later.");
+    return 0;
 }
 
 /* ========== Exception Handlers ========== */

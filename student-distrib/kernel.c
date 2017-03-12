@@ -155,13 +155,6 @@ entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS);
     }
     
-    // uint8_t i_num = 3;
-    // interrupt(i_num);
-    // int x = 1/0;
-
-    // int *x;
-    // int y = *x;
-
     // Init the PIC
     i8259_init();
     // Init the keyboard

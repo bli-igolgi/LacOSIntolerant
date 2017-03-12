@@ -36,6 +36,14 @@ do {                                \
     str.present = 1;                \
 } while(0)
 
+// How many exceptions we are using
+#define USED_EXCEPTIONS 20
+// Total number of exceptions
+#define NUM_EXCEPTIONS  32
+// The sys vector number
+#define SYS_VECTOR      0x80
+
+
 //  initializes interrupt descriptor table
 extern void idt_init(void);
 

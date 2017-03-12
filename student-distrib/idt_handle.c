@@ -1,27 +1,47 @@
 #include "idt_handle.h"
 
 //  function pointer array for exception handlers (wrapper)
-void (*idt_ptr[20]) = {
+void (*except_ptr[20]) = {                                                                                   //interrupt vectors
     _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow,				            //0x00 - 0x04
     _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun,    //0x05 - 0x09
     _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault,			    //0x0A - 0x0E
     _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except        //0x0F - 0x13
     };
+    
 /*
     function header here 
 */
 void idt_init(){
-    idt_desc_t idt_entry;
+    idt_desc_t  idt_entry;
+    idt_desc_t  empty_entry; empty_entry.present = 0;
     int i;
     
-    //  make entry for trap gates
-    SET_TRAP_GATE(idt_entry);
-    
     //  fill in idt table entries #0 - #19 as trap gates
+    SET_TRAP_GATE(idt_entry);
     for(i = 0; i < 20; i++){
-        SET_IDT_ENTRY(idt_entry, idt_ptr[i]);
+        if(i == 15)
+            idt[i] = empty_entry;       //intel reserved - not used
+        
+        SET_IDT_ENTRY(idt_entry, except_ptr[i]);
         idt[i] = idt_entry;
     }
+    
+    //  entries #20 - #31 are empty : intel reserved
+    for(i = 20; i < 32; i++)
+        idt[i] = empty_entry;
+    
+    //  fill in idt table interrupt entries here
+    SET_INTR_GATE(idt_entry);
+    
+    
+    //  fill in idt table entry #128 as system call
+    SET_TRAP_GATE(idt_entry);
+    idt_entry.dpl = 3;
+    SET_IDT_ENTRY(idt_entry, _system_call);
+    idt[0x80] = idt_entry;
+    
+    //  define rest of the entries as empty
+    
     
     return;
 }

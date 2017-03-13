@@ -1,8 +1,10 @@
 #ifndef IDT_HANDLE_H
 #define IDT_HANDLE_H
 
-// How many exceptions we are using
-#define USED_EXCEPTIONS 20
+//	number of default exceptions in IDT
+#define USED_EXCEPTIONS	20
+//	number of PIC interrupts in IDT
+#define PIC_INTRS	16
 
 #ifndef ASM
 
@@ -43,16 +45,19 @@ do {                                \
 // Initializes interrupt descriptor table
 extern void idt_init(void);
 
+
+/* NOTE: the function declarations below are imported from idt_handle_wrap.S (asm wrappers for respective C functions) */
+
 // Exception handler functions #0 - #19
 void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _breakpoint(void), _overflow(void), _bound_range_exceeded(void),
     _undefined_opcode(void), _no_math_coprocessor(void), _double_fault(void), _coprocessor_overrun(void), _invalid_tss(void), 
     _segment_not_present(void), _stack_segment_fault(void), _general_protection(void), _page_fault(void), _intel_reserved(void),
     _floating_point_error(void), _alignment_check(void), _machine_check(void), _floating_point_except(void);
 
-// Interrupt handler functions 
-extern void _keyboard_intr(void), _rtc_intr(void);
+// Interrupt handler functions #32 - #47
+void _keyboard_intr(void), _rtc_intr(void);
     
-// System call function 0x80
+// System call function #128
 uint32_t _system_call();
 
 #endif /* ASM */

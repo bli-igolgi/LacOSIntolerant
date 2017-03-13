@@ -34,7 +34,7 @@ void rtc_init() {
  */
 void rtc_interrupt() {
     // printf("RTC interrupt occured");
-    // test_interrupts();
+    test_interrupts();
 
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C

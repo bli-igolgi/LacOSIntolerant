@@ -43,155 +43,254 @@ void idt_init(){
         idt[i] = empty_entry;
 
 	
-	// Entries 0x20 - 0x2F map to master & slave PICs interrupts
+	// defining entries #32 - #47 map to master & slave PICs interrupts
 	SET_INTR_GATE(idt_entry);
-    // There are 0xF interrupt vectors
-	for(i = 0; i <= 0x0F; i++)
+	for(i = 0; i < PIC_INTRS; i++)
 		if(intr_ptr[i]) {
+			//	fill in VALID (only) intr handlers from PIC lines starting at IDT index #32 / 0x20
 			SET_IDT_ENTRY(idt_entry, intr_ptr[i]);
-            // Add 0x20 to offset to the interrupt entry section
-			idt[i + 0x20] = idt_entry;
+			idt[i + 32] = idt_entry;
 		}
     
-    // Fill in idt table entry 0x80 with system call handler (as trap)
+    // Fill in idt table entry #128 / 0x80 with system call handler (as trap)
     SET_TRAP_GATE(idt_entry);
-    idt_entry.dpl = 3;
     SET_IDT_ENTRY(idt_entry, _system_call);
-    // 0x80 is the system call entry in the IDT
-    idt[0x80] = idt_entry;
+    idt[128] = idt_entry;
     
     // Load the interrupt table
     lidt(idt_desc_ptr);
 }
 
-/* ========== System Call Handler ========== */
-int32_t syscall(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3) {
+/* ========== System Call Handler ========== 
+
+	INPUTS:	cmd - 1 of 10 currently support, enumerated calls to be executed
+			arg1, arg2, arg3 - cmd-dependent argument passed in; may be 0 or junk if unused
+	OUTPUTS: returns (int) 0 on success, -1 on failure
+	EFFECTS: [currently prints a simple msg when invoked]
+*/
+int32_t sys_call(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3) {
     printf("The system call you've called is not available right now. Please try again later.\n");
     return 0;
 }
 
 /* ========== Exception Handlers ========== */
-/*
- * The following functions are all the C handling functions for exceptions
- * They all print a sarcastic message of what happened, and loop indefinitely
- */
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x00
+	INPUT:	none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void div_zero_fault() {
-    printf("Exception 0x00: Divide-by-zero fault occurred. Do you even math?\n");
+    printf("Divide-by-zero fault occurred. Do you even math?\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x01
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void reserved_fault() {
-    printf("Exception 0x01: RESERVED. For intel used only...\n");
+    printf("RESERVED. You got an exception for intel used only...\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x02
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void nmi_intr() {
-    printf("Exception 0x02: Non-maskable interrupt. Hardware wants attention.\n");
+    printf("Non-maskable interrupt triggered. Hardware wants attention bad.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x03
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void breakpoint_trap() {
-    printf("Exception 0x03: Breakpoint thrown. How long is this going to take?\n");
+    printf("Breakpoint thrown. How long is this going to take?\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x04
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void overflow_trap() {
-    printf("Exception 0x04: Overflow detected. It's too big.\n");
+    printf("Overflow detected. It's too big.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x05
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void bound_range_fault() {
-    printf("Exception 0x05: Bounds exceeded. Try a tigher fit.\n");
+    printf("Bounds exceeded. Try a tigher fit.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x06
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void invalid_opcode_fault() {
-    printf("Exception 0x06: Invalid opcode used. This is x86, bruh...\n");
+    printf("Invalid opcode used. This is x86, bruh...\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x07
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void device_na_fault() {
-    printf("Exception 0x07: Device not available. You gonna wait today.\n");
+    printf("Device not available fault. You gonna wait today.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x08
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void double_fault_abort() {
-    printf("Exception 0x08: Double fault abort! RIP, GG.\n");
+    printf("Double fault, abort! RIP, GG.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x09
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void seg_overrun_fault() {
-    printf("Exception 0x09: Coprocessor Segment Overrun (reserved).\n");
+    printf("Coprocessor Segment Overrun (reserved). Really shouldn't be getting this...\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x0A
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void tss_fault() {
-    printf("Exception 0x0A: Invalid task state segment. No task switching for you, ha.\n");
+    printf("Invalid task state segment. No context switching for you, ha.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x0B
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void seg_np_fault() {
-    printf("Exception 0x0B: Segment not present. That's the wrong segment!\n");
+    printf("Segment not present. Is your brain segment present?\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x0C
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void ss_fault() {
-    printf("Exception 0x0C: Stack segment fault. Have fun debugging.\n");
+    printf("Stack segment fault. Have fun debugging.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x0D
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void gen_pro_fault() {
-    printf("Exception 0x0D: General protection fault. You're violating me.\n");
+    printf("General protection fault. You're violating me.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x0E
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void page_fault() {
-    printf("Exception 0x0E: Page fault. Cache me osside, how bow dat?\n");
+    printf("Page fault encountered. Cache me osside, how bow dat?\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x0F
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void dne_entry() {
-    printf("Exception 0x0F: Intel reserved. Why are you even using this?\n");
+    printf("Intel reserved. Why are you even getting this?!\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x10
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void fpu_math_fault() {
-    printf("Exception 0x10: x87 FPU Floating-Point Error.\n");
+    printf("x87 FPU Floating-Point Error. No one actually knows...\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x11
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void align_fault() {
-    printf("Exception 0x11: Alignment check fault. Guess your brain needs re-alignment.\n");
+    printf("Alignment check faulted. Guess your brain also needs re-alignment.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x12
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void machine_chk_abort() {
-    printf("Exception 0x12: Machine check abort! Another RIP, GG.\n");
+    printf("Machine check failed, abort! Another RIP, GG.\n");
     while(1);
     return;
 }
 
+/*	DESCRIPTION: exception invoked for IDT vector 0x13
+	INPUT: none
+	OUTPUT: none
+	EFFECTS: prints offending error msg, stalls system indefinitely
+*/
 void simd_fpe_fault() {
-    printf("Exception 0x13: Floating point exception.\n");
+    printf("Floating point exception. IDEK, but GL.\n");
     while(1);
     return;
 }

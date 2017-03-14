@@ -25,7 +25,7 @@
 #				ecx - arg2
 #				edx - arg3
 #	  Outputs: returns 0 or -1 in eax, in accordance with sys_call (the C handler)
-#	 Clobbers: eax, ecx, edx (ebx preserved by C calling convention)
+#	 Clobbers: eax, ecx, edx (ebx preserved after call by cdecl)
 _system_call:
     # Push 4 call params from right (arg3) to left (cmd)
     pushl   %edx
@@ -63,8 +63,8 @@ _rtc_intr:
 
 /* ========= EXCEPTIONS ========= */
 /*
- * All of these call their respective C exception handler
- * and return from interrupt, though this will never happen
+ * All of these call their respective C exception handler with interrupts masked.
+ * No registers are explicitly preserved under current [tag] 5.1.7 code, as it's not necessary.
  */
 
 	.align 4

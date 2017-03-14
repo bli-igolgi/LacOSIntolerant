@@ -95,8 +95,8 @@ void paging_init()
     // map the kenal in the page directory -- large page, kernal privileges, read/write
     map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 1, 0, 1);
 
-    // map the video memory in the page directory -- small page, user privileges, read/write
-    map_page((void *)VIDEO, (void *)VIDEO, 0, 1, 1);
+    // map the video memory in the page directory -- small page, kernel privileges, read/write
+    map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1);
 
     // setting the bits to enable paging
     asm volatile (

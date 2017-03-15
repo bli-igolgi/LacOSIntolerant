@@ -5,6 +5,10 @@ To run the OS
  - Open the test_debug by running `windows_run.bat` on the windows machine
     - You cannot run this inside of QEMU
  - Run the script to target the test_debug machine by running `gdb -x test_os.sh` on the devel machine
+    - Note that this does not allow for debugging with GDB. To be able to debug with GDB:
+       - Run `gdb bootimg`
+       - Once in GDB, run `target remote 10.0.2.2:1234` (make sure test_devel window is open)
+       - Run `c` to start executing OS
 
 # ECE391 MP3 - Package contents
 

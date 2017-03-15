@@ -15,10 +15,10 @@
 
 .globl _system_call                     # 0x80
 
+.align 4
 
 /* ========= SYSTEM CALL ========= */
 /* NOTE: system call is currently rudimentary. improvements will be made once call process & implementation is clearly laid out */
-	.align 4
 # Description: wrapper to service system calls: see .c file on sys_call
 #	   Inputs:	eax - cmd
 #				ebx - arg1
@@ -39,7 +39,6 @@ _system_call:
     
 /* ========= INTERRUPTS ========= */
 
-	.align 4
 # Description: wrapper to service KEYBOARD interrupts
 #	   Inputs: none
 #	  Outputs: none
@@ -50,7 +49,6 @@ _keyboard_intr:
     popal
     iret
 
-	.align 4
 # Description: wrapper to service RTC interrupts
 #	   Inputs: none
 #	  Outputs: none
@@ -67,7 +65,6 @@ _rtc_intr:
  * No registers are explicitly preserved under current [tag] 5.1.7 code, as it's not necessary.
  */
 
-	.align 4
 # Description: exception wrapper for vector 0x00
 #	   Inputs: none
 #	  Outputs: none
@@ -76,7 +73,6 @@ _divide_by_zero:
     call    div_zero_fault
     iret
 
-	.align 4
 # Description: exception wrapper for vector 0x01
 #	   Inputs: none
 #	  Outputs: none
@@ -85,7 +81,6 @@ _reserved:
     call    reserved_fault
     iret
 
-	.align 4
 # Description: exception wrapper for vector 0x02
 #	   Inputs: none
 #	  Outputs: none
@@ -94,7 +89,6 @@ _non_maskable_interrupt:
     call    nmi_intr
     iret
 
-	.align 4
 # Description: exception wrapper for vector 0x03
 #	   Inputs: none
 #	  Outputs: none
@@ -103,7 +97,6 @@ _breakpoint:
     call    breakpoint_trap
     iret
 
-	.align 4
 # Description: exception wrapper for vector 0x04
 #	   Inputs: none
 #	  Outputs: none
@@ -112,7 +105,6 @@ _overflow:
     call    overflow_trap
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x05
 #	   Inputs: none
 #	  Outputs: none
@@ -121,7 +113,6 @@ _bound_range_exceeded:
     call    bound_range_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x06
 #	   Inputs: none
 #	  Outputs: none
@@ -130,7 +121,6 @@ _undefined_opcode:
     call    invalid_opcode_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x07
 #	   Inputs: none
 #	  Outputs: none
@@ -139,7 +129,6 @@ _no_math_coprocessor:
     call    device_na_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x08
 #	   Inputs: none
 #	  Outputs: none
@@ -148,7 +137,6 @@ _double_fault:
     call    double_fault_abort
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x09
 #	   Inputs: none
 #	  Outputs: none
@@ -157,7 +145,6 @@ _coprocessor_overrun:
     call    seg_overrun_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x0A
 #	   Inputs: none
 #	  Outputs: none
@@ -166,7 +153,6 @@ _invalid_tss:
     call    tss_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x0B
 #	   Inputs: none
 #	  Outputs: none
@@ -175,7 +161,6 @@ _segment_not_present:
     call    seg_np_fault
     iret
 
-	.align 4
 # Description: exception wrapper for vector 0x0C
 #	   Inputs: none
 #	  Outputs: none
@@ -184,7 +169,6 @@ _stack_segment_fault:
     call    ss_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x0D
 #	   Inputs: none
 #	  Outputs: none
@@ -193,7 +177,6 @@ _general_protection:
     call    gen_pro_fault
     iret
 
-	.align 4
 # Description: exception wrapper for vector 0x0E
 #	   Inputs: none
 #	  Outputs: none
@@ -202,7 +185,6 @@ _page_fault:
     call    page_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x0F
 #	   Inputs: none
 #	  Outputs: none
@@ -211,7 +193,6 @@ _intel_reserved:
     call    dne_entry
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x10
 #	   Inputs: none
 #	  Outputs: none
@@ -220,7 +201,6 @@ _floating_point_error:
     call    fpu_math_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x11
 #	   Inputs: none
 #	  Outputs: none
@@ -229,7 +209,6 @@ _alignment_check:
     call    align_fault
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x12
 #	   Inputs: none
 #	  Outputs: none
@@ -238,7 +217,6 @@ _machine_check:
     call    machine_chk_abort
     iret
     
-	.align 4
 # Description: exception wrapper for vector 0x13
 #	   Inputs: none
 #	  Outputs: none

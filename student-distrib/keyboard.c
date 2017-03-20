@@ -61,22 +61,22 @@ void keyboard_init() {
  * void keyboard_interrupt(void);
  *   Inputs: void
  *   Return Value: none
- *   Function:  Gets kb scan code from data port when status register's input bit is set.
- *              Convert scan code into ASCII, then write it to screen.
+ *   Function: Gets kb scan code from data port when status register's input bit is set.
+ *             Convert scan code into ASCII, then write it to screen.
  */
 void keyboard_interrupt() {
     char c;
     
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)){
-        // only output positive scan codes (key presses) and disregard neg ones (key release)
+        // Only output positive scan codes (key down) and disregard neg ones (key up)
         if((c = inb(DATA_PORT)) >= 0) {
-            // Testing rtc write
+            // Testing rtc write, press F1
             if(c == 59) {
-                // rtc_freq <<= 1;
-                // if(rtc_freq > 0x400)
+                // Double the frequency
+                rtc_freq <<= 1;
+                if(rtc_freq > 0x400)
                     rtc_freq = 2;
-                // printf("rtc_freq: %u", rtc_freq);
                 rtc_write(0, &rtc_freq, 4);
             }
             else

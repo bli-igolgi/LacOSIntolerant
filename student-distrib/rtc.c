@@ -74,26 +74,32 @@ int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
 
 /*
  * int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd     - The RTC file descriptor
+ *           buf    - The new rate to set the RTC to
+ *           nbytes - How many bytes to write
+ *   Return Value: The number of bytes written, or -1 if failed
+ *   Function: Writes a new interrupt rate to the RTC controller
  */
 int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
     // Get the new interrupt rate
     uint32_t new_freq = *((int *)buf),
              pow2freq = 0;
+
     // Make sure the new frequency is a power of 2 and is in range
     if(new_freq & (new_freq - 1) || new_freq > 1024 || new_freq < 2)
         return FAILURE;
 
     rtc_freq = new_freq;
     // Get the new frequency as a power of 2
-    while((new_freq >>= 1) != 1) pow2freq++;
+    do {
+        pow2freq++;
+    } while((new_freq >>= 1) != 1);
 
-    set_int_freq(16 - pow2freq);
+    // Invert the new frequency value
+    set_int_freq(0x10 - pow2freq);
 
     // The number of bytes written
-    return 4;
+    return nbytes;
 }
 
 /*

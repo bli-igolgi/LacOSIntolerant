@@ -79,6 +79,10 @@ void keyboard_interrupt() {
                     rtc_freq = 2;
                 rtc_write(0, &rtc_freq, 4);
             }
+            // Testing rtc read, press F2
+            if(c == 60) {
+                rtc_read(0, &rtc_freq, 0);
+            }
             else
                 putc(keyboard_map[(unsigned char)c]);
         }

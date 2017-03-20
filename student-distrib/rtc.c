@@ -4,6 +4,8 @@
 
 #include "rtc.h"
 
+// Global flag to indicate if the current interrupt cycle will be skipped
+static volatile uint32_t skip_interrupt = 0;
 uint32_t rtc_freq = 0x02;
 
 /*
@@ -25,7 +27,7 @@ void rtc_init() {
     outb(prev | BIT_6, CMOS_REG_2);
 
     // Set initial RTC frequency to 2
-    // set_int_freq(0x0F);
+    set_int_freq(0x0F);
 
     // Enables the RTC on the slave's IRQ0
     enable_irq(RTC_IRQ);
@@ -39,7 +41,14 @@ void rtc_init() {
  *              to allow interrupts to continue executing
  */
 void rtc_interrupt() {
-    test_interrupts();
+    // If this interrupt cycle is going to skip
+    if(skip_interrupt) {
+        skip_interrupt = 0;
+    }
+    // Otherwise, perform the following work
+    else {
+        test_interrupts();
+    }
 
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
@@ -65,10 +74,16 @@ int32_t rtc_close(int32_t fd) {
 /*
  * int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes);
  *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Return Value: 0 after a cycle has been skipped
+ *   Function: Skips an interrupt cycle
  */
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
+    skip_interrupt = 1;
+    int d = 0;
+    while(skip_interrupt) {
+        printf("waiting: %d\n",d++);
+    }
+    printf("ONE CYCLE WAS SKIPPED\n");
     return SUCCESS;
 }
 

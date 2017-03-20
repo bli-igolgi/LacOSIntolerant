@@ -10,7 +10,10 @@ struct file_desc {
 	uint32_t reserved[6];      // Reserved section is 24 bytes
 };
 
-uint32_t file_write();
+extern int32_t file_open(const uint8_t* filename);
+extern int32_t file_close(int32_t fd);
+extern int32_t file_read(int32_t fd, void *buf, int32_t nbytes);
+extern int32_t file_write(int32_t fd, const void *buf, int32_t nbytes);
 
 // Reading from directory should read all file names and add to buffer, including '.'
 // Reading from file should read all of the bytes and add to buffer, even non-printable characters

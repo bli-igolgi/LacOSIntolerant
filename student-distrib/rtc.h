@@ -16,6 +16,7 @@
 #define CMOS_REG_1 		0x70
 #define CMOS_REG_2 		0x71
 
+extern uint32_t rtc_freq;
 
 extern void rtc_init();
 extern void rtc_interrupt();

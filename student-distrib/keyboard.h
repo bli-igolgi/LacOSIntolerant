@@ -1,12 +1,15 @@
 #ifndef KEYB_H
 #define KEYB_H
 
-#include "lib.h"
+#include "driver.h"
 #include "i8259.h"
+
+// For testing RTC
+#include "rtc.h"
 
 #define KEYBOARD_IRQ 1
 
-//	PC/2 Keyboard ports
+// PC/2 Keyboard ports
 #define STATUS_PORT 0x64
 #define DATA_PORT	0x60
 #define	INBUF_MASK	0x02	//input buffer(bit 1) of status register: 1 = full, 0 = empty

@@ -4,6 +4,8 @@
 
 #include "rtc.h"
 
+uint32_t rtc_freq = 0x02;
+
 /*
  * void rtc_init(void);
  *   Inputs: void
@@ -23,7 +25,7 @@ void rtc_init() {
     outb(prev | BIT_6, CMOS_REG_2);
 
     // Set initial RTC frequency to 2
-    set_int_freq(0x0F);
+    // set_int_freq(0x0F);
 
     // Enables the RTC on the slave's IRQ0
     enable_irq(RTC_IRQ);
@@ -81,15 +83,17 @@ int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
     uint32_t new_freq = *((int *)buf),
              pow2freq = 0;
     // Make sure the new frequency is a power of 2 and is in range
-    if(!(new_freq & (new_freq - 1)) || new_freq > 1024 || new_freq < 2)
+    if(new_freq & (new_freq - 1) || new_freq > 1024 || new_freq < 2)
         return FAILURE;
 
+    rtc_freq = new_freq;
     // Get the new frequency as a power of 2
-    while(new_freq >>= 1 != 1) pow2freq++;
+    while((new_freq >>= 1) != 1) pow2freq++;
 
-    set_int_freq(pow2freq);
+    set_int_freq(16 - pow2freq);
 
-    return SUCCESS;
+    // The number of bytes written
+    return 4;
 }
 
 /*
@@ -111,6 +115,6 @@ void set_int_freq(int32_t new_freq) {
     char prev = inb(CMOS_REG_2);
     // Sets the index again (a read will reset the index to register D)
     outb(CONTROL_REG_A, CMOS_REG_1);
-    // write only our rate to A. Note, rate is the bottom 4 bits.
+    // Put the frequency divider in the bottom 4 bits of CRA
     outb(new_freq | (prev & 0xF0), CMOS_REG_2);
 }

@@ -42,3 +42,31 @@ void rtc_interrupt() {
 
     send_eoi(RTC_IRQ);
 }
+
+/*
+ *
+ */
+uint32_t rtc_open(const uint8_t* filename) {
+    return SUCCESS;
+}
+
+/*
+ *
+ */
+uint32_t rtc_close(int32_t fd) {
+    return SUCCESS;
+}
+
+/*
+ *
+ */
+uint32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
+    return SUCCESS;
+}
+
+/*
+ *
+ */
+uint32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
+    return SUCCESS;
+}

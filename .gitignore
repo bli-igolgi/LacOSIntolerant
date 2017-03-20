@@ -1,2 +1,4 @@
 student-distrib/bootimg
 student-distrib/mp3.img
+**/*.o
+Makefile.dep

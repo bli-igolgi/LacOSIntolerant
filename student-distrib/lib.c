@@ -13,6 +13,17 @@ static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
 /*
+ * void set_screen_pos(int x, int y);
+ *   Inputs: x,y - the new screen position
+ *   Return Value: none
+ *	 Function: Puts the keyboard cursor at the specified location
+ */
+void set_screen_pos(int x, int y) {
+	screen_x = x;
+	screen_y = y;
+}
+
+/*
 * void clear(void);
 *   Inputs: void
 *   Return Value: none

@@ -44,7 +44,9 @@ void keyboard_interrupt() {
             }
             // L
             if(c == 0x26 && ctrl) {
-                printf("\nCLEAR SCREEN NOW\n");
+                // Clears video memory
+                clear();
+                set_screen_pos(0, 0);
                 break;
             }
             // Left or right shift

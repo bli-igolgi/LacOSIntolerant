@@ -5,6 +5,8 @@
 // Key maps are defined in key_maps.c
 extern unsigned char reg_key_map[128];
 extern unsigned char shift_key_map[128];
+extern unsigned char caps_key_map[128];
+extern unsigned char caps_shift_key_map[128];
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
@@ -32,6 +34,7 @@ void keyboard_init() {
  */
 void keyboard_interrupt() {
     char c;
+    uint8_t c_print;
     
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
@@ -40,22 +43,23 @@ void keyboard_interrupt() {
             // Control
             if(c == 0x1D) {
                 ctrl = true;
-                break;
             }
             // L
-            if(c == 0x26 && ctrl) {
+            else if(c == 0x26 && ctrl) {
                 // Clears video memory
                 clear();
                 set_screen_pos(0, 0);
-                break;
             }
             // Left or right shift
-            if(c == 0x2A || c == 0x36) {
+            else if(c == 0x2A || c == 0x36) {
                 shift = true;
-                break;
+            }
+            // Caps lock
+            else if(c == 0x3A) {
+                caps_lock = !caps_lock;
             }
             // Testing rtc write, press F1
-            if(c == 0x3B) {
+            else if(c == 0x3B) {
                 // Double the frequency
                 rtc_freq <<= 1;
                 if(rtc_freq > 0x400)
@@ -64,25 +68,28 @@ void keyboard_interrupt() {
                 break;
             }
             // Testing rtc read, press F2
-            if(c == 0x3C) {
+            else if(c == 0x3C) {
                 rtc_read(0, &rtc_freq, 0);
-                break;
             }
+            // Regular key press
+            else {
+                if(shift && caps_lock)  c_print = caps_shift_key_map[(unsigned char)c];
+                else if(shift)          c_print = shift_key_map[(unsigned char)c];
+                else if(caps_lock)      c_print = caps_key_map[(unsigned char)c];
+                else                    c_print = reg_key_map[(unsigned char)c];
 
-            if(shift)
-                putc(shift_key_map[(unsigned char)c]);
-            else
-                putc(reg_key_map[(unsigned char)c]);
+                putc(c_print);
+            }
             // printf("key_pressed: %d\n", c);
         }
         // Negative scan codes (key up)
         else {
             switch(c) {
                 // Control
-                case -99:   ctrl = false;       break;
+                case -99: ctrl = false;   break;
                 // Left and right shift
                 case -86:
-                case -74:   shift = false;      break;
+                case -74: shift = false;  break;
                 default:
                     break;
             }

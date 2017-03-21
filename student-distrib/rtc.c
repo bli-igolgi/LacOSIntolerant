@@ -30,7 +30,7 @@ void rtc_init() {
     set_int_freq(0x0F);
 
     // Enables the RTC on the slave's IRQ0
-    enable_irq(RTC_IRQ);
+    // enable_irq(RTC_IRQ);
 }
 
 /*
@@ -42,13 +42,13 @@ void rtc_init() {
  */
 void rtc_interrupt() {
     // If this interrupt cycle is going to skip
-    if(skip_interrupt) {
+    // if(skip_interrupt == true) {
         skip_interrupt = false;
-    }
+    // }
     // Otherwise, perform the following work
-    else {
+    // else {
         test_interrupts();
-    }
+    // }
 
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
@@ -80,7 +80,7 @@ int32_t rtc_close(int32_t fd) {
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
     skip_interrupt = true;
     int d = 0;
-    while(skip_interrupt) {
+    while(skip_interrupt == true) {
         printf("waiting: %d\n",d++);
     }
     printf("ONE CYCLE WAS SKIPPED\n");

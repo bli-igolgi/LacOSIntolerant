@@ -201,7 +201,16 @@ putc(uint8_t c)
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x=0;
-    } else {
+    }
+    // Support for backspace
+    else if(c == '\b') {
+    	// Don't allow negative x values
+    	if(screen_x == 0) return;
+    	screen_x--;
+        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = 0;
+        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+    }
+    else {
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;

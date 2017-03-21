@@ -2,49 +2,15 @@
 
 #include "keyboard.h"
 
-/* The following array is taken from 
-    http://www.osdever.net/bkerndev/Docs/keyboard.htm
-   All credits where due
-*/
-static unsigned char keyboard_map[128] =
-{
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', /* 9 */
-  '9', '0', '-', '=', '\b', /* Backspace */
-  '\t',         /* Tab */
-  'q', 'w', 'e', 'r',   /* 19 */
-  't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', /* Enter key */
-    0,          /* 29   - Control */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', /* 39 */
- '\'', '`',   0,        /* Left shift */
- '\\', 'z', 'x', 'c', 'v', 'b', 'n',            /* 49 */
-  'm', ',', '.', '/',   0,              /* Right shift */
-  '*',
-    0,  /* Alt */
-  ' ',  /* Space bar */
-    0,  /* Caps lock */
-    0,  /* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,  /* < ... F10 */
-    0,  /* 69 - Num lock*/
-    0,  /* Scroll Lock */
-    0,  /* Home key */
-    0,  /* Up Arrow */
-    0,  /* Page Up */
-  '-',
-    0,  /* Left Arrow */
-    0,
-    0,  /* Right Arrow */
-  '+',
-    0,  /* 79 - End key*/
-    0,  /* Down Arrow */
-    0,  /* Page Down */
-    0,  /* Insert Key */
-    0,  /* Delete Key */
-    0,   0,   0,
-    0,  /* F11 Key */
-    0,  /* F12 Key */
-    0,  /* All other keys are undefined */
-};
+// Key maps are defined in key_maps.c
+extern unsigned char reg_key_map[128];
+extern unsigned char shift_key_map[128];
+
+// Flags for whether certain special keys are pressed
+bool ctrl       = false,
+     caps_lock  = false,
+     num_lock   = false,
+     shift      = false;
 
 /*
  * void keyboard_init(void);
@@ -68,24 +34,58 @@ void keyboard_interrupt() {
     char c;
     
     // wait until status register indicates that data is ready to be read
-    while(!(inb(STATUS_PORT) & INBUF_MASK)){
-        // Only output positive scan codes (key down) and disregard neg ones (key up)
+    while(!(inb(STATUS_PORT) & INBUF_MASK)) {
+        // Positive scan codes (key down)
         if((c = inb(DATA_PORT)) >= 0) {
+            // Control
+            if(c == 0x1D) {
+                ctrl = true;
+                break;
+            }
+            // L
+            if(c == 0x26 && ctrl) {
+                printf("\nCLEAR SCREEN NOW\n");
+                break;
+            }
+            // Left or right shift
+            if(c == 0x2A || c == 0x36) {
+                shift = true;
+                break;
+            }
             // Testing rtc write, press F1
-            if(c == 59) {
+            if(c == 0x3B) {
                 // Double the frequency
                 rtc_freq <<= 1;
                 if(rtc_freq > 0x400)
                     rtc_freq = 2;
                 rtc_write(0, &rtc_freq, 4);
+                break;
             }
             // Testing rtc read, press F2
-            if(c == 60) {
+            if(c == 0x3C) {
                 rtc_read(0, &rtc_freq, 0);
+                break;
             }
+
+            if(shift)
+                putc(shift_key_map[(unsigned char)c]);
             else
-                putc(keyboard_map[(unsigned char)c]);
+                putc(reg_key_map[(unsigned char)c]);
+            // printf("key_pressed: %d\n", c);
         }
+        // Negative scan codes (key up)
+        else {
+            switch(c) {
+                // Control
+                case -99:   ctrl = false;       break;
+                // Left and right shift
+                case -86:
+                case -74:   shift = false;      break;
+                default:
+                    break;
+            }
+        }
+        // printf("key_released: %d\n", c);
         
         break;
     }

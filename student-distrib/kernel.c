@@ -165,7 +165,7 @@ entry (unsigned long magic, unsigned long addr)
     // Init the keyboard
     keyboard_init();
     // Init the rtc
-    rtc_init();
+    // rtc_init();
 
     // Initialize paging
     paging_init();

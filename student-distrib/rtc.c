@@ -5,7 +5,7 @@
 #include "rtc.h"
 
 // Global flag to indicate if the current interrupt cycle will be skipped
-static volatile uint32_t skip_interrupt = 0;
+static volatile bool skip_interrupt = false;
 uint32_t rtc_freq = 0x02;
 
 /*
@@ -43,7 +43,7 @@ void rtc_init() {
 void rtc_interrupt() {
     // If this interrupt cycle is going to skip
     if(skip_interrupt) {
-        skip_interrupt = 0;
+        skip_interrupt = false;
     }
     // Otherwise, perform the following work
     else {
@@ -78,7 +78,7 @@ int32_t rtc_close(int32_t fd) {
  *   Function: Skips an interrupt cycle
  */
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
-    skip_interrupt = 1;
+    skip_interrupt = true;
     int d = 0;
     while(skip_interrupt) {
         printf("waiting: %d\n",d++);

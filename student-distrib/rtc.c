@@ -42,13 +42,13 @@ void rtc_init() {
  */
 void rtc_interrupt() {
     // If this interrupt cycle is going to skip
-    // if(skip_interrupt == true) {
+    if(skip_interrupt == true) {
         skip_interrupt = false;
-    // }
+    }
     // Otherwise, perform the following work
-    // else {
+    else {
         test_interrupts();
-    // }
+    }
 
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
@@ -58,26 +58,29 @@ void rtc_interrupt() {
 }
 
 /*
- * Not sure this is needed
+ * 
  */
 int32_t rtc_open(const uint8_t* filename) {
-    return SUCCESS;
+    return FAILURE;
 }
 
 /*
- * Not sure this is needed
+ * 
  */
 int32_t rtc_close(int32_t fd) {
-    return SUCCESS;
+    return FAILURE;
 }
 
 /*
  * int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes);
- *   Inputs: 
+ *   Inputs: fd     - The RTC file descriptor
+ *           buf    - unused
+ *           nbytes - How many bytes to write
  *   Return Value: 0 after a cycle has been skipped
  *   Function: Skips an interrupt cycle
  */
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
+    sti();
     skip_interrupt = true;
     int d = 0;
     while(skip_interrupt == true) {
@@ -130,6 +133,8 @@ int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
  *                  frequency = 32768 >> 14 = 2Hz
  */
 void set_int_freq(int32_t new_freq) {
+    cli();
+
     // Select register A, and disable NMI
     outb(CONTROL_REG_A, CMOS_REG_1);
     // Get data from register A
@@ -138,4 +143,6 @@ void set_int_freq(int32_t new_freq) {
     outb(CONTROL_REG_A, CMOS_REG_1);
     // Put the frequency divider in the bottom 4 bits of CRA
     outb(new_freq | (prev & 0xF0), CMOS_REG_2);
+
+    sti();
 }

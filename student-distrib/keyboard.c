@@ -90,8 +90,7 @@ void keyboard_interrupt() {
                 // Left and right shift
                 case -86:
                 case -74: shift = false;  break;
-                default:
-                    break;
+                default: break;
             }
         }
         // printf("key_released: %d\n", c);
@@ -100,4 +99,3 @@ void keyboard_interrupt() {
     }
     send_eoi(KEYBOARD_IRQ);
 }
-

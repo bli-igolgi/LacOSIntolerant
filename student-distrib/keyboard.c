@@ -38,86 +38,103 @@ void keyboard_init() {
  */
 void keyboard_interrupt() {
     char c;
-    uint8_t c_print;
-    
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
-        // Positive scan codes (key down)
-        if((c = inb(DATA_PORT)) >= 0) {
-            // Backspace
-            if(c == 0x0E) {
-                if(read_buf_index != 0) {
-                    read_buf[--read_buf_index] = 0;
-                    // If the character to remove is on the previous line
-                    if(screen_x == 0) {
-                        screen_y -= 1;
-                        screen_x = NUM_COLS;
-                    }
-                    putc('\b');
-                }
-            }
-            // Enter
-            else if(c == 0x1C) {
-                clear_buffer();
-                putc('\n');
-            }
-            // Control
-            else if(c == 0x1D)
-                ctrl = true;
-            // CTRL+L
-            else if(c == 0x26 && ctrl) {
-                // Clears video memory
-                clear();
-                clear_buffer();
-            }
-            // Left or right shift
-            else if(c == 0x2A || c == 0x36)
-                shift = true;
-            // Caps lock
-            else if(c == 0x3A)
-                caps_lock = !caps_lock;
-            // Testing rtc write, press CTRL+1
-            else if(c == 0x02 && ctrl) {
-                // Double the frequency
-                rtc_freq <<= 1;
-                if(rtc_freq > 0x400)
-                    rtc_freq = 2;
-                rtc_write(0, &rtc_freq, 4);
-            }
-            // Testing rtc read, press CTRL+2
-            else if(c == 0x03 && ctrl) {
-                rtc_read(0, &rtc_freq, 0);
-            }
-            // Regular key press
-            else {
-                if(read_buf_index == BUF_SIZE) return;
-                // Get the correct keymap
-                if(shift && caps_lock)  c_print = caps_shift_key_map[(unsigned char)c];
-                else if(shift)          c_print = shift_key_map[(unsigned char)c];
-                else if(caps_lock)      c_print = caps_key_map[(unsigned char)c];
-                else                    c_print = reg_key_map[(unsigned char)c];
-
-                read_buf[read_buf_index++] = c_print;
-                putc(c_print);
-            }
-            // printf("key_pressed: %d\n", c);
-        }
-        // Negative scan codes (key up)
-        else {
-            switch(c) {
-                // Control
-                case -99: ctrl = false;   break;
-                // Left and right shift
-                case -86:
-                case -74: shift = false;  break;
-                default: break;
-            }
-        }
-        // printf("key_released: %d\n", c);
-        
+        c = inb(DATA_PORT);
+        process_input(c);
         break;
     }
     send_eoi(KEYBOARD_IRQ);
+}
+
+
+/*
+ * void process_input(char c);
+ *   Inputs: c - the character to process
+ *   Return Value: none
+ *   Function: Performs different actions based on the key that was pressed/released
+ */
+void process_input(char c) {
+    uint8_t c_print;
+    // Positive scan codes (key down)
+    if(c >= 0) {
+        // Backspace
+        if(c == 0x0E) {
+            if(read_buf_index != 0) {
+                read_buf[--read_buf_index] = 0;
+                // If the character to remove is on the previous line
+                if(screen_x == 0) {
+                    screen_y -= 1;
+                    screen_x = NUM_COLS;
+                }
+                putc('\b');
+            }
+        }
+        // Enter
+        else if(c == 0x1C) {
+            clear_buffer();
+            putc('\n');
+        }
+        // Control
+        else if(c == 0x1D)
+            ctrl = true;
+        // CTRL+L
+        else if(c == 0x26 && ctrl) {
+            // Clears video memory
+            clear();
+            clear_buffer();
+        }
+        // Left or right shift
+        else if(c == 0x2A || c == 0x36)
+            shift = true;
+        // Caps lock
+        else if(c == 0x3A)
+            caps_lock = !caps_lock;
+        // Test case 4, press CTRL+4
+        else if(c == 0x05 && ctrl) {
+            // Enable the RTC IRQ
+            enable_irq(8);
+            clear();
+            clear_buffer();
+            // Double the frequency
+            rtc_freq <<= 1;
+            if(rtc_freq > 0x400)
+                rtc_freq = 2;
+            rtc_write(0, &rtc_freq, 4);
+        }
+        // Test case 5, press CTRL+5
+        else if(c == 0x06 && ctrl) {
+            // Enable the RTC IRQ
+            disable_irq(8);
+            clear();
+            clear_buffer();
+        }
+        // Regular key press
+        else {
+            if(read_buf_index == BUF_SIZE) return;
+            // Get the correct keymap
+            if(shift && caps_lock)  c_print = caps_shift_key_map[(unsigned char)c];
+            else if(shift)          c_print = shift_key_map[(unsigned char)c];
+            else if(caps_lock)      c_print = caps_key_map[(unsigned char)c];
+            else                    c_print = reg_key_map[(unsigned char)c];
+
+            read_buf[read_buf_index++] = c_print;
+            putc(c_print);
+        }
+        // printf("key_pressed: %d\n", c);
+    }
+    // Negative scan codes (key up)
+    else {
+        switch(c) {
+            // Control
+            case -99: ctrl = false;   break;
+            // Left and right shift
+            case -86:
+            case -74: shift = false;  break;
+            default: break;
+        }
+        // printf("key_released: %d\n", c);
+    }
 }
 
 /*

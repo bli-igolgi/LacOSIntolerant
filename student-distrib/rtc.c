@@ -42,12 +42,12 @@ void rtc_init() {
  */
 void rtc_interrupt() {
     // If this interrupt cycle is going to skip
-    if(skip_interrupt == true) {
+    if(skip_interrupt == true)
         skip_interrupt = false;
-    }
     // Otherwise, perform the following work
     else {
-        test_interrupts();
+        // test_interrupts();
+        putc('1');
     }
 
     // Need to read from register C so that new interrupts can be processed
@@ -86,13 +86,9 @@ int32_t rtc_close(int32_t fd) {
  *   Function: Skips an interrupt cycle
  */
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
-    sti();
     skip_interrupt = true;
-    int d = 0;
-    while(skip_interrupt == true) {
-        printf("waiting: %d\n",d++);
-    }
-    printf("ONE CYCLE WAS SKIPPED\n");
+    // Wait for an interrupt to occur
+    while(skip_interrupt);
     return SUCCESS;
 }
 

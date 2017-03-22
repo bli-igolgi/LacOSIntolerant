@@ -182,6 +182,9 @@ entry (unsigned long magic, unsigned long addr)
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
+    
+
+    rtc_read(0, &rtc_freq, 0);
 
     /* Execute the first program (`shell') ... */
 

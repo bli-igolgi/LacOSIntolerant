@@ -19,6 +19,7 @@
 extern void keyboard_init();
 extern void keyboard_interrupt();
 
+void process_input(char c);
 void clear_buffer(void);
 
 #endif

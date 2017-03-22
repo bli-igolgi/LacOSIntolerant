@@ -41,6 +41,7 @@ void rtc_init() {
  *              to allow interrupts to continue executing
  */
 void rtc_interrupt() {
+    cli();
     // If this interrupt cycle is going to skip
     if(skip_interrupt == true)
         skip_interrupt = false;
@@ -55,26 +56,27 @@ void rtc_interrupt() {
     inb(CMOS_REG_2);          // just throw away contents
 
     send_eoi(RTC_IRQ);
+    sti();
 }
 
 /*
  * int32_t rtc_open(const uint8_t* filename);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: filename - pointer to the filename
+ *   Return Value: 0 always
+ *   Function: Opens the RTC
  */
 int32_t rtc_open(const uint8_t* filename) {
-    return FAILURE;
+    return SUCCESS;
 }
 
 /*
  * int32_t rtc_close(int32_t fd);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd - The RTC file descriptor
+ *   Return Value: 0 always
+ *   Function: Closes the RTC
  */
 int32_t rtc_close(int32_t fd) {
-    return FAILURE;
+    return SUCCESS;
 }
 
 /*

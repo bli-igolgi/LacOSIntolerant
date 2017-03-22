@@ -8,10 +8,12 @@ extern unsigned char shift_key_map[128];
 extern unsigned char caps_key_map[128];
 extern unsigned char caps_shift_key_map[128];
 
+// Buffer for the input data from the keyboard
+unsigned char read_buf[128];
+
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
      caps_lock  = false,
-     num_lock   = false,
      shift      = false;
 
 /*
@@ -65,14 +67,13 @@ void keyboard_interrupt() {
                 if(rtc_freq > 0x400)
                     rtc_freq = 2;
                 rtc_write(0, &rtc_freq, 4);
-                break;
             }
             // Testing rtc read, press F2
             else if(c == 0x3C) {
                 rtc_read(0, &rtc_freq, 0);
             }
             // Regular key press
-            else {
+            else if(c < 128) {
                 if(shift && caps_lock)  c_print = caps_shift_key_map[(unsigned char)c];
                 else if(shift)          c_print = shift_key_map[(unsigned char)c];
                 else if(caps_lock)      c_print = caps_key_map[(unsigned char)c];

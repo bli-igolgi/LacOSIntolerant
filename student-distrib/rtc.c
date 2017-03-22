@@ -58,14 +58,20 @@ void rtc_interrupt() {
 }
 
 /*
- * 
+ * int32_t rtc_open(const uint8_t* filename);
+ *   Inputs: 
+ *   Return Value: 
+ *   Function: 
  */
 int32_t rtc_open(const uint8_t* filename) {
     return FAILURE;
 }
 
 /*
- * 
+ * int32_t rtc_close(int32_t fd);
+ *   Inputs: 
+ *   Return Value: 
+ *   Function: 
  */
 int32_t rtc_close(int32_t fd) {
     return FAILURE;

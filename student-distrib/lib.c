@@ -23,21 +23,24 @@ void set_screen_pos(int x, int y) {
 	screen_y = y;
 }
 
-
-
-/* Scrolls the screen */
+/*
+ * void scroll(void);
+ *   Inputs: none
+ *   Return Value: none
+ *	 Function: Scrolls the screen up if necessary
+ */
 void scroll(void) {
-    uint32_t blank, temp;
-
-    blank = 0x20 | (ATTRIB << 8);
-
-    // If we have reached the bottom or right of the screen
+    // If we have reached the bottom of the screen
     if(screen_y >= NUM_ROWS) {
+	    uint32_t blank, temp;
+
+	    blank = 0x20 | (ATTRIB << 8);
         temp = screen_y - NUM_ROWS + 1;
+        // Copy the screen, offset by one row, into the start of video memory
+        // This effectively erases the first line of the terminal
         memcpy(video_mem, video_mem + temp * NUM_COLS * 2, (NUM_ROWS - temp) * NUM_COLS * 2);
 
-        /* Finally, we set the chunk of memory that occupies
-        *  the last line of text to our 'blank' character */
+        // Set the last line to blank
         memset_word(video_mem + (NUM_ROWS - temp) * NUM_COLS * 2, blank, NUM_COLS);
         screen_y = NUM_ROWS - 1;
     }
@@ -223,6 +226,7 @@ putc(uint8_t c)
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
+    	scroll();
     }
     // Support for backspace
     else if(c == '\b') {
@@ -233,13 +237,13 @@ putc(uint8_t c)
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
     }
     else {
+    	scroll();
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_y = (screen_y + (screen_x / NUM_COLS));
         screen_x %= NUM_COLS;
     }
-    scroll();
 }
 
 /*

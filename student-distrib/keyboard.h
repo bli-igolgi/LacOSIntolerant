@@ -8,6 +8,8 @@
 #include "rtc.h"
 
 #define KEYBOARD_IRQ 1
+#define BUF_SIZE     128
+#define KEY_MAP_SIZE 128
 
 // PC/2 Keyboard ports
 #define STATUS_PORT 0x64
@@ -16,5 +18,7 @@
 
 extern void keyboard_init();
 extern void keyboard_interrupt();
+
+void clear_buffer(void);
 
 #endif

@@ -3,13 +3,15 @@
 #include "keyboard.h"
 
 // Key maps are defined in key_maps.c
-extern unsigned char reg_key_map[128];
-extern unsigned char shift_key_map[128];
-extern unsigned char caps_key_map[128];
-extern unsigned char caps_shift_key_map[128];
+extern unsigned char reg_key_map[KEY_MAP_SIZE];
+extern unsigned char shift_key_map[KEY_MAP_SIZE];
+extern unsigned char caps_key_map[KEY_MAP_SIZE];
+extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 
 // Buffer for the input data from the keyboard
-unsigned char read_buf[128];
+unsigned char read_buf[BUF_SIZE];
+// Holds the location of the next char in the array
+uint32_t read_buf_index = 0;
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
@@ -42,43 +44,60 @@ void keyboard_interrupt() {
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
         // Positive scan codes (key down)
         if((c = inb(DATA_PORT)) >= 0) {
-            // Control
-            if(c == 0x1D) {
-                ctrl = true;
+            // Backspace
+            if(c == 0x0E) {
+                if(read_buf_index != 0) {
+                    read_buf[--read_buf_index] = 0;
+                    // If the character to remove is on the previous line
+                    if(screen_x == 0) {
+                        screen_y -= 1;
+                        screen_x = NUM_COLS;
+                    }
+                    putc('\b');
+                }
             }
-            // L
+            // Enter
+            else if(c == 0x1C) {
+                clear_buffer();
+                putc('\n');
+            }
+            // Control
+            else if(c == 0x1D)
+                ctrl = true;
+            // CTRL+L
             else if(c == 0x26 && ctrl) {
                 // Clears video memory
                 clear();
-                set_screen_pos(0, 0);
+                clear_buffer();
             }
             // Left or right shift
-            else if(c == 0x2A || c == 0x36) {
+            else if(c == 0x2A || c == 0x36)
                 shift = true;
-            }
             // Caps lock
-            else if(c == 0x3A) {
+            else if(c == 0x3A)
                 caps_lock = !caps_lock;
-            }
-            // Testing rtc write, press F1
-            else if(c == 0x3B) {
+            // Testing rtc write, press CTRL+1
+            else if(c == 0x02 && ctrl) {
                 // Double the frequency
                 rtc_freq <<= 1;
                 if(rtc_freq > 0x400)
                     rtc_freq = 2;
                 rtc_write(0, &rtc_freq, 4);
             }
-            // Testing rtc read, press F2
-            else if(c == 0x3C) {
+            // Testing rtc read, press CTRL+2
+            else if(c == 0x03 && ctrl) {
                 rtc_read(0, &rtc_freq, 0);
             }
             // Regular key press
-            else if(c < 128) {
+            else {
+                if(read_buf_index == BUF_SIZE) return;
+                // Get the correct keymap
                 if(shift && caps_lock)  c_print = caps_shift_key_map[(unsigned char)c];
                 else if(shift)          c_print = shift_key_map[(unsigned char)c];
                 else if(caps_lock)      c_print = caps_key_map[(unsigned char)c];
                 else                    c_print = reg_key_map[(unsigned char)c];
 
+                read_buf[read_buf_index++] = c_print;
                 putc(c_print);
             }
             // printf("key_pressed: %d\n", c);
@@ -99,4 +118,15 @@ void keyboard_interrupt() {
         break;
     }
     send_eoi(KEYBOARD_IRQ);
+}
+
+/*
+ * void clear_buffer(void);
+ *   Inputs: void
+ *   Return Value: none
+ *   Function: Resets the read buffer
+ */
+void clear_buffer(void) {
+    memset(read_buf, 0, sizeof(read_buf));
+    read_buf_index = 0;
 }

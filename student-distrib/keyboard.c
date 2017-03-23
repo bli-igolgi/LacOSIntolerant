@@ -62,10 +62,11 @@ void process_input(char c) {
     if(c >= 0) {
         // Backspace
         if(c == 0x0E) {
-            if(read_buf_index != 0) {
+            // Don't backspace if nothing there
+            if(read_buf_index) {
                 read_buf[--read_buf_index] = 0;
                 // If the character to remove is on the previous line
-                if(screen_x == 0) {
+                if(!screen_x) {
                     screen_y -= 1;
                     screen_x = NUM_COLS;
                 }
@@ -97,9 +98,10 @@ void process_input(char c) {
         // Test case 4, press CTRL+4
         else if(c == 0x05 && ctrl) {
             // Enable the RTC IRQ
-            enable_irq(8);
+            enable_irq(RTC_IRQ);
             clear();
             clear_buffer();
+
             // Double the frequency
             rtc_freq <<= 1;
             if(rtc_freq > 0x400)
@@ -125,7 +127,6 @@ void process_input(char c) {
             read_buf[read_buf_index++] = c_print;
             putc(c_print);
         }
-        // printf("key_pressed: %d\n", c);
     }
     // Negative scan codes (key up)
     else {
@@ -137,7 +138,6 @@ void process_input(char c) {
             case -74: shift = false;  break;
             default: break;
         }
-        // printf("key_released: %d\n", c);
     }
 }
 

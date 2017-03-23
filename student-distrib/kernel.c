@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "idt_handle.h"
 #include "keyboard.h"
+#include "terminal.h"
 #include "rtc.h"
 #include "paging.h"
 
@@ -183,8 +184,13 @@ entry (unsigned long magic, unsigned long addr)
     printf("Enabling Interrupts\n");
     sti();
     
-
-    rtc_read(0, &rtc_freq, 0);
+    // Temporary buffer for testing terminal read/write
+    unsigned char temp_buf[BUF_SIZE];
+    terminal_write(0, "Please input your age: ", 0);
+    terminal_read(0, temp_buf, 0);
+    int32_t bytes = terminal_write(0, temp_buf, 0);
+    printf("typed: %s", temp_buf);
+    printf("bytes: %d", bytes);
 
     /* Execute the first program (`shell') ... */
 

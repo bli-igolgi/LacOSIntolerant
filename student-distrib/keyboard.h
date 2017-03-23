@@ -22,4 +22,7 @@ extern void keyboard_interrupt();
 void process_input(char c);
 void clear_buffer(void);
 
+extern unsigned char read_buf[BUF_SIZE];
+extern bool new_line;
+
 #endif

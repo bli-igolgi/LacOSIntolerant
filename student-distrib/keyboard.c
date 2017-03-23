@@ -12,6 +12,8 @@ extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 unsigned char read_buf[BUF_SIZE];
 // Holds the location of the next char in the array
 uint32_t read_buf_index = 0;
+// Flag for whether enter has been pressed
+bool new_line = false;
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
@@ -72,8 +74,10 @@ void process_input(char c) {
         }
         // Enter
         else if(c == 0x1C) {
-            clear_buffer();
+            // Set the last character in the buffer to be the newline
+            read_buf[read_buf_index < BUF_SIZE ? read_buf_index : BUF_SIZE-1] = '\n';
             putc('\n');
+            new_line = true;
         }
         // Control
         else if(c == 0x1D)

@@ -34,20 +34,32 @@ int32_t terminal_close(int32_t fd) {
  *   Function: 
  */
 int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
+    // Wait for enter to be pressed
+    while(!new_line);
     cli();
 
+    uint32_t buf_size = sizeof(read_buf);
+    memcpy(buf, read_buf, buf_size);
 
-
+    clear_buffer();
     sti();
-    return SUCCESS;
+    return buf_size;
 }
 
 /*
  * int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd     - The keyboard file descriptor
+ *           buf    - The data to write
+ *           nbytes - How many bytes to write
+ *   Return Value: The number of bytes written
+ *   Function: Prints data to the screen
  */
 int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
-    return SUCCESS;
+    cli();
+
+    int b_written;
+    b_written = printf((int8_t *)buf);
+
+    sti();
+    return b_written;
 }

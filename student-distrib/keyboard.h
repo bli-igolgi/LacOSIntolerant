@@ -21,6 +21,7 @@ extern void keyboard_init();
 extern void keyboard_interrupt();
 
 void process_input(char c);
+uint8_t get_keymap(char c);
 void clear_buffer(void);
 
 extern unsigned char read_buf[BUF_SIZE];

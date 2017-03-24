@@ -37,13 +37,11 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
     // Wait for enter to be pressed
     while(!new_line);
     cli();
+    new_line = false;
 
     uint32_t buf_size = sizeof(read_buf);
     // Move the data entered since the last newline into the buf
     memcpy(buf, read_buf, buf_size);
-
-    // Make the string null terminated
-    ((int8_t *)buf)[read_buf_index] = '\0';
 
     // Clear the old keyboard data buffer
     clear_buffer();
@@ -68,20 +66,4 @@ int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
 
     sti();
     return b_written;
-}
-
-/*
- * int32_t terminal_puts(int8_t* s);
- *   Inputs: s - pointer to a string of characters
- *   Return Value: Number of bytes written
- *   Function: Output a string to the console, terminated by the newline char
- */
-int32_t terminal_puts(int8_t* s) {
-    register int32_t index = 0;
-    while(s[index] != '\n') {
-        putc(s[index]);
-        index++;
-    }
-
-    return index;
 }

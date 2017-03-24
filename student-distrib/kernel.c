@@ -184,14 +184,13 @@ entry (unsigned long magic, unsigned long addr)
     printf("Enabling Interrupts\n");
     sti();
     
-    // Temporary buffer for testing terminal read/write
-    unsigned char temp_buf[BUF_SIZE+1];
-    terminal_write(0, "Please input your age: ", 0);
-    terminal_read(0, temp_buf, 0);
-    // printf("\n*****************\n%s\n*****************\n", temp_buf);
-    int32_t bytes = terminal_write(0, temp_buf, 0);
-    // printf("\n-------\ntyped: %s\n-------\n", temp_buf);
-    printf("bytes: %d", bytes);
+    // Testing terminal read/write
+    while(1) {
+        unsigned char temp_buf[BUF_SIZE+1];
+        terminal_write(0, "> ", 0);
+        terminal_read(0, temp_buf, 0);
+        terminal_write(0, temp_buf, 0);
+    }
 
     /* Execute the first program (`shell') ... */
 

@@ -112,7 +112,7 @@ int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
         return FAILURE;
 
     rtc_freq = new_freq;
-    // Get the new frequency as a power of 2
+    // Get the new frequency as the log of 2
     do {
         pow2freq++;
     } while((new_freq >>= 1) != 1);
@@ -133,7 +133,7 @@ int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
  *                  frequency = 32768 >> (new_freq - 1);
  *              Therefore, new_freq must be a power of 2.
  *
- *              For example, if new_freq = 0x0F, then
+ *              For example, if new_freq = 0xF, then
  *                  frequency = 32768 >> 14 = 2Hz
  */
 void set_int_freq(int32_t new_freq) {

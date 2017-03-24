@@ -7,9 +7,9 @@
 
 /*
  * int32_t terminal_open(const uint8_t* filename);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: filename - pointer to the filename
+ *   Return Value: 0 always
+ *   Function: Opens the terminal
  */
 int32_t terminal_open(const uint8_t* filename) {
     return SUCCESS;
@@ -17,9 +17,9 @@ int32_t terminal_open(const uint8_t* filename) {
 
 /*
  * int32_t terminal_close(int32_t fd);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd - The terminal file descriptor
+ *   Return Value: 0 always
+ *   Function: Closes the terminal
  */
 int32_t terminal_close(int32_t fd) {
     return SUCCESS;
@@ -34,20 +34,36 @@ int32_t terminal_close(int32_t fd) {
  *   Function: 
  */
 int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
+    // Wait for enter to be pressed
+    while(!new_line);
     cli();
+    new_line = false;
 
+    uint32_t buf_size = sizeof(read_buf);
+    // Move the data entered since the last newline into the buf
+    memcpy(buf, read_buf, buf_size);
 
-
+    // Clear the old keyboard data buffer
+    clear_buffer();
     sti();
-    return SUCCESS;
+    return buf_size;
 }
 
 /*
  * int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd     - The keyboard file descriptor
+ *           buf    - The data to write, a null terminated string
+ *           nbytes - How many bytes to write
+ *   Return Value: The number of bytes written
+ *   Function: Prints data to the screen
  */
 int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
-    return SUCCESS;
+    cli();
+
+    int b_written;
+    // Display the passed in data
+    b_written = printf((int8_t *)buf);
+
+    sti();
+    return b_written;
 }

@@ -6,6 +6,8 @@
 
 // For testing RTC
 #include "rtc.h"
+// For testing filesystem
+#include "file_system.h"
 
 #define KEYBOARD_IRQ 1
 #define BUF_SIZE     128

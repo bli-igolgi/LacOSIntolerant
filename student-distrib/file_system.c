@@ -127,11 +127,11 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         cur_block = fs_addr + (num_inodes + cur_inode[cur_block_num+1])*BLK_SIZE_BYTES;
         // find how much from this block to copy
         if(done_so_far == 0)                    // copy from specific position to end of block; only happens once
-            cur_to_do = 4096 - start_offset;
-        else if(remaining <= 4096)
+            cur_to_do = BLK_SIZE_BYTES - start_offset;
+        else if(remaining <= BLK_SIZE_BYTES)
             cur_to_do = remaining;              // copy from start of block to specific position
         else
-            cur_to_do = 4096;                   // copy entire block (middle of file with size > 4kB)
+            cur_to_do = BLK_SIZE_BYTES;                   // copy entire block (middle of file with size > 4kB)
         // do the actual copying
         memcpy(cur_block+start_offset, buf+done_so_far, cur_to_do);
         // adjust offsets

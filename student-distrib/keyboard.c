@@ -10,6 +10,9 @@
 #define L_SHIFT_P   0x2A
 #define R_SHIFT_P   0x36
 #define CAPS_LOCK_P 0x3A
+#define ONE_KEY_P   0x02
+#define TWO_KEY_P   0x03
+#define THREE_KEY_P 0x04
 #define FOUR_KEY_P  0x05
 #define FIVE_KEY_P  0x06
 
@@ -123,6 +126,30 @@ void process_input(char c) {
             case CAPS_LOCK_P:
                 caps_lock = !caps_lock;
                 break;
+            case ONE_KEY_P:
+                // Test case 1, press CTRL+1
+                if(ctrl) {
+                    // Print file name, file type, and file size for all files
+                    test_access_by_index();
+                }
+                // Treat it as a regular character
+                else goto print_char;
+            case TWO_KEY_P:
+                // Test case 2, press CTRL+2
+                if(ctrl) {
+                    test_access_by_file_name();
+                    // Read file by name (print name at end)
+                }
+                // Treat it as a regular character
+                else goto print_char;
+            case THREE_KEY_P:
+                // Test case 3, press CTRL+3
+                if(ctrl) {
+                    // Read file by index (print name at end)
+                    test_data_printing();
+                }
+                // Treat it as a regular character
+                else goto print_char;
             case FOUR_KEY_P:
                 // Test case 4, press CTRL+4
                 if(ctrl) {

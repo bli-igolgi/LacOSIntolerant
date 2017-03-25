@@ -187,12 +187,12 @@ entry (unsigned long magic, unsigned long addr)
     sti();
     
     // Testing terminal read/write
-    while(1) {
+    /* while(1) {
         unsigned char temp_buf[BUF_SIZE+1];
         terminal_write(0, "> ", 0);
         terminal_read(0, temp_buf, 0);
         terminal_write(0, temp_buf, 0);
-    }
+    } */
 
     /* Execute the first program (`shell') ... */
 

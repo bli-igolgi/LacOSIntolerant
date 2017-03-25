@@ -67,7 +67,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
     char poss_name[33] = {0};
     // Time to find this entry.
     while(i < num_dir_entries){
-        uint32_t * cur_dentry = fs_addr+(i+1)*BLK_SIZE_BYTES;
+        uint32_t * cur_dentry = fs_addr+(i+1)*ENTRY_SIZE_UINTS;
         strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
         if(!strncmp(poss_name, (int8_t *)fname, 32)){i++; continue;}
         memcpy(dentry, cur_dentry, 64);
@@ -87,8 +87,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
     uint32_t num_inodes = fs_addr[1];
     if(index < 0 || index >= num_inodes)
         return FAILURE;
-    uint32_t * cur_dentry = fs_addr+(index+1)*BLK_SIZE_BYTES;
-    memcpy(dentry, cur_dentry, 64);
+    uint32_t * cur_dentry = fs_addr+(index+1)*ENTRY_SIZE_UINTS;
+    memcpy(dentry, (dentry_t *)cur_dentry, 64);
     return SUCCESS;
 }
 
@@ -123,7 +123,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         remaining += offset-file_length; // so make sure you don't copy garbage
     while(remaining > 0){
         // find first block to copy from
-        cur_block = fs_addr + (num_inodes + cur_inode[cur_block_num+1])*BLK_SIZE_BYTES;
+        cur_block = fs_addr + (num_inodes + cur_inode[cur_block_num+1])*BLK_SIZE_UINTS;
         // find how much from this block to copy
         if(done_so_far == 0)                    // copy from specific position to end of block; only happens once
             cur_to_do = BLK_SIZE_BYTES - start_offset;
@@ -150,9 +150,9 @@ void test_access_by_index(){
    	int i, file_size;
    	for(i=0;i<num_of_files;++i){
 		read_dentry_by_index(i, &to_print);
-		strncpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
+		memcpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
 		printf("%s, %u, ", becausenonullisguaranteed, to_print.file_type);
-		file_size = fs_addr[(i+1)*ENTRY_SIZE_UINTS+FILENAME_LEN/4]; // over 4 because uint32_t indices
+		file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
 		printf("%u\n", file_size);
 	}
 }
@@ -163,7 +163,7 @@ void test_access_by_file_name(){
 	char temp_string[80];
 	uint32_t file_size, printed = 0;
 	read_dentry_by_name((uint8_t *)filename, &to_print);
-	file_size = fs_addr[(to_print.inode_num+1)*ENTRY_SIZE_UINTS+FILENAME_LEN/4]; // over 4 because uint32_t indices
+	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
 	while(file_size > 0){
 		// this is pretty dreadful but we don't have malloc yet
 		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, (file_size>=80)?80:file_size);
@@ -183,7 +183,7 @@ void test_data_printing(){
 	index_to_be_printed++;
 	index_to_be_printed %= num_of_files;
 	read_dentry_by_index(index_to_be_printed, &to_print);
-	file_size = fs_addr[(to_print.inode_num+1)*ENTRY_SIZE_UINTS+FILENAME_LEN/4];
+	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS];
 	while(file_size > 0){
 		// this is pretty dreadful but we don't have malloc yet
         howmuchtoprint = (file_size>=80)?80:file_size;

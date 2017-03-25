@@ -134,6 +134,7 @@ void process_input(char c) {
                 }
                 // Treat it as a regular character
                 else goto print_char;
+                break;
             case TWO_KEY_P:
                 // Test case 2, press CTRL+2
                 if(ctrl) {
@@ -142,6 +143,7 @@ void process_input(char c) {
                 }
                 // Treat it as a regular character
                 else goto print_char;
+                break;
             case THREE_KEY_P:
                 // Test case 3, press CTRL+3
                 if(ctrl) {
@@ -150,6 +152,7 @@ void process_input(char c) {
                 }
                 // Treat it as a regular character
                 else goto print_char;
+                break;
             case FOUR_KEY_P:
                 // Test case 4, press CTRL+4
                 if(ctrl) {

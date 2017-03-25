@@ -6,6 +6,7 @@
 #define DRIVERS_H
 
 #include "lib.h"
+#include "types.h"
 
 #define SUCCESS 0
 #define FAILURE -1

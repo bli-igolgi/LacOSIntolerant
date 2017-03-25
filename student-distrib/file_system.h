@@ -2,6 +2,14 @@
 #define FILE_SYS_H
 
 #include "driver.h"
+#define RESERVED_BOOT 13 // number of reserved bytes in boot block / 4
+#define RESERVED_USER 6  // number of reserved bytes in inodes / 4
+#define FILENAME_LEN 32  // length of filename in bytes
+#define BLK_SIZE_BYTES 4096 // size of block (bytes)
+#define BLK_SIZE_UINTS 1024 // size of block (integer array indices)
+
+unsigned int * fs_addr; // on the off-chance that the filesystem is not found at the
+                      // same addr each time; this is set in kernel.c
 
 typedef struct dentry_t {
 	uint32_t file_name[8];     // File name is 32 bytes
@@ -9,6 +17,13 @@ typedef struct dentry_t {
 	uint32_t inode_num;
 	uint32_t reserved[6];      // Reserved section is 24 bytes
 } dentry_t;
+
+typedef struct fdesc_t {
+	uint32_t file_ops;
+	uint32_t inode;
+	uint32_t file_position;
+	uint32_t flags;
+} fdesc_t;
 
 extern int32_t fsys_open(const uint8_t* filename);
 extern int32_t fsys_close(int32_t fd);

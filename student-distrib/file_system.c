@@ -3,6 +3,7 @@
  */
 
 #include "file_system.h"
+#include "keyboard.h"
 
 /*
  * int32_t fsys_open(const uint8_t* filename);
@@ -69,7 +70,10 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
     while(i < num_dir_entries){
         uint32_t * cur_dentry = fs_addr+(i+1)*ENTRY_SIZE_UINTS;
         strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
-        if(!strncmp(poss_name, (int8_t *)fname, 32)){i++; continue;}
+        if(strncmp(poss_name, (int8_t *)fname, strlen((int8_t *)fname))){
+            i++;
+            continue;
+        }
         memcpy(dentry, cur_dentry, 64);
         return SUCCESS;
     }
@@ -109,35 +113,39 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
              cur_to_do,
              remaining = length,
              done_so_far = 0;
-    uint32_t* cur_block = NULL;
+    uint8_t* cur_block = NULL;
     uint32_t* cur_inode;
     if(inode >= num_inodes)
         return FAILURE;
-    cur_inode = fs_addr + (inode+1)*BLK_SIZE_BYTES;
+    cur_inode = fs_addr + (inode+1)*BLK_SIZE_UINTS;
     file_length = cur_inode[0];
     if(offset > file_length)
         return FAILURE;
     if(offset == file_length)
         return SUCCESS;
-    if(offset+remaining >= file_length)  // not all of the bytes will be copied,
+    if(offset+remaining > file_length)  // not all of the bytes will be copied,
         remaining += offset-file_length; // so make sure you don't copy garbage
     while(remaining > 0){
         // find first block to copy from
-        cur_block = fs_addr + (num_inodes + cur_inode[cur_block_num+1])*BLK_SIZE_UINTS;
+        cur_block = (uint8_t *)fs_addr + (num_inodes + cur_inode[cur_block_num+1] + 1)*BLK_SIZE_BYTES;
         // find how much from this block to copy
-        if(done_so_far == 0)                    // copy from specific position to end of block; only happens once
-            cur_to_do = BLK_SIZE_BYTES - start_offset;
+        if(done_so_far == 0){                    // copy from specific position to end of block; only happens once
+            if(start_offset+remaining > BLK_SIZE_BYTES)
+                cur_to_do = BLK_SIZE_BYTES - start_offset;
+            else
+                cur_to_do = remaining;
+        }
         else if(remaining <= BLK_SIZE_BYTES)
             cur_to_do = remaining;              // copy from start of block to specific position
         else
             cur_to_do = BLK_SIZE_BYTES;                   // copy entire block (middle of file with size > 4kB)
         // do the actual copying
-        memcpy(cur_block+start_offset, buf+done_so_far, cur_to_do);
+        memcpy(buf+done_so_far, cur_block+start_offset, cur_to_do);
         // adjust offsets
         start_offset = 0;
         done_so_far += cur_to_do;
         remaining -= cur_to_do;
-        cur_block_num+=1;
+        cur_block_num++;
     }
     return done_so_far;
 }
@@ -148,6 +156,9 @@ void test_access_by_index(){
 	becausenonullisguaranteed[32] = '\0';
 	uint32_t num_of_files = fs_addr[0];
    	int i, file_size;
+    clear();
+    clear_buffer();
+    set_cursor_pos(0, 0);
    	for(i=0;i<num_of_files;++i){
 		read_dentry_by_index(i, &to_print);
 		memcpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
@@ -160,16 +171,22 @@ void test_access_by_index(){
 void test_access_by_file_name(){
 	char* filename = "frame0.txt";
 	dentry_t to_print;
-	char temp_string[80];
-	uint32_t file_size, printed = 0;
+	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
+	uint32_t file_size, printed = 0, how_much;
+    clear();
+    clear_buffer();
+    set_cursor_pos(0, 0);
 	read_dentry_by_name((uint8_t *)filename, &to_print);
 	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
 	while(file_size > 0){
 		// this is pretty dreadful but we don't have malloc yet
-		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, (file_size>=80)?80:file_size);
+        how_much = (file_size>=NUM_COLS)?NUM_COLS:file_size;
+		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, how_much);
+        if(how_much < NUM_COLS)
+            memset(temp_string+how_much, 0, NUM_COLS-how_much);
 		printf("%s", temp_string);
-		file_size -= 80;
-		printed += 80;
+		file_size -= how_much;
+		printed += how_much;
 	}
 	printf("\n%s", to_print.file_name);
 }
@@ -179,20 +196,23 @@ void test_data_printing(){
 	int num_of_files = fs_addr[0], howmuchtoprint;
 	static int index_to_be_printed = 0;
 	uint32_t file_size, printed = 0;
-	char temp_string[80] = {0};
+	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
+    clear();
+    clear_buffer();
+    set_cursor_pos(0, 0);
 	index_to_be_printed++;
 	index_to_be_printed %= num_of_files;
 	read_dentry_by_index(index_to_be_printed, &to_print);
 	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS];
 	while(file_size > 0){
 		// this is pretty dreadful but we don't have malloc yet
-        howmuchtoprint = (file_size>=80)?80:file_size;
+        howmuchtoprint = (file_size>=NUM_COLS)?NUM_COLS:file_size;
 		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, howmuchtoprint);
-        if(howmuchtoprint < 80)
+        if(howmuchtoprint < NUM_COLS)
             memset(temp_string+howmuchtoprint, 0, 80-howmuchtoprint);
 		printf("%s", temp_string);
-		file_size -= 80;
-		printed += 80;
+		file_size -= howmuchtoprint;
+		printed += howmuchtoprint;
 	}
 	printf("\n%s", to_print.file_name);	
 }

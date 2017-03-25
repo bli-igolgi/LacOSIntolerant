@@ -160,7 +160,7 @@ void process_input(char c) {
                     enable_irq(RTC_IRQ);
                     clear();
                     clear_buffer();
-
+                    set_cursor_pos(0, 0);
                     // Double the frequency
                     rtc_freq <<= 1;
                     // Don't allow to go above 1024 Hz
@@ -178,6 +178,7 @@ void process_input(char c) {
                     disable_irq(RTC_IRQ);
                     clear();
                     clear_buffer();
+                    set_cursor_pos(0, 0);
                     break;
                 }
                 // Treat it as a regular character

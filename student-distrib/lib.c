@@ -20,6 +20,23 @@ void set_screen_pos(int x, int y) {
 }
 
 /*
+ * void set_cursor_pos(int row, int col);
+ *   Inputs: row,col - the new cursor position
+ *   Return Value: none
+ *	 Function: Puts the cursor at the specified location
+ */
+void set_cursor_pos(int row, int col) {
+	uint16_t position = (row * 80) + col;
+
+	// Cursor LOW port to vga INDEX register
+	outb(0x0F, 0x3D4);
+	outb((unsigned char)(position & 0xFF), 0x3D5);
+	// Cursor HIGH port to vga INDEX register
+	outb(0x0E, 0x3D4);
+	outb((unsigned char )((position >> 8) & 0xFF), 0x3D5);
+}
+
+/*
  * void scroll(void);
  *   Inputs: none
  *   Return Value: none
@@ -245,6 +262,7 @@ putc(uint8_t c)
         // Move to the next column
         screen_x++;
     }
+    set_cursor_pos(screen_y, screen_x);
 }
 
 /*

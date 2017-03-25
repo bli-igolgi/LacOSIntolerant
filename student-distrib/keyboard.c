@@ -111,6 +111,7 @@ void process_input(char c) {
                     // Clears video memory
                     clear();
                     clear_buffer();
+                    set_cursor_pos(0, 0);
                     break;
                 }
                 // Treat it as a regular character

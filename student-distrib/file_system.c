@@ -68,8 +68,8 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
     // Time to find this entry.
     while(i < num_dir_entries){
         uint32_t * cur_dentry = fs_addr+(i+1)*BLK_SIZE_BYTES;
-        strncpy(poss_name, cur_dentry, FILENAME_LEN);
-        if(!strcmp(poss_name, fname, 32)){i++; continue;}
+        strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
+        if(!strncmp(poss_name, (int8_t *)fname, 32)){i++; continue;}
         memcpy(dentry, cur_dentry, 64);
         return SUCCESS;
     }
@@ -103,7 +103,6 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
     uint32_t num_inodes = fs_addr[1],
-             num_data_blocks = fs_addr[2];
              file_length,
              start_offset = offset%BLK_SIZE_BYTES,
              cur_block_num = offset/BLK_SIZE_BYTES,
@@ -138,7 +137,62 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         start_offset = 0;
         done_so_far += cur_to_do;
         remaining -= cur_to_do;
+        cur_block_num+=1;
     }
     return done_so_far;
 }
 
+void test_access_by_index(){
+	dentry_t to_print;
+	char becausenonullisguaranteed[33];
+	becausenonullisguaranteed[32] = '\0';
+	uint32_t num_of_files = fs_addr[0];
+   	int i, file_size;
+   	for(i=0;i<num_of_files;++i){
+		read_dentry_by_index(i, &to_print);
+		strncpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
+		printf("%s, %u, ", becausenonullisguaranteed, to_print.file_type);
+		file_size = fs_addr[(i+1)*ENTRY_SIZE_UINTS+FILENAME_LEN/4]; // over 4 because uint32_t indices
+		printf("%u\n", file_size);
+	}
+}
+
+void test_access_by_file_name(){
+	char* filename = "frame0.txt";
+	dentry_t to_print;
+	char temp_string[80];
+	uint32_t file_size, printed = 0;
+	read_dentry_by_name((uint8_t *)filename, &to_print);
+	file_size = fs_addr[(to_print.inode_num+1)*ENTRY_SIZE_UINTS+FILENAME_LEN/4]; // over 4 because uint32_t indices
+	while(file_size > 0){
+		// this is pretty dreadful but we don't have malloc yet
+		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, (file_size>=80)?80:file_size);
+		printf("%s", temp_string);
+		file_size -= 80;
+		printed += 80;
+	}
+	printf("\n%s", to_print.file_name);
+}
+
+void test_data_printing(){
+	static dentry_t to_print;
+	int num_of_files = fs_addr[0], howmuchtoprint;
+	static int index_to_be_printed = 0;
+	uint32_t file_size, printed = 0;
+	char temp_string[80] = {0};
+	index_to_be_printed++;
+	index_to_be_printed %= num_of_files;
+	read_dentry_by_index(index_to_be_printed, &to_print);
+	file_size = fs_addr[(to_print.inode_num+1)*ENTRY_SIZE_UINTS+FILENAME_LEN/4];
+	while(file_size > 0){
+		// this is pretty dreadful but we don't have malloc yet
+        howmuchtoprint = (file_size>=80)?80:file_size;
+		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, howmuchtoprint);
+        if(howmuchtoprint < 80)
+            memset(temp_string+howmuchtoprint, 0, 80-howmuchtoprint);
+		printf("%s", temp_string);
+		file_size -= 80;
+		printed += 80;
+	}
+	printf("\n%s", to_print.file_name);	
+}

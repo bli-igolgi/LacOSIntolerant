@@ -5,21 +5,29 @@
 #include "file_system.h"
 #include "keyboard.h"
 
+// Until the process control blocks are set up for each process, fd will just refer to the index
+// of the file that is opened. All lines with the comment THISISAHACKSEEABOVE may be safely commented out
+// and removed to prevent this behavior.
+
 /*
  * int32_t fsys_open(const uint8_t* filename);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: filename -- name of file to be opened
+ *   Return Value: 0 on success (every time at this point)
+ *   Function: system call to open a file
  */
 int32_t fsys_open(const uint8_t* filename) {
-    return SUCCESS;
+    int32_t fd = SUCCESS;
+    dentry_t new_entry;                         //THISISAHACKSEEABOVE
+    read_dentry_by_name(filename, &new_entry);  //THISISAHACKSEEABOVE
+    fd = new_entry.reserved[0];               //THISISAHACKSEEABOVE
+    return fd;
 }
 
 /*
  * int32_t fsys_close(int32_t fd);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd -- file descriptor of open file
+ *   Return Value: 0 on success (every time at this point)
+ *   Function: system call to close a file
  */
 int32_t fsys_close(int32_t fd) {
     return SUCCESS;
@@ -27,32 +35,40 @@ int32_t fsys_close(int32_t fd) {
 
 /*
  * int32_t fsys_read_file(int32_t fd, void *buf, int32_t nbytes);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd -- file descriptor of open file
+ *           buf -- pointer to location to which data will be copied
+ *           nbytes -- number of bytes to be copied
+ *   Return Value: number of bytes read (which is 0 at every point)
+ *   Function: system call to read from a file
  */
 int32_t fsys_read_file(int32_t fd, void *buf, int32_t nbytes) {
+    // This does not work without actual file descriptors.
     return SUCCESS;
 }
 
 /*
  * int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd -- file descriptor of given directory
+ *           buf -- pointer to location to which data will be copied
+ *           nbytes -- number of bytes to be copied
+ *   Return Value: 0 on success (every time at this point)
+ *   Function: system call to read from a directory
  */
 int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes) {
+    // This does not work without actual file descriptors.
     return SUCCESS;
 }
 
 /*
  * int32_t fsys_write(int32_t fd, const void *buf, int32_t nbytes);
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd -- file descriptor of given directory
+ *           buf -- pointer to location to which data will be copied
+ *           nbytes -- number of bytes to be copied
+ *   Return Value: -1 on failure (every time at this point)
+ *   Function: system call to write to a file
  */
 int32_t fsys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    return FAILURE;
+    return FAILURE; // 3.2: Parse the _Read-Only_ File System
 }
 
 /*
@@ -63,18 +79,22 @@ int32_t fsys_write(int32_t fd, const void *buf, int32_t nbytes) {
  *   Function: Reads a directory entry based on a given file name.
  */
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
+    // Initialize number of directory entries, a counter, and a buffer for prospective filenames.
     uint32_t num_dir_entries = fs_addr[0];
     int i = 0;
     char poss_name[33] = {0};
     // Time to find this entry.
     while(i < num_dir_entries){
+        // Find the right address, perform the appropriate string copy, and check the two.
         uint32_t * cur_dentry = fs_addr+(i+1)*ENTRY_SIZE_UINTS;
         strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
         if(strncmp(poss_name, (int8_t *)fname, strlen((int8_t *)fname))){
             i++;
             continue;
         }
+        // Copy the directory entry and be done!
         memcpy(dentry, cur_dentry, 64);
+        dentry->reserved[0] = i; //THISISAHACKSEEABOVE
         return SUCCESS;
     }
     return FAILURE;
@@ -88,11 +108,15 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
  *   Function: Reads a directory entry based on a given index node.
  */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
+    // Get number of inodes.
     uint32_t num_inodes = fs_addr[1];
-    if(index < 0 || index >= num_inodes)
+    // Fail if given index is not in the valid range.
+    if(index >= num_inodes)
         return FAILURE;
+    // Find the appropriate dentry, copy it, and be done!
     uint32_t * cur_dentry = fs_addr+(index+1)*ENTRY_SIZE_UINTS;
     memcpy(dentry, (dentry_t *)cur_dentry, 64);
+    dentry->reserved[0] = index; // THISISAHACKSEEABOVE
     return SUCCESS;
 }
 
@@ -106,39 +130,52 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
  *   Function: Reads data from a particular file given its inode and a starting point.
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
-    uint32_t num_inodes = fs_addr[1],
-             file_length,
-             start_offset = offset%BLK_SIZE_BYTES,
-             cur_block_num = offset/BLK_SIZE_BYTES,
-             cur_to_do,
-             remaining = length,
-             done_so_far = 0;
+    // Set up...
+    uint32_t num_inodes = fs_addr[1],                //           the number of inodes,
+             num_blocks = fs_addr[2],                //           the number of data blocks,
+             file_length,                            // space for the length of the file,
+             start_offset = offset%BLK_SIZE_BYTES,   //           the starting offset (for each block),
+             cur_block_num = offset/BLK_SIZE_BYTES,  //           the starting block number,
+             end_block_num,                          //           the ending block number,
+             cur_to_do,                              //           the number of bytes to copy from a block,
+             remaining = length,                     //           the number of remaining bytes to copy,
+             done_so_far = 0,                        //           the number of bytes copied so far,
+             i;                                      //       and a counter.
+    // Set up pointers to the current block and inode.
     uint8_t* cur_block = NULL;
     uint32_t* cur_inode;
+    // Fail if inode index is not in valid range.
     if(inode >= num_inodes)
         return FAILURE;
+    // Find the appropriate inode, get the file length, and be done if offset is not in valid range.
     cur_inode = fs_addr + (inode+1)*BLK_SIZE_UINTS;
     file_length = cur_inode[0];
-    if(offset > file_length)
-        return FAILURE;
-    if(offset == file_length)
+    if(offset >= file_length)
         return SUCCESS;
-    if(offset+remaining > file_length)  // not all of the bytes will be copied,
+    // Truncate if necessary.
+    if(offset+remaining > file_length)   // if this is true, then not all of the bytes will be copied,
         remaining += offset-file_length; // so make sure you don't copy garbage
+    // Check that a bad data block isn't present.
+    end_block_num = (file_length-1)/BLK_SIZE_BYTES;
+    for(i=cur_block_num;i<=end_block_num;++i)
+        if(cur_inode[i+1] > num_blocks)
+            return FAILURE;
     while(remaining > 0){
         // find first block to copy from
         cur_block = (uint8_t *)fs_addr + (num_inodes + cur_inode[cur_block_num+1] + 1)*BLK_SIZE_BYTES;
         // find how much from this block to copy
-        if(done_so_far == 0){                    // copy from specific position to end of block; only happens once
+        if(done_so_far == 0){ // only happens once
+            // copy from specific position to end of block if we need more than one block
             if(start_offset+remaining > BLK_SIZE_BYTES)
                 cur_to_do = BLK_SIZE_BYTES - start_offset;
+            // else just do the whole thing
             else
                 cur_to_do = remaining;
         }
         else if(remaining <= BLK_SIZE_BYTES)
-            cur_to_do = remaining;              // copy from start of block to specific position
+            cur_to_do = remaining;      // copy from start of block to specific position
         else
-            cur_to_do = BLK_SIZE_BYTES;                   // copy entire block (middle of file with size > 4kB)
+            cur_to_do = BLK_SIZE_BYTES; // copy entire block (middle of file with size > 4kB)
         // do the actual copying
         memcpy(buf+done_so_far, cur_block+start_offset, cur_to_do);
         // adjust offsets
@@ -147,6 +184,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         remaining -= cur_to_do;
         cur_block_num++;
     }
+    // be done
     return done_so_far;
 }
 
@@ -169,10 +207,10 @@ void test_access_by_index(){
 }
 
 void test_access_by_file_name(){
-	char* filename = "frame0.txt";
+	char* filename = "frame1.txt";
 	dentry_t to_print;
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
-	uint32_t file_size, printed = 0, how_much;
+	uint32_t file_size, printed = 0, how_much, i;
     clear();
     clear_buffer();
     set_cursor_pos(0, 0);
@@ -184,7 +222,8 @@ void test_access_by_file_name(){
 		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, how_much);
         if(how_much < NUM_COLS)
             memset(temp_string+how_much, 0, NUM_COLS-how_much);
-		printf("%s", temp_string);
+		for(i=0;i<how_much;++i)
+            putc(temp_string[i]);
 		file_size -= how_much;
 		printed += how_much;
 	}
@@ -195,8 +234,10 @@ void test_data_printing(){
 	static dentry_t to_print;
 	int num_of_files = fs_addr[0], howmuchtoprint;
 	static int index_to_be_printed = 0;
-	uint32_t file_size, printed = 0;
+	uint32_t file_size, printed = 0, i;
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
+	char becausenonullisguaranteed[33];
+	becausenonullisguaranteed[32] = '\0';
     clear();
     clear_buffer();
     set_cursor_pos(0, 0);
@@ -210,9 +251,11 @@ void test_data_printing(){
 		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, howmuchtoprint);
         if(howmuchtoprint < NUM_COLS)
             memset(temp_string+howmuchtoprint, 0, 80-howmuchtoprint);
-		printf("%s", temp_string);
+		for(i=0;i<howmuchtoprint;++i)
+            putc(temp_string[i]);
 		file_size -= howmuchtoprint;
 		printed += howmuchtoprint;
 	}
-	printf("\n%s", to_print.file_name);	
+    memcpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
+	printf("\n%s", becausenonullisguaranteed);
 }

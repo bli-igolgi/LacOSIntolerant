@@ -90,7 +90,7 @@ void process_input(char c) {
                     // If the character to remove is on the previous line
                     if(!screen_x) {
                         screen_y -= 1;
-                        screen_x = NUM_COLS-1;
+                        screen_x = NUM_COLS;
                     }
                     // Display the backspace
                     putc('\b');

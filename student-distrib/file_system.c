@@ -5,9 +5,7 @@
 #include "file_system.h"
 #include "keyboard.h"
 
-// Until the process control blocks are set up for each process, fd will just refer to the index
-// of the file that is opened. All lines with the comment THISISAHACKSEEABOVE may be safely commented out
-// and removed to prevent this behavior.
+// Until the process control blocks are set up for each process, these are just stubs.
 
 /*
  * int32_t fsys_open_file(const uint8_t* filename);
@@ -16,11 +14,7 @@
  *   Function: system call to open a file
  */
 int32_t fsys_open_file(const uint8_t* filename) {
-    int32_t fd = SUCCESS;
-    dentry_t new_entry;                         //THISISAHACKSEEABOVE
-    read_dentry_by_name(filename, &new_entry);  //THISISAHACKSEEABOVE
-    fd = new_entry.reserved[0];               //THISISAHACKSEEABOVE
-    return fd;
+    return SUCCESS;
 }
 
 /*
@@ -40,11 +34,7 @@ int32_t fsys_close_file(int32_t fd) {
  *   Function: system call to open a directory
  */
 int32_t fsys_open_dir(const uint8_t* filename) {
-    int32_t fd = SUCCESS;
-    dentry_t new_entry;                         //THISISAHACKSEEABOVE
-    read_dentry_by_name(filename, &new_entry);  //THISISAHACKSEEABOVE
-    fd = new_entry.reserved[0];               //THISISAHACKSEEABOVE
-    return fd;
+    return SUCCESS;
 }
 
 /*

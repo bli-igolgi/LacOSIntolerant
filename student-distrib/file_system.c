@@ -163,11 +163,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
              file_length,                            // space for the length of the file,
              start_offset = offset%BLK_SIZE_BYTES,   //           the starting offset (for each block),
              cur_block_num = offset/BLK_SIZE_BYTES,  //           the starting block number,
-             end_block_num,                          //           the ending block number,
              cur_to_do,                              //           the number of bytes to copy from a block,
              remaining = length,                     //           the number of remaining bytes to copy,
-             done_so_far = 0,                        //           the number of bytes copied so far,
-             i;                                      //       and a counter.
+             done_so_far = 0;                        //       and the number of bytes copied so far.
     // Set up pointers to the current block and inode.
     uint8_t* cur_block = NULL;
     uint32_t* cur_inode;
@@ -183,12 +181,12 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     if(offset + remaining > file_length)   // if this is true, then not all of the bytes will be copied,
         remaining += offset-file_length; // so make sure you don't copy garbage
     // Check that a bad data block isn't present.
-    end_block_num = (file_length-1)/BLK_SIZE_BYTES;
-    for(i = cur_block_num; i <= end_block_num; ++i)
-        if(cur_inode[i+1] >= num_blocks)
-            return FAILURE;
+    if(cur_inode[cur_block_num+1] >= num_blocks)
+        return FAILURE;
     while(remaining > 0) {
         // find first block to copy from
+        if(cur_inode[cur_block_num+1] >= num_blocks)
+            break;
         cur_block = (uint8_t *)fs_addr + (num_inodes + cur_inode[cur_block_num+1] + 1)*BLK_SIZE_BYTES;
         // find how much from this block to copy
         if(done_so_far == 0) { // only happens once
@@ -217,8 +215,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
 void test_access_by_index(){
 	dentry_t to_print;
-	char becausenonullisguaranteed[33];
-	becausenonullisguaranteed[32] = '\0';
+	char becausenonullisguaranteed[FILENAME_LEN+1];
+	becausenonullisguaranteed[FILENAME_LEN] = '\0';
 	uint32_t num_of_files = fs_addr[0];
    	int i, file_size;
     clear();
@@ -235,6 +233,7 @@ void test_access_by_index(){
 
 void test_access_by_file_name(){
 	char* filename = "frame1.txt";
+    int are_we_good;
 	dentry_t to_print;
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
 	uint32_t file_size, printed = 0, how_much, i;
@@ -245,20 +244,21 @@ void test_access_by_file_name(){
 	while(file_size > 0) {
 		// this is pretty dreadful but we don't have malloc yet
         how_much = (file_size>=NUM_COLS)?NUM_COLS:file_size;
-		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, how_much);
+		if((are_we_good = read_data(to_print.inode_num, printed, (uint8_t *)temp_string, how_much)) == FAILURE)
+            break;
         if(how_much < NUM_COLS)
             memset(temp_string+how_much, 0, NUM_COLS-how_much);
 		for(i = 0; i < how_much; ++i)
             putc(temp_string[i]);
-		file_size -= how_much;
-		printed += how_much;
+		file_size -= are_we_good;
+		printed += are_we_good;
 	}
 	printf("\n%s", to_print.file_name);
 }
 
 void test_data_printing(){
 	static dentry_t to_print;
-	int num_of_files = fs_addr[0], howmuchtoprint;
+	int num_of_files = fs_addr[0], howmuchtoprint, are_we_good;
 	static int index_to_be_printed = 0;
 	uint32_t file_size, printed = 0, i;
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
@@ -273,13 +273,14 @@ void test_data_printing(){
 	while(file_size > 0) {
 		// this is pretty dreadful but we don't have malloc yet
         howmuchtoprint = (file_size>=NUM_COLS)?NUM_COLS:file_size;
-		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, howmuchtoprint);
+		if((are_we_good = read_data(to_print.inode_num, printed, (uint8_t *)temp_string, howmuchtoprint)) == FAILURE)
+            break;
         if(howmuchtoprint < NUM_COLS)
             memset(temp_string+howmuchtoprint, 0, 80-howmuchtoprint);
 		for(i = 0; i < howmuchtoprint; ++i)
             putc(temp_string[i]);
-		file_size -= howmuchtoprint;
-		printed += howmuchtoprint;
+		file_size -= are_we_good;
+		printed += are_we_good;
 	}
     memcpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
 	printf("\n%s", becausenonullisguaranteed);

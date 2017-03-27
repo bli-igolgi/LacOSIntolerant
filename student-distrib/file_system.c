@@ -122,7 +122,6 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         }
         // Copy the directory entry and be done!
         memcpy(dentry, cur_dentry, ENTRY_SIZE_BYTES);
-        dentry->reserved[0] = i; //THISISAHACKSEEABOVE
         return SUCCESS;
     }
     // Could not find the filename
@@ -145,7 +144,6 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
     // Find the appropriate dentry, copy it, and be done!
     uint32_t * cur_dentry = fs_addr + (index+1) * ENTRY_SIZE_UINTS;
     memcpy(dentry, (dentry_t *)cur_dentry, ENTRY_SIZE_BYTES);
-    dentry->reserved[0] = index; // THISISAHACKSEEABOVE
     return SUCCESS;
 }
 

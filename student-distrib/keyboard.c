@@ -38,7 +38,8 @@ bool new_line = false;
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
      caps_lock  = false,
-     shift      = false;
+     l_shift    = false,
+	 r_shift	= false;
 
 /*
  * void keyboard_init(void);
@@ -89,7 +90,7 @@ void process_input(char c) {
                     // If the character to remove is on the previous line
                     if(!screen_x) {
                         screen_y -= 1;
-                        screen_x = NUM_COLS;
+                        screen_x = NUM_COLS-1;
                     }
                     // Display the backspace
                     putc('\b');
@@ -120,8 +121,10 @@ void process_input(char c) {
                 // Treat it as a regular character
                 else goto print_char;
             case L_SHIFT_P:
+				l_shift = true;
+				break;
             case R_SHIFT_P:
-                shift = true;
+                r_shift = true;
                 break;
             case CAPS_LOCK_P:
                 caps_lock = !caps_lock;
@@ -201,8 +204,8 @@ print_char:
     else {
         switch(c) {
             case CTRL_KEY_R:  ctrl = false;     break;
-            case L_SHIFT_R:
-            case R_SHIFT_R:   shift = false;    break;
+            case L_SHIFT_R:	  l_shift = false;	break;
+            case R_SHIFT_R:   r_shift = false;	break;
             default: break;
         }
     }
@@ -216,10 +219,10 @@ print_char:
  *              the correct key out of the keymap
  */
 uint8_t get_keymap(char c) {
-    if(shift && caps_lock)  return caps_shift_key_map[(unsigned char)c];
-    else if(shift)          return shift_key_map[(unsigned char)c];
-    else if(caps_lock)      return caps_key_map[(unsigned char)c];
-    else                    return reg_key_map[(unsigned char)c];
+    if((l_shift | r_shift) && caps_lock)	return caps_shift_key_map[(unsigned char)c];
+    else if(l_shift | r_shift)          	return shift_key_map[(unsigned char)c];
+    else if(caps_lock)      				return caps_key_map[(unsigned char)c];
+    else                    				return reg_key_map[(unsigned char)c];
 }
 
 /*

@@ -62,7 +62,7 @@ int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
 
     int b_written;
     // Display the passed in data
-    b_written = printf((int8_t *)buf);
+    b_written = printf("%s", (int8_t *)buf);
 
     sti();
     return b_written;

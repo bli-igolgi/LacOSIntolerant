@@ -115,7 +115,7 @@ int32_t rtc_write(int32_t fd, const void *buf, int32_t nbytes) {
     // Get the new frequency as the log of 2
     do {
         pow2freq++;
-    } while((new_freq >>= 1) != 1);
+    } while((new_freq >>= 1) > 1);
 
     // Invert the new frequency value
     set_int_freq(0x10 - pow2freq);

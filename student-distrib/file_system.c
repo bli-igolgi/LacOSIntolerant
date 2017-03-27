@@ -180,18 +180,18 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     if(offset >= file_length)
         return SUCCESS;
     // Truncate if necessary.
-    if(offset+remaining > file_length)   // if this is true, then not all of the bytes will be copied,
+    if(offset + remaining > file_length)   // if this is true, then not all of the bytes will be copied,
         remaining += offset-file_length; // so make sure you don't copy garbage
     // Check that a bad data block isn't present.
     end_block_num = (file_length-1)/BLK_SIZE_BYTES;
-    for(i=cur_block_num;i<=end_block_num;++i)
+    for(i = cur_block_num; i <= end_block_num; ++i)
         if(cur_inode[i+1] >= num_blocks)
             return FAILURE;
-    while(remaining > 0){
+    while(remaining > 0) {
         // find first block to copy from
         cur_block = (uint8_t *)fs_addr + (num_inodes + cur_inode[cur_block_num+1] + 1)*BLK_SIZE_BYTES;
         // find how much from this block to copy
-        if(done_so_far == 0){ // only happens once
+        if(done_so_far == 0) { // only happens once
             // copy from specific position to end of block if we need more than one block
             if(start_offset+remaining > BLK_SIZE_BYTES)
                 cur_to_do = BLK_SIZE_BYTES - start_offset;
@@ -241,13 +241,13 @@ void test_access_by_file_name(){
     clear_buffer();
 	read_dentry_by_name((uint8_t *)filename, &to_print);
 	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
-	while(file_size > 0){
+	while(file_size > 0) {
 		// this is pretty dreadful but we don't have malloc yet
         how_much = (file_size>=NUM_COLS)?NUM_COLS:file_size;
 		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, how_much);
         if(how_much < NUM_COLS)
             memset(temp_string+how_much, 0, NUM_COLS-how_much);
-		for(i=0;i<how_much;++i)
+		for(i = 0; i < how_much; ++i)
             putc(temp_string[i]);
 		file_size -= how_much;
 		printed += how_much;
@@ -269,13 +269,13 @@ void test_data_printing(){
 	index_to_be_printed %= num_of_files;
 	read_dentry_by_index(index_to_be_printed, &to_print);
 	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS];
-	while(file_size > 0){
+	while(file_size > 0) {
 		// this is pretty dreadful but we don't have malloc yet
         howmuchtoprint = (file_size>=NUM_COLS)?NUM_COLS:file_size;
 		read_data(to_print.inode_num, printed, (uint8_t *)temp_string, howmuchtoprint);
         if(howmuchtoprint < NUM_COLS)
             memset(temp_string+howmuchtoprint, 0, 80-howmuchtoprint);
-		for(i=0;i<howmuchtoprint;++i)
+		for(i = 0; i < howmuchtoprint; ++i)
             putc(temp_string[i]);
 		file_size -= howmuchtoprint;
 		printed += howmuchtoprint;

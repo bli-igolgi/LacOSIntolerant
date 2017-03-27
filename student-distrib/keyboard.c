@@ -90,6 +90,7 @@ void process_input(char c) {
                     // If the character to remove is on the previous line
                     if(!screen_x) {
                         screen_y -= 1;
+                        // x is decremented before putc, so this is not an error
                         screen_x = NUM_COLS;
                     }
                     // Display the backspace
@@ -104,6 +105,9 @@ void process_input(char c) {
                 // Null terminate the string
                 read_buf[last+1] = '\0';
                 putc('\n');
+                // Reset the index so backspace doesn't go to previous line
+                read_buf_index = 0;
+                // Tells terminal read that there is no more data to read
                 new_line = true;
                 break;
             case CTRL_KEY_P:
@@ -162,7 +166,6 @@ void process_input(char c) {
                     enable_irq(RTC_IRQ);
                     clear();
                     clear_buffer();
-                    set_cursor_pos(0, 0);
                     // Double the frequency
                     rtc_freq <<= 1;
                     // Don't allow to go above 1024 Hz
@@ -180,7 +183,6 @@ void process_input(char c) {
                     disable_irq(RTC_IRQ);
                     clear();
                     clear_buffer();
-                    set_cursor_pos(0, 0);
                     break;
                 }
                 // Treat it as a regular character

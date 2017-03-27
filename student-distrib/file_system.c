@@ -10,12 +10,12 @@
 // and removed to prevent this behavior.
 
 /*
- * int32_t fsys_open(const uint8_t* filename);
+ * int32_t fsys_open_file(const uint8_t* filename);
  *   Inputs: filename -- name of file to be opened
  *   Return Value: 0 on success (every time at this point)
  *   Function: system call to open a file
  */
-int32_t fsys_open(const uint8_t* filename) {
+int32_t fsys_open_file(const uint8_t* filename) {
     int32_t fd = SUCCESS;
     dentry_t new_entry;                         //THISISAHACKSEEABOVE
     read_dentry_by_name(filename, &new_entry);  //THISISAHACKSEEABOVE
@@ -24,12 +24,36 @@ int32_t fsys_open(const uint8_t* filename) {
 }
 
 /*
- * int32_t fsys_close(int32_t fd);
+ * int32_t fsys_close_file(int32_t fd);
  *   Inputs: fd -- file descriptor of open file
  *   Return Value: 0 on success (every time at this point)
  *   Function: system call to close a file
  */
-int32_t fsys_close(int32_t fd) {
+int32_t fsys_close_file(int32_t fd) {
+    return SUCCESS;
+}
+
+/*
+ * int32_t fsys_open_dir(const uint8_t* filename);
+ *   Inputs: filename -- name of directory to be opened
+ *   Return Value: 0 on success (every time at this point)
+ *   Function: system call to open a directory
+ */
+int32_t fsys_open_dir(const uint8_t* filename) {
+    int32_t fd = SUCCESS;
+    dentry_t new_entry;                         //THISISAHACKSEEABOVE
+    read_dentry_by_name(filename, &new_entry);  //THISISAHACKSEEABOVE
+    fd = new_entry.reserved[0];               //THISISAHACKSEEABOVE
+    return fd;
+}
+
+/*
+ * int32_t fsys_close_dir(int32_t fd);
+ *   Inputs: fd -- file descriptor of open directory
+ *   Return Value: 0 on success (every time at this point)
+ *   Function: system call to close a directory
+ */
+int32_t fsys_close_dir(int32_t fd) {
     return SUCCESS;
 }
 
@@ -60,14 +84,26 @@ int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes) {
 }
 
 /*
- * int32_t fsys_write(int32_t fd, const void *buf, int32_t nbytes);
- *   Inputs: fd -- file descriptor of given directory
+ * int32_t fsys_write_file(int32_t fd, const void *buf, int32_t nbytes);
+ *   Inputs: fd -- file descriptor of given file
  *           buf -- pointer to location to which data will be copied
  *           nbytes -- number of bytes to be copied
  *   Return Value: -1 on failure (every time at this point)
  *   Function: system call to write to a file
  */
-int32_t fsys_write(int32_t fd, const void *buf, int32_t nbytes) {
+int32_t fsys_write_file(int32_t fd, const void *buf, int32_t nbytes) {
+    return FAILURE; // 3.2: Parse the _Read-Only_ File System
+}
+
+/*
+ * int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes);
+ *   Inputs: fd -- file descriptor of given directory
+ *           buf -- pointer to location to which data will be copied
+ *           nbytes -- number of bytes to be copied
+ *   Return Value: -1 on failure (every time at this point)
+ *   Function: system call to write to a directory
+ */
+int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes) {
     return FAILURE; // 3.2: Parse the _Read-Only_ File System
 }
 

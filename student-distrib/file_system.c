@@ -82,21 +82,24 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
     // Initialize number of directory entries, a counter, and a buffer for prospective filenames.
     uint32_t num_dir_entries = fs_addr[0];
     int i = 0;
-    char poss_name[33] = {0};
+    char poss_name[FILENAME_LEN + 1] = {0};
     // Time to find this entry.
     while(i < num_dir_entries){
-        // Find the right address, perform the appropriate string copy, and check the two.
-        uint32_t * cur_dentry = fs_addr+(i+1)*ENTRY_SIZE_UINTS;
+        // Find the right address, offsetting by 1 because inode0 is null
+        uint32_t * cur_dentry = fs_addr + (i+1) * ENTRY_SIZE_UINTS;
+        // Put the filename in poss_name
         strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
-        if(strncmp(poss_name, (int8_t *)fname, strlen((int8_t *)fname))){
+        // If the strings are not the same
+        if(strncmp(poss_name, (int8_t *)fname, strlen((int8_t *)fname))) {
             i++;
             continue;
         }
         // Copy the directory entry and be done!
-        memcpy(dentry, cur_dentry, 64);
+        memcpy(dentry, cur_dentry, ENTRY_SIZE_BYTES);
         dentry->reserved[0] = i; //THISISAHACKSEEABOVE
         return SUCCESS;
     }
+    // Could not find the filename
     return FAILURE;
 }
 
@@ -114,8 +117,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
     if(index >= num_inodes)
         return FAILURE;
     // Find the appropriate dentry, copy it, and be done!
-    uint32_t * cur_dentry = fs_addr+(index+1)*ENTRY_SIZE_UINTS;
-    memcpy(dentry, (dentry_t *)cur_dentry, 64);
+    uint32_t * cur_dentry = fs_addr + (index+1) * ENTRY_SIZE_UINTS;
+    memcpy(dentry, (dentry_t *)cur_dentry, ENTRY_SIZE_BYTES);
     dentry->reserved[0] = index; // THISISAHACKSEEABOVE
     return SUCCESS;
 }
@@ -196,8 +199,7 @@ void test_access_by_index(){
    	int i, file_size;
     clear();
     clear_buffer();
-    set_cursor_pos(0, 0);
-   	for(i=0;i<num_of_files;++i){
+   	for(i = 0; i < num_of_files; ++i){
 		read_dentry_by_index(i, &to_print);
 		memcpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
 		printf("%s, %u, ", becausenonullisguaranteed, to_print.file_type);
@@ -213,7 +215,6 @@ void test_access_by_file_name(){
 	uint32_t file_size, printed = 0, how_much, i;
     clear();
     clear_buffer();
-    set_cursor_pos(0, 0);
 	read_dentry_by_name((uint8_t *)filename, &to_print);
 	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
 	while(file_size > 0){
@@ -240,7 +241,6 @@ void test_data_printing(){
 	becausenonullisguaranteed[32] = '\0';
     clear();
     clear_buffer();
-    set_cursor_pos(0, 0);
 	index_to_be_printed++;
 	index_to_be_printed %= num_of_files;
 	read_dentry_by_index(index_to_be_printed, &to_print);

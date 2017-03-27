@@ -77,6 +77,7 @@ clear(void)
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
     set_screen_pos(0, 0);
+    set_cursor_pos(0, 0);
 }
 
 /* Standard printf().

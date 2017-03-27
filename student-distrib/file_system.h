@@ -2,13 +2,13 @@
 #define FILE_SYS_H
 
 #include "driver.h"
-#define RESERVED_BOOT 13 // number of reserved bytes in boot block / 4
-#define RESERVED_USER 6  // number of reserved bytes in inodes / 4
-#define FILENAME_LEN 32  // length of filename in bytes
-#define ENTRY_SIZE_BYTES 64	// size of each entry (bytes)
-#define ENTRY_SIZE_UINTS 16 // size of each entry (integer array indices)
-#define BLK_SIZE_BYTES 4096 // size of block (bytes)
-#define BLK_SIZE_UINTS 1024 // size of block (integer array indices)
+#define RESERVED_BOOT       13      // number of reserved bytes in boot block / 4
+#define RESERVED_USER       6       // number of reserved bytes in inodes / 4
+#define FILENAME_LEN        32      // length of filename in bytes
+#define ENTRY_SIZE_BYTES    64	    // size of each entry (bytes)
+#define ENTRY_SIZE_UINTS    16      // size of each entry (integer array indices)
+#define BLK_SIZE_BYTES      4096    // size of block (bytes)
+#define BLK_SIZE_UINTS      1024    // size of block (integer array indices)
 
 uint32_t * fs_addr; // on the off-chance that the filesystem is not found at the
                       // same addr each time; this is set in kernel.c

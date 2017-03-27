@@ -114,7 +114,6 @@ void process_input(char c) {
                     // Clears video memory
                     clear();
                     clear_buffer();
-                    set_cursor_pos(0, 0);
                     break;
                 }
                 // Treat it as a regular character
@@ -138,8 +137,8 @@ void process_input(char c) {
             case TWO_KEY_P:
                 // Test case 2, press CTRL+2
                 if(ctrl) {
-                    test_access_by_file_name();
                     // Read file by name (print name at end)
+                    test_access_by_file_name();
                 }
                 // Treat it as a regular character
                 else goto print_char;

@@ -185,7 +185,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     // Check that a bad data block isn't present.
     end_block_num = (file_length-1)/BLK_SIZE_BYTES;
     for(i=cur_block_num;i<=end_block_num;++i)
-        if(cur_inode[i+1] > num_blocks)
+        if(cur_inode[i+1] >= num_blocks)
             return FAILURE;
     while(remaining > 0){
         // find first block to copy from

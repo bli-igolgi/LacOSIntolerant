@@ -109,6 +109,8 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
     uint32_t num_dir_entries = fs_addr[0];
     int i = 0;
     char poss_name[FILENAME_LEN + 1] = {0};
+    if(strlen((int8_t *)fname) > FILENAME_LEN)
+        return FAILURE;
     // Time to find this entry.
     while(i < num_dir_entries){
         // Find the right address, offsetting by 1 because inode0 is null
@@ -116,7 +118,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         // Put the filename in poss_name
         strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
         // If the strings are not the same
-        if(strncmp(poss_name, (int8_t *)fname, strlen((int8_t *)fname))) {
+        if(strncmp(poss_name, (int8_t *)fname, strlen(poss_name))) {
             i++;
             continue;
         }

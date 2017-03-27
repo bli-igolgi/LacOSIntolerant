@@ -223,12 +223,13 @@ void test_access_by_index(){
    	int i, file_size;
     clear();
     clear_buffer();
+    // Read all of the files
    	for(i = 0; i < num_of_files; ++i){
 		read_dentry_by_index(i, &to_print);
+        // Copy to string because needs to be null terminated
 		memcpy(becausenonullisguaranteed, to_print.file_name, FILENAME_LEN);
-		printf("%s, %u, ", becausenonullisguaranteed, to_print.file_type);
-		file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
-		printf("%u\n", file_size);
+        file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS];
+		printf("%s, %u, %u\n", becausenonullisguaranteed, to_print.file_type, file_size);
 	}
 }
 

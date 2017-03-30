@@ -5,6 +5,29 @@
 #include "mouse.h"
 
 /*
+ * void mouse_init(void);
+ *   Inputs: void
+ *   Return Value: none
+ *   Function: 
+ */
+void mouse_init() {
+    enable_irq(MOUSE_IRQ);
+}
+
+/*
+ * void mouse_interrupt(void);
+ *   Inputs: void
+ *   Return Value: none
+ *   Function: 
+ */
+void mouse_interrupt() {
+    cli();
+    printf("mouse_interrupt occurred");
+    send_eoi(MOUSE_IRQ);
+    sti();
+}
+
+/*
  * int32_t mouse_open(const uint8_t* filename);
  *   Inputs: filename 
  *   Return Value: 

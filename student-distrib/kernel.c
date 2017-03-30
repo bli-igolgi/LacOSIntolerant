@@ -11,6 +11,7 @@
 #include "keyboard.h"
 #include "terminal.h"
 #include "rtc.h"
+#include "mouse.h"
 #include "paging.h"
 #include "file_system.h"
 
@@ -169,6 +170,8 @@ entry (unsigned long magic, unsigned long addr)
     keyboard_init();
     // Init the rtc
     rtc_init();
+    // Init the mouse
+    mouse_init();
 
     // Initialize paging
     paging_init();

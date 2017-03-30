@@ -15,7 +15,7 @@ void (*except_ptr[20]) = {
 // Function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
     0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC
-	_rtc_intr, 0, 0, 0, 0, 0, 0, 0              // slave PIC
+	_rtc_intr, 0, 0, 0, _mouse_intr, 0, 0, 0    // slave PIC
 };
 
 /*

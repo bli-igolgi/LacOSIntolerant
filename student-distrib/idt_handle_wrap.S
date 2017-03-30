@@ -11,7 +11,7 @@
 .globl _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault          # 0x0A - 0x0E
 .globl _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except    # 0x0F - 0x13
 
-.globl _keyboard_intr, _rtc_intr        # 0x21, 0x28
+.globl _keyboard_intr, _rtc_intr, _mouse_intr
 
 .globl _system_call                     # 0x80
 
@@ -50,12 +50,22 @@ _keyboard_intr:
     iret
 
 # Description: wrapper to service RTC interrupts
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none; all registers are explicitly preserved
+#      Inputs: none
+#     Outputs: none
+#    Clobbers: none; all registers are explicitly preserved
 _rtc_intr:
     pushal
     call rtc_interrupt
+    popal
+    iret
+
+# Description: wrapper to service mouse interrupts
+#      Inputs: none
+#     Outputs: none
+#    Clobbers: none; all registers are explicitly preserved
+_mouse_intr:
+    pushal
+    call mouse_interrupt
     popal
     iret
 

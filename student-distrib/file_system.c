@@ -49,8 +49,8 @@ int32_t fsys_close_dir(int32_t fd) {
 
 /*
  * int32_t fsys_read_file(int32_t fd, void *buf, int32_t nbytes);
- *   Inputs: fd -- file descriptor of open file
- *           buf -- pointer to location to which data will be copied
+ *   Inputs: fd     -- file descriptor of open file
+ *           buf    -- pointer to location to which data will be copied
  *           nbytes -- number of bytes to be copied
  *   Return Value: number of bytes read (which is 0 at every point)
  *   Function: system call to read from a file
@@ -62,8 +62,8 @@ int32_t fsys_read_file(int32_t fd, void *buf, int32_t nbytes) {
 
 /*
  * int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes);
- *   Inputs: fd -- file descriptor of given directory
- *           buf -- pointer to location to which data will be copied
+ *   Inputs: fd     -- file descriptor of given directory
+ *           buf    -- pointer to location to which data will be copied
  *           nbytes -- number of bytes to be copied
  *   Return Value: 0 on success (every time at this point)
  *   Function: system call to read from a directory
@@ -87,8 +87,8 @@ int32_t fsys_write_file(int32_t fd, const void *buf, int32_t nbytes) {
 
 /*
  * int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes);
- *   Inputs: fd -- file descriptor of given directory
- *           buf -- pointer to location to which data will be copied
+ *   Inputs: fd     -- file descriptor of given directory
+ *           buf    -- pointer to location to which data will be copied
  *           nbytes -- number of bytes to be copied
  *   Return Value: -1 on failure (every time at this point)
  *   Function: system call to write to a directory
@@ -99,7 +99,7 @@ int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes) {
 
 /*
  * int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
- *   Inputs: fname -- name of file whose directory entry is to be read
+ *   Inputs: fname  -- name of file whose directory entry is to be read
              dentry -- directory entry in memory to which the above will be copied
  *   Return Value: 0 on success, -1 on failure
  *   Function: Reads a directory entry based on a given file name.
@@ -132,7 +132,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
 
 /*
  * int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
- *   Inputs: index -- specific node whose information will be read
+ *   Inputs: index  -- specific node whose information will be read
  *           dentry -- directory entry in memory to which the above will be copied
  *   Return Value: 0 on success, -1 on failure
  *   Function: Reads a directory entry based on a given index node.
@@ -151,9 +151,9 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
 
 /*
  * int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
- *   Inputs: inode -- specific node referring to specific file
+ *   Inputs: inode  -- specific node referring to specific file
  *           offset -- how many bytes from file start we should be starting from
- *           buf -- pointer to where this data should be copied
+ *           buf    -- pointer to where this data should be copied
  *           length -- length of data to be copied
  *   Return Value: 0 on success, -1 on failure
  *   Function: Reads data from a particular file given its inode and a starting point.

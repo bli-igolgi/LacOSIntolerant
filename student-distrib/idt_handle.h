@@ -55,7 +55,7 @@ void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _bre
     _floating_point_error(void), _alignment_check(void), _machine_check(void), _floating_point_except(void);
 
 // Interrupt handler functions #32 - #47
-void _keyboard_intr(void), _rtc_intr(void);
+void _keyboard_intr(void), _rtc_intr(void), _mouse_intr(void);
     
 // System call function #128
 uint32_t _system_call();

@@ -102,6 +102,10 @@ To execute file - look at picture on piazza as a reference
 #	  Outputs: returns 0 or -1 in eax, in accordance with sys_call (the C handler)
 #	 Clobbers: eax, ecx, edx (ebx preserved after call by cdecl)
 _system_call:
+    
+
+    /*
+    // Old code
     # Push 4 call params from right (arg3) to left (cmd)
     pushl   %edx
     pushl   %ecx
@@ -111,6 +115,7 @@ _system_call:
 	# Remove arguments, and return value is stored in eax
     leal    16(%esp), %esp
     iret
+    */
     
 /* ========= INTERRUPTS ========= */
 

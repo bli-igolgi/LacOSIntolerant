@@ -14,7 +14,7 @@ void (*except_ptr[20]) = {
 
 // Function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
-    0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC
+    0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC ([2] is slave, is not used)
 	_rtc_intr, 0, 0, 0, _mouse_intr, 0, 0, 0    // slave PIC
 };
 
@@ -43,8 +43,10 @@ void idt_init(){
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
 
+	// Fill in idt table below this code as interruptible gates
+    SET_TRAP_GATE(idt_entry);
 	
-	// defining entries #32 - #47 map to master & slave PICs interrupts (intr gates still in-use)
+	// defining entries #32 - #47 map to master & slave PICs interrupts
 	for(i = 0; i < PIC_INTRS; i++)
 		if(intr_ptr[i]) {
 			//	fill in VALID (only) intr handlers from PIC lines starting at IDT index #32 / 0x20
@@ -53,7 +55,6 @@ void idt_init(){
 		}
     
     // Fill in idt table entry #128 / 0x80 with system call handler (as trap)
-    SET_TRAP_GATE(idt_entry);
     idt_entry.dpl = 3;              //system calls are avail to user programs at DPL 3
     SET_IDT_ENTRY(idt_entry, _system_call);
     idt[128] = idt_entry;

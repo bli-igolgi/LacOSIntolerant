@@ -31,6 +31,9 @@ i8259_init(void) {
     outb(ICW3_SLAVE, SLAVE_8259_PORT_2);
     outb(ICW4, SLAVE_8259_PORT_2);
 
+	// Enable the slave IRQ port (IRQ2) to allow slave interrupts as needed
+    enable_irq(2);
+	
     // Disable all interrupts and set both intr masks to off
     outb(OFF_MASK, MASTER_8259_PORT_2);
     outb(OFF_MASK, SLAVE_8259_PORT_2);

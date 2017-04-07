@@ -162,8 +162,6 @@ void process_input(char c) {
             case FOUR_KEY_P:
                 // Test case 4, press CTRL+4
                 if(ctrl) {
-                    // Enable the RTC IRQ
-                    enable_irq(RTC_IRQ);
                     clear();
                     clear_buffer();
                     // Double the frequency
@@ -172,6 +170,11 @@ void process_input(char c) {
                     if(rtc_freq > 0x400)
                         rtc_freq = 2;
                     rtc_write(0, &rtc_freq, 0);
+					
+					while(1){
+						rtc_read(0,0,0);
+						putc('1');
+					}
                     break;
                 }
                 // Treat it as a regular character
@@ -179,8 +182,6 @@ void process_input(char c) {
             case FIVE_KEY_P:
                 // Test case 5, press CTRL+5
                 if(ctrl) {
-                    // Enable the RTC IRQ
-                    disable_irq(RTC_IRQ);
                     clear();
                     clear_buffer();
                     break;

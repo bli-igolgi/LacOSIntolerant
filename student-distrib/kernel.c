@@ -160,6 +160,9 @@ entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS);
     }
     
+    /* Initialize devices, memory, filesystem, enable device interrupts on the
+     * PIC, any other initialization stuff... */	
+	
     // Init the PIC
     i8259_init();
 
@@ -175,12 +178,6 @@ entry (unsigned long magic, unsigned long addr)
 
     // Initialize paging
     paging_init();
-
-    // Enable the slave IRQ port (IRQ2) to allow slave interrupts as needed
-    enable_irq(2);
-
-    /* Initialize devices, memory, filesystem, enable device interrupts on the
-     * PIC, any other initialization stuff... */
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

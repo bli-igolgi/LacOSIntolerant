@@ -5,16 +5,15 @@
 #include "rtc.h"
 
 // Global flag to indicate if the current interrupt cycle will be skipped
-static volatile bool skip_interrupt = false;
-uint32_t rtc_freq = 0x02;
+volatile bool intr_occured = false;
+uint32_t rtc_freq = 0x400;
 
 /*
  * void rtc_init(void);
  *   Inputs: void
  *   Return Value: none
  *   Function: Sets up RTC to allow interrupts to commence, unmasks
- *              the corresponding IRQ on the PIC, and sets initial
- *              interrupt frequency to 2
+ *              the corresponding IRQ on the PIC
  */
 void rtc_init() {
     // Select register B, and disable NMI
@@ -26,11 +25,8 @@ void rtc_init() {
     // Write previous value with bit 6 enabled to turn on interrupts
     outb(prev | BIT_6, CMOS_REG_2);
 
-    // Set initial RTC frequency to 2
-    set_int_freq(0x0F);
-
     // Enables the RTC on the slave's IRQ0
-    // enable_irq(RTC_IRQ);
+    enable_irq(RTC_IRQ);
 }
 
 /*
@@ -42,14 +38,8 @@ void rtc_init() {
  */
 void rtc_interrupt() {
     cli();
-    // If this interrupt cycle is going to skip
-    if(skip_interrupt == true)
-        skip_interrupt = false;
-    // Otherwise, perform the following work
-    else {
-        // test_interrupts();
-        putc('1');
-    }
+    // 
+    intr_occured = true;
 
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
@@ -63,9 +53,13 @@ void rtc_interrupt() {
  * int32_t rtc_open(const uint8_t* filename);
  *   Inputs: filename - pointer to the filename
  *   Return Value: 0 always
- *   Function: Opens the RTC
+ *   Function: Opens the RTC and sets initial
+ *              interrupt frequency to 2
  */
 int32_t rtc_open(const uint8_t* filename) {
+	// Set initial RTC frequency to 2
+    set_int_freq(0x0F);
+	
     return SUCCESS;
 }
 
@@ -88,9 +82,10 @@ int32_t rtc_close(int32_t fd) {
  *   Function: Skips an interrupt cycle
  */
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
-    skip_interrupt = true;
+	intr_occured = false;
     // Wait for an interrupt to occur
-    while(skip_interrupt);
+    while(!intr_occured){}
+	
     return SUCCESS;
 }
 

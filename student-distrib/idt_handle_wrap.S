@@ -103,6 +103,8 @@ To execute file - look at picture on piazza as a reference
 #	 Clobbers: eax, ecx, edx (ebx preserved after call by cdecl)
 _system_call:
     
+    call    sys_call
+    iret
 
     /*
     // Old code

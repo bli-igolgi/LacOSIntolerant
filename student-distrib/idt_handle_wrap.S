@@ -95,19 +95,42 @@ To execute file - look at picture on piazza as a reference
 /* ========= SYSTEM CALL ========= */
 /* NOTE: system call is currently rudimentary. improvements will be made once call process & implementation is clearly laid out */
 # Description: wrapper to service system calls: see .c file on sys_call
-#	   Inputs:	eax - cmd
+#	   Inputs:	eax - system call number
 #				ebx - arg1
 #				ecx - arg2
 #				edx - arg3
 #	  Outputs: returns 0 or -1 in eax, in accordance with sys_call (the C handler)
 #	 Clobbers: eax, ecx, edx (ebx preserved after call by cdecl)
 _system_call:
-    
-    call    sys_call
+    /* Check that command argument is valid, between 0 and 10 */
+    cmpl    $0,%eax
+    jl      _sys_call_fail
+    cmpl    $10,%eax
+    jg      _sys_call_fail
+
+    # Push the arguments onto the stack
+    pushl   %edx
+    pushl   %ecx
+    pushl   %ebx
+
+    # Call the C system call corresponding to the sys call number
+    call    *_sys_call_jmp_tab(, %eax, 4)
+    movl    $0, %eax
+    jmp     _sys_call_done
+
+_sys_call_fail:
+    movl $-1, %eax
+
+_sys_call_done:
     iret
 
+_sys_call_jmp_tab:
+    .long __ece391_halt, __ece391_execute, __ece391_read, __ece391_write
+    .long __ece391_open, __ece391_lose, __ece391_getargs
+    .long __ece391_vidmap, __ece391_set_handler, __ece391_sigreturn
+
     /*
-    // Old code
+    // Old system call code
     # Push 4 call params from right (arg3) to left (cmd)
     pushl   %edx
     pushl   %ecx

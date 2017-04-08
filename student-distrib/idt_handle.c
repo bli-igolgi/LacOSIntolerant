@@ -75,20 +75,6 @@ int32_t sys_call(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3) {
     return 0;
 }
 
-int32_t __ece391_halt(uint8_t status) {
-    // Zero extend the value
-    return (status & 0xFF);
-}
-
-int32_t __ece391_execute(const uint8_t *command) { return -1; }
-int32_t __ece391_read(int32_t fd, void *buf, int32_t nbytes) { return -1; }
-int32_t __ece391_write(int32_t fd, const void *buf, int32_t nbytes) { return -1; }
-int32_t __ece391_open(const uint8_t *filename) { return -1; }
-int32_t __ece391_lose(int32_t fd) { return -1; }
-int32_t __ece391_getargs(uint8_t *buf, int32_t nbytes) { return -1; }
-int32_t __ece391_vidmap(uint8_t **screen_start) { return -1; }
-int32_t __ece391_set_handler(int32_t signum, void *handler_address) { return -1; }
-int32_t __ece391_sigreturn(void) { return -1; }
 
 /* ========== Exception Handlers ========== */
 

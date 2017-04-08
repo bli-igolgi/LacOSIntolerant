@@ -15,6 +15,8 @@
 extern int screen_x;
 extern int screen_y;
 
+void remove_spaces(uint8_t *str);
+
 void set_screen_pos(int x, int y);
 void set_cursor_pos(int row, int col);
 

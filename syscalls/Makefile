@@ -1,6 +1,7 @@
 CFLAGS += -Wall -nostdlib -ffreestanding
 LDFLAGS += -nostdlib -ffreestanding
 CC = gcc
+OUT_DIR = compiled
 
 ALL: cat grep hello ls pingpong counter shell sigtest testprint syserr
 
@@ -15,7 +16,8 @@ ALL: cat grep hello ls pingpong counter shell sigtest testprint syserr
 
 %: %.exe
 	../elfconvert $<
-	mv $<.converted to_fsdir/$@
+	mv $<.converted $(OUT_DIR)/$@
+	chmod u+x $(OUT_DIR)/$@
 
 clean::
 	rm -f *~ *.o
@@ -23,4 +25,4 @@ clean::
 clear: clean
 	rm -f *.converted
 	rm -f *.exe
-	rm -f to_fsdir/*
+	rm -f $(OUT_DIR)/*

@@ -194,8 +194,8 @@ entry (unsigned long magic, unsigned long addr)
         terminal_write(0, temp_buf, 0);
     } */
 
-    /* Execute the first program (`shell') ... */
-    // system_execute("shell");
+    /* Execute the first program ('shell') ... */
+    sys_execute((uint8_t *)"     shell        fun");
 
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile(".1: hlt; jmp .1;");

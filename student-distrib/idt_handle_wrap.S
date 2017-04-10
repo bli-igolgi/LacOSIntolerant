@@ -104,7 +104,7 @@ To execute file - look at picture on piazza as a reference
 _syscall:
     /* Check that command argument is valid, between 1 and 10 */
     cmpl    $0,%eax
-    jl      _sys_call_fail
+    jle      _sys_call_fail
     cmpl    $10,%eax
     jg      _sys_call_fail
 

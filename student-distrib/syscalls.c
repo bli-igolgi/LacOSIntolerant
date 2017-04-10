@@ -26,6 +26,7 @@ int32_t sys_halt(uint8_t status) {
  */
 int32_t sys_execute(const uint8_t *command) {
     uint8_t cmd[15], arg[30], file_data[30];
+    uint32_t entry = 0;
     dentry_t cmd_dentry;
     int i = 0, j = 0;
     
@@ -52,7 +53,6 @@ int32_t sys_execute(const uint8_t *command) {
          file_data[2] == ELF_3 && file_data[3] == ELF_4)) {
         return -1;
     }
-
     /* ==== Set up paging ==== */
     if(!process_1_started) {
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
@@ -62,6 +62,8 @@ int32_t sys_execute(const uint8_t *command) {
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
 
     /* ==== Load file into memory ==== */
+    entry = file_data[26] | (file_data[25]<<8) | (file_data[24]<<16) | (file_data[23]<<24);
+    printf("entry: %x\n", entry);
 
     /* ==== Create PCB ==== */
 

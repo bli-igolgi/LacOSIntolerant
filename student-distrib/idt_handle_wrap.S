@@ -13,7 +13,7 @@
 
 .globl _keyboard_intr, _rtc_intr, _mouse_intr
 
-.globl _system_call                     # 0x80
+.globl _syscall                     # 0x80
 
 .align 4
 
@@ -104,7 +104,7 @@ To execute file - look at picture on piazza as a reference
 _syscall:
     /* Check that command argument is valid, between 1 and 10 */
     cmpl    $0,%eax
-    jle     _sys_call_fail
+    jl      _sys_call_fail
     cmpl    $10,%eax
     jg      _sys_call_fail
 

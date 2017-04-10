@@ -56,7 +56,7 @@ void idt_init(){
     
     // Fill in idt table entry #128 / 0x80 with system call handler (as trap)
     idt_entry.dpl = 3;              //system calls are avail to user programs at DPL 3
-    SET_IDT_ENTRY(idt_entry, _system_call);
+    SET_IDT_ENTRY(idt_entry, _syscall);
     idt[128] = idt_entry;
     
     // Load the interrupt table

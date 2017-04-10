@@ -108,12 +108,27 @@ _system_call:
     cmpl    $10,%eax
     jg      _sys_call_fail
 
+    # Save the unused registers
+    pushl   %ebp
+    pushl   %edi
+    pushl   %esi
     # Push the arguments onto the stack
-    pushal
+    pushl   %edx
+    pushl   %ecx
+    pushl   %ebx
 
     # Call the C system call corresponding to the sys call number
     call    *_sys_call_jmp_tab(, %eax, 4)
     movl    $0, %eax
+
+    # Restore the register values
+    popl    %ebx
+    popl    %ecx
+    popl    %edx
+    popl    %esi
+    popl    %edi
+    popl    %ebp
+
     jmp     _sys_call_done
 
 _sys_call_fail:

@@ -14,7 +14,10 @@
 #define SYS_SIGRETURN   10
 
 /* Constants used by the execute system call */
-#define ELF_MAGIC_NUMBER 0x7F454C46
+#define ELF_1            0x7F
+#define ELF_2            0x45
+#define ELF_3            0x4C
+#define ELF_4            0x46
 #define PROGRAM_1_PHYS   0x800000       // 8MB
 #define PROGRAM_2_PHYS   0xC00000       // 12MB
 #define PROGRAM_VIRT     0x8000000      // 128MB

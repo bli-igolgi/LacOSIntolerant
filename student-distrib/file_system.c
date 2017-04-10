@@ -97,20 +97,23 @@ int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes) {
     return FAILURE; // 3.2: Parse the _Read-Only_ File System
 }
 
-bool check_file_name_exists(const uint8_t *fname) {
+/*
+ * bool check_file_name_exists(const uint8_t *fname);
+ *   Inputs: fname -- name of the file 
+ *   Return Value: true if found
+ *   Function: Checks if the file is in the fsdir
+ */
+int32_t check_file_name_exists(const uint8_t *fname) {
     uint32_t num_dir_entries = fs_addr[0];
     int i = 0;
-    char pos_name[FILENAME_LEN + 1];
     if(strlen((int8_t *)fname) > FILENAME_LEN)
         return FAILURE;
     // Time to find this entry.
     for(i = 0; i < num_dir_entries; i++) {
         // Find the right address, offsetting by 1 because inode0 is null
         uint32_t * cur_dentry = fs_addr + (i+1) * ENTRY_SIZE_UINTS;
-        // Put the filename in poss_name
-        strncpy(pos_name, (int8_t *)cur_dentry, FILENAME_LEN);
         // If the strings are the same
-        if(!strncmp(pos_name, (int8_t *)fname, strlen(pos_name)))
+        if(!strncmp((int8_t *)cur_dentry, (int8_t *)fname, strlen((int8_t *)cur_dentry)))
             return SUCCESS;
     }
     // Could not find the filename

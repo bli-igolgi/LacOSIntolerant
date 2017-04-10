@@ -25,26 +25,35 @@ int32_t sys_halt(uint8_t status) {
  *   Function: 
  */
 int32_t sys_execute(const uint8_t *command) {
-    uint8_t cmd[15], arg[15];
+    uint8_t cmd[5], arg[10], file_data[30];
+    dentry_t *cmd_dentry;
     int i = 0, j = 0;
     
     /* ==== Parse arguments ==== */
     // Skip spaces in front of the command
-    while(command[i] == ' ' && command[i] != '\0') { i++; }
-    while(command[i] != ' ' && command[i] != '\0') {
-        cmd[j++] = command[i++];
-    }
+    while(command[i] == ' ' && command[i] != '\0') i++;
+    // Copy command into cmd until the next space
+    while(command[i] != ' ' && command[i] != '\0') cmd[j++] = command[i++];
     cmd[j] = '\0';
     j = 0;
+
     // Skip spaces in front of argument
-    while(command[i] == ' ' && command[i] != '\0') { i++; }
-    while(command[i] != ' ' && command[i] != '\0') {
-        arg[j++] = command[i++];
-    }
+    while(command[i] == ' ' && command[i] != '\0') i++;
+    // Copy the ending part of command into argument
+    while(command[i] != ' ' && command[i] != '\0') arg[j++] = command[i++];
     arg[j] = '\0';
 
     /* ==== Check file validity ==== */
-    if(check_file_name_exists(cmd) == -1) return -1;
+    // Make sure the name of the file is in the file system
+    if(read_dentry_by_name(cmd, cmd_dentry) == -1) return -1;
+    // Check that the file is executable
+    read_data(cmd_dentry->inode_num + 1, 0, file_data, 30);
+    if(file_data[0] != ELF_1 || file_data[1] != ELF_2 ||
+       file_data[2] != ELF_2 || file_data[3] != ELF_4) {
+        printf("%x, %x, %x, %x", file_data[0] == ELF_1, file_data[1] == ELF_2,
+             file_data[2] == ELF_3, file_data[3] == ELF_4);
+        return -1;
+    }
 
     /* ==== Set up paging ==== */
     if(!process_1_started) {

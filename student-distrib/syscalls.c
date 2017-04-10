@@ -25,7 +25,7 @@ int32_t sys_halt(uint8_t status) {
  *   Function: 
  */
 int32_t sys_execute(const uint8_t *command) {
-    uint8_t cmd[5], arg[10], file_data[30];
+    uint8_t cmd[15], arg[30], file_data[30];
     dentry_t *cmd_dentry;
     int i = 0, j = 0;
     
@@ -48,10 +48,9 @@ int32_t sys_execute(const uint8_t *command) {
     if(read_dentry_by_name(cmd, cmd_dentry) == -1) return -1;
     // Check that the file is executable
     read_data(cmd_dentry->inode_num + 1, 0, file_data, 30);
-    if(file_data[0] != ELF_1 || file_data[1] != ELF_2 ||
-       file_data[2] != ELF_2 || file_data[3] != ELF_4) {
-        printf("%x, %x, %x, %x", file_data[0] == ELF_1, file_data[1] == ELF_2,
-             file_data[2] == ELF_3, file_data[3] == ELF_4);
+    if(!(file_data[0] == ELF_1 && file_data[1] == ELF_2 &&
+         file_data[2] == ELF_2 && file_data[3] == ELF_4)) {
+        printf("%x, %x, %x, %x\n", file_data[0], file_data[1], file_data[2], file_data[3]);
         return -1;
     }
 

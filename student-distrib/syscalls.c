@@ -26,7 +26,7 @@ int32_t sys_halt(uint8_t status) {
  */
 int32_t sys_execute(const uint8_t *command) {
     uint8_t cmd[15], arg[30], file_data[30];
-    dentry_t *cmd_dentry;
+    dentry_t cmd_dentry;
     int i = 0, j = 0;
     
     /* ==== Parse arguments ==== */
@@ -40,17 +40,16 @@ int32_t sys_execute(const uint8_t *command) {
     // Skip spaces in front of argument
     while(command[i] == ' ' && command[i] != '\0') i++;
     // Copy the ending part of command into argument
-    while(command[i] != ' ' && command[i] != '\0') arg[j++] = command[i++];
+    while(command[i] != '\0') arg[j++] = command[i++];
     arg[j] = '\0';
 
     /* ==== Check file validity ==== */
     // Make sure the name of the file is in the file system
-    if(read_dentry_by_name(cmd, cmd_dentry) == -1) return -1;
+    if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
     // Check that the file is executable
-    read_data(cmd_dentry->inode_num + 1, 0, file_data, 30);
+    read_data(cmd_dentry.inode_num, 0, file_data, 30);
     if(!(file_data[0] == ELF_1 && file_data[1] == ELF_2 &&
-         file_data[2] == ELF_2 && file_data[3] == ELF_4)) {
-        printf("%x, %x, %x, %x\n", file_data[0], file_data[1], file_data[2], file_data[3]);
+         file_data[2] == ELF_3 && file_data[3] == ELF_4)) {
         return -1;
     }
 
@@ -60,7 +59,7 @@ int32_t sys_execute(const uint8_t *command) {
         process_1_started = true;
     }
     else 
-        map_page((void *) PROGRAM_2_PHYS,(void *) PROGRAM_VIRT, true, true, true);
+        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
 
     /* ==== Load file into memory ==== */
 
@@ -73,7 +72,7 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Push IRET context to switch ==== */
 
     printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
-    return -1;
+    return 0;
 }
 
 /*

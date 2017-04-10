@@ -46,7 +46,6 @@ do {                                \
 // Initializes interrupt descriptor table
 extern void idt_init(void);
 
-
 /* NOTE: the function declarations below are imported from idt_handle_wrap.S (asm wrappers for respective C functions) */
 
 // Exception handler functions #0 - #19
@@ -59,7 +58,7 @@ void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _bre
 void _keyboard_intr(void), _rtc_intr(void), _mouse_intr(void);
     
 // System call function #128
-uint32_t _system_call();
+uint32_t _syscall();
 
 #endif /* ASM */
 

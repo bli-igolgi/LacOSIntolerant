@@ -36,6 +36,8 @@ extern int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes);
 extern int32_t fsys_write_file(int32_t fd, const void *buf, int32_t nbytes);
 extern int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes);
 
+bool check_file_name_exists(const uint8_t *fname);
+
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);

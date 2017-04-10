@@ -8,12 +8,6 @@ int screen_x;
 int screen_y;
 static char* video_mem = (char *)VIDEO;
 
-
-void remove_spaces(uint8_t *str) {
-	// Skip leading spaces
-	while(*str == ' ' && *str != '\0') { str++; }
-}
-
 /*
  * void set_screen_pos(int x, int y);
  *   Inputs: x,y - the new screen position

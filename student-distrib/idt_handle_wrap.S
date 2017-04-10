@@ -109,9 +109,7 @@ _system_call:
     jg      _sys_call_fail
 
     # Push the arguments onto the stack
-    pushl   %edx
-    pushl   %ecx
-    pushl   %ebx
+    pushal
 
     # Call the C system call corresponding to the sys call number
     call    *_sys_call_jmp_tab(, %eax, 4)

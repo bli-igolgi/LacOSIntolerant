@@ -72,7 +72,7 @@ void * resolve_virt_addr(void * virt_addr){
 
 /* 
  * paging_init()
- *   DESCRIPTION: maps the kernal to virtual memory; maps the video memory to virtual memory
+ *   DESCRIPTION: maps the kernel to virtual memory; maps the video memory to virtual memory
  *                enables paging
  *   INPUTS: none
  *   RETURN VALUE: none
@@ -92,8 +92,8 @@ void paging_init()
         : "r"(page_directory)
     );
 
-    // map the kenal in the page directory -- large page, kernal privileges, read/write
-    map_page((void *)KERNAL_ADDR, (void *)KERNAL_ADDR, 1, 0, 1);
+    // map the kernel in the page directory -- large page, kernel privileges, read/write
+    map_page((void *)KERNEL_ADDR, (void *)KERNEL_ADDR, 1, 0, 1);
 
     // map the video memory in the page directory -- small page, kernel privileges, read/write
     map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1);
@@ -123,13 +123,13 @@ void paging_init()
  *   INPUTS: phys_addr -- the physical address to be mapped to
  *           virtual_addr -- the virtual address given
  *           page_size -- 1 for 4MB page, 0 for 4kB page
- *           privileges -- 1 for user privileges, 0 for kernal privileges
+ *           privileges -- 1 for user privileges, 0 for kernel privileges
  *           write -- 1 for read/write, 0 for read only
  *   RETURN VALUE: 0 for a success, 1 for failure
  *   SIDE EFFECTS: modifies the page directory and/or a page table
  *                 may create a new page table
  */
-int map_page(void * phys_addr, void * virtual_addr, int page_size, int privileges, int write)
+int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write)
 {
     unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;

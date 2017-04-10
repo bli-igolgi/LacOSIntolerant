@@ -100,11 +100,11 @@ To execute file - look at picture on piazza as a reference
 #				ecx - arg2
 #				edx - arg3
 #	  Outputs: 0 for success, -1 for failure
-#	 Clobbers: eax, ecx, edx (ebx preserved after call by cdecl)
-_system_call:
-    /* Check that command argument is valid, between 0 and 10 */
+#	 Clobbers: eax
+_syscall:
+    /* Check that command argument is valid, between 1 and 10 */
     cmpl    $0,%eax
-    jl      _sys_call_fail
+    jle     _sys_call_fail
     cmpl    $10,%eax
     jg      _sys_call_fail
 
@@ -118,6 +118,7 @@ _system_call:
     pushl   %ebx
 
     # Call the C system call corresponding to the sys call number
+	subl	$1, %eax						# shift cmd from index 1 to index 0
     call    *_sys_call_jmp_tab(, %eax, 4)
     movl    $0, %eax
 
@@ -142,7 +143,7 @@ _sys_call_jmp_tab:
     .long sys_open, sys_close, sys_getargs
     .long sys_vidmap, sys_set_handler, sys_sigreturn
 
-    /*
+    /*		SET FOR DELETION
     // Old system call code
     # Push 4 call params from right (arg3) to left (cmd)
     pushl   %edx

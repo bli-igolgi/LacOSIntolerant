@@ -20,12 +20,6 @@ typedef struct dentry_t {
 	uint32_t reserved[6];      // Reserved section is 24 bytes
 } dentry_t;
 
-typedef struct fdesc_t {
-	uint32_t file_ops;
-	uint32_t inode;
-	uint32_t file_position;
-	uint32_t flags;
-} fdesc_t;
 
 extern int32_t fsys_open_file(const uint8_t* filename);
 extern int32_t fsys_close_file(int32_t fd);

@@ -2,7 +2,7 @@
 #define PCB_H
 
 //	max num of file descriptors is 8 per task
-#define MAX_DESC	8
+#define MAX_DESC 8
 
 #include "file_system.h"
 #include "rtc.h"
@@ -35,7 +35,7 @@ void (*regf_jt[4]) = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_clo
 void (*rtc_jt[4]) = { rtc_open, rtc_read, rtc_write, rtc_close };
 
 /*
- *	Inputs:	newBlk	--	pointer to new process control block
+ *	Inputs:	newBlk -- pointer to new process control block
  *  Return Value:	none
  *  Function:	Initialize a pcb with default file descriptors
  */
@@ -65,8 +65,7 @@ int32_t open_file(pcb_t *blk, void *file_op, uint32_t file_type, uint32_t inode_
 	int idx;
 	fdesc_t fd;
 	for(idx = 0; idx < MAX_DESC; idx++)
-		if((*blk).io_files[idx].flags == NOT_USED)
-		{
+		if((*blk).io_files[idx].flags == NOT_USED) {
 			fd = (*blk).io_files[idx];
 			fd.file_op = (uint32_t)file_op;		// jmp table exists for every file type
 			
@@ -92,7 +91,7 @@ int32_t open_file(pcb_t *blk, void *file_op, uint32_t file_type, uint32_t inode_
  */
 int32_t close_file(pcb_t *blk, uint32_t fd_id)
 {
-	if(1 < fd_id && fd_id < MAX_DESC){
+	if(1 < fd_id && fd_id < MAX_DESC) {
 		(*blk).io_files[fd_id].flags = NOT_USED;		// note: fdesc data is not cleared; use flags as access var!
 		return 0;
 	} else

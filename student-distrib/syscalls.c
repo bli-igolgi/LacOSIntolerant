@@ -62,7 +62,7 @@ int32_t sys_execute(const uint8_t *command) {
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
 
     /* ==== Load file into memory ==== */
-    entry = file_data[26] | (file_data[25]<<8) | (file_data[24]<<16) | (file_data[23]<<24);
+    entry = (file_data[24] << 24) | (file_data[25] << 16) | (file_data[26] << 8) | file_data[27];
     printf("entry: %x\n", entry);
 
     /* ==== Create PCB ==== */

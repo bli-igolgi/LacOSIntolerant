@@ -64,6 +64,9 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Load file into memory ==== */
     entry = (file_data[24] << 24) | (file_data[25] << 16) | (file_data[26] << 8) | file_data[27];
     printf("entry: %x\n", entry);
+    // memcpy((void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF), );
+    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
+                *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
 
@@ -72,6 +75,24 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Prepare for context switch ==== */
 
     /* ==== Push IRET context to switch ==== */
+    asm volatile (
+        "mov $0x23, %%ax\n"
+        "mov %%ax, %%ds;\n"
+        "mov %%ax, %%es;\n"
+        "mov %%ax, %%fs;\n"
+        "mov %%ax, %%gs;\n"
+
+        "mov %%esp, %%eax;\n"
+        "pushl $0x23;\n"
+        "pushl %%eax;\n"
+        "pushf;\n"
+        "pushl $0x1B;\n"
+        "pushl %0;\n"
+        "iret;\n"
+        : 
+        : "r"(entry)
+        : "%eax"
+    );
 
     printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
     return 0;

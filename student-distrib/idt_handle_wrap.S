@@ -53,12 +53,18 @@ Program loader
 PCB
     Each process has its own PCB
         Call system.exe in kernel.c to test system call
-    Each PCB starts at the top of a 8kB block inside the kernel
-        First PCB starts at  8MB - 1(8kB)
+    Each PCB starts at the top of a 8kB block inside the kernel 
+        First PCB starts at  8MB - 1(8kB) and goes towards bigger memory addresses
+            First kernel stack starts at 8MB - 4B and goes towards smaller memory addresses
         Second PCB starts at 8MB - 2(8kB)
-            Second kernel stack starts at 1st PCB address - 4B
+
+        PID PCB starts at 8MB - (PID+1)*8kB
+            PID PCB kernel stack starts at 8MB - PID*8kB - 4B    (set kernel's esp to this value, PID starts from 0)
+            4B is because we don't want esp to go outside page
         etc.
     Switch the kernel stack when switching PCB
+    Every kernel stack is 8kB
+    Kernel goes up in memory, PCB goes down
     What you need in a PCB:
         file descriptor array
         whatever you think is necessary for running/stopping a program and should be process specific

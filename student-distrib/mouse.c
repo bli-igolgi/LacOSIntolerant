@@ -2,6 +2,8 @@
  * Driver for the mouse
  */
 
+/* http://wiki.osdev.org/%228042%22_PS/2_Controller#PS.2F2_Controller_IO_Ports */
+
 #include "mouse.h"
 
 /*
@@ -11,6 +13,8 @@
  *   Function: 
  */
 void mouse_init() {
+    outb(0xAE, 0x64);
+    outb(0xF4, 0x60);
     enable_irq(MOUSE_IRQ);
 }
 
@@ -21,10 +25,8 @@ void mouse_init() {
  *   Function: 
  */
 void mouse_interrupt() {
-    cli();
     printf("mouse_interrupt occurred");
     send_eoi(MOUSE_IRQ);
-    sti();
 }
 
 /*

@@ -48,7 +48,7 @@ void idt_init(){
 	
 	// defining entries #32 - #47 map to master & slave PICs interrupts
 	for(i = 0; i < PIC_INTRS; i++)
-		if(intr_ptr[i]) {
+        if(intr_ptr[i]) {
 			//	fill in VALID (only) intr handlers from PIC lines starting at IDT index #32 / 0x20
 			SET_IDT_ENTRY(idt_entry, intr_ptr[i]);
 			idt[i + 32] = idt_entry;

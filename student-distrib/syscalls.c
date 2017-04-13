@@ -63,6 +63,9 @@ int32_t sys_execute(const uint8_t *command) {
     if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
         return -1;
     /* ==== Set up paging ==== */
+    /*
+    TODO: Set up new page directory
+    */
     if(!process_1_started) {
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, false, true);
         process_1_started = true;
@@ -71,15 +74,23 @@ int32_t sys_execute(const uint8_t *command) {
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, false, true);
 
     /* ==== Load file into memory ==== */
-    entry = (file_data[24] << 24) | (file_data[25] << 16) | (file_data[26] << 8) | file_data[27];
+    entry = (file_data[27] << 24) | (file_data[26] << 16) | (file_data[25] << 8) | file_data[24];
     printf("entry: %x\n", entry);
-    // memcpy((void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF), );
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
-
-    /* ==== Open FDs ==== */
+    /*  pcb_t* new_pcb = find_empty_pcb();
+        memset(new_pcb, 0xA5, sizeof(pcb_t));
+        if(!no_other_processes)
+            new_pcb->parent_task = cur_pcb; // gotta fix this
+        else
+            new_pcb->parent_task = NULL;
+    */
+    /* ==== Open default FDs ==== */
+    /* new_pcb->io_files[0] = (*stdin);
+       new_pcb->io_files[1] = (*stdout);
+    */
 
     /* ==== Prepare for context switch / Push IRET context to stack ==== */
     asm volatile (
@@ -111,7 +122,7 @@ int32_t sys_execute(const uint8_t *command) {
  *   Function: 
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    printf("executed syscall ");
+    printf("executed syscall read");
     return -1;
 }
 
@@ -121,7 +132,7 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: 
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    printf("executed syscall ");
+    printf("executed syscall write");
     return -1;
 }
 
@@ -131,7 +142,7 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
  *   Function: 
  */
 int32_t sys_open(const uint8_t *filename) {
-    printf("executed syscall ");
+    printf("executed syscall open");
     return -1;
 }
 
@@ -141,7 +152,7 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: 
  */
 int32_t sys_close(int32_t fd) {
-    printf("executed syscall ");
+    printf("executed syscall close");
     return -1;
 }
 
@@ -165,7 +176,7 @@ int32_t sys_vidmap(uint8_t **screen_start) {
     return -1;
 }
 
-/*
+/*   Unless we decide to implement signals, this is as it will remain.
  *   Inputs: 
  *   Return Value: 
  *   Function: 
@@ -175,7 +186,7 @@ int32_t sys_set_handler(int32_t signum, void *handler_address) {
     return -1;
 }
 
-/*
+/*   Unless we decide to implement signals, this is as it will remain.
  *   Inputs: 
  *   Return Value: 
  *   Function: 

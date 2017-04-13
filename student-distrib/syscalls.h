@@ -24,6 +24,7 @@
 
 #include "lib.h"
 #include "paging.h"
+#include "pcb.h"
 #include "file_system.h"
 
 /* The actual system calls */

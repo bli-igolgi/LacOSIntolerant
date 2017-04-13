@@ -74,7 +74,7 @@ int32_t sys_execute(const uint8_t *command) {
     entry = (file_data[24] << 24) | (file_data[25] << 16) | (file_data[26] << 8) | file_data[27];
     printf("entry: %x\n", entry);
     // memcpy((void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF), );
-    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
+    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT | PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
@@ -83,21 +83,18 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Prepare for context switch / Push IRET context to stack ==== */
     asm volatile (
-        "mov $0x23, %%ax;"
-        "mov %%ax, %%ds;"
-        "mov %%ax, %%es;"
-        "mov %%ax, %%fs;"
-        "mov %%ax, %%gs;"
+        "movw $0x23, %%ax;"
+        "movw %%ax, %%ds;"
 
-        "mov %%esp, %%eax;"
+        "mov %0, %%eax;"
         "pushl $0x23;"      // Data segment selector (0x20 | 0x3 = 0x23)
         "pushl %%eax;"
         "pushf;"
         "pushl $0x1B;"      // Code segment selector (0x18 | 0x3 = 0x1b)
-        "pushl %0;"
+        "pushl %1;"
         "iret;"
         : 
-        : "r"(entry)
+        : "r"(PROGRAM_VIRT), "r"(entry)
         : "%eax"
     );
 

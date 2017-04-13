@@ -6,6 +6,10 @@
 
 #define MOUSE_IRQ 12
 
+// PS/2 ports
+#define STATUS_PORT 0x64
+#define DATA_PORT   0x60
+
 extern void mouse_init(void);
 extern void mouse_interrupt(void);
 

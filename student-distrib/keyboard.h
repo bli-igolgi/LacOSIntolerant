@@ -13,7 +13,7 @@
 #define BUF_SIZE     128
 #define KEY_MAP_SIZE 128
 
-// PC/2 Keyboard ports
+// PS/2 ports
 #define STATUS_PORT 0x64
 #define DATA_PORT   0x60
 // Input buffer (bit 1) of status register: 1 = full, 0 = empty

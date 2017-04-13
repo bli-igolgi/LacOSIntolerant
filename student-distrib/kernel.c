@@ -170,11 +170,11 @@ entry (unsigned long magic, unsigned long addr)
     idt_init();
 	
     // Init the keyboard
-    // keyboard_init();
+    keyboard_init();
     // Init the rtc
-    // rtc_init();
+    rtc_init();
     // Init the mouse
-    mouse_init();
+    // mouse_init();
 
     // Initialize paging
     paging_init();
@@ -195,7 +195,7 @@ entry (unsigned long magic, unsigned long addr)
     } */
 
     /* Execute the first program ('shell') ... */
-    // sys_execute((uint8_t *)"     ls        fun");
+    sys_execute((uint8_t *)"     shell        fun");
 
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile(".1: hlt; jmp .1;");

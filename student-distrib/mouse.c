@@ -13,8 +13,25 @@
  *   Function: 
  */
 void mouse_init() {
-    outb(0xAE, 0x64);
-    outb(0xF4, 0x60);
+    // Disable ps/2 ports
+    /*outb(0xAD, STATUS_PORT);
+    outb(0xA7, STATUS_PORT);
+
+    // Flush output buffer
+    inb(DATA_PORT);
+
+    outb(0x20, STATUS_PORT);
+    // Get response byte
+    uint8_t ccb = inb(DATA_PORT);
+    if((ccb >> 4) & 1) printf("double\n");*/
+
+
+    // Enable first ps/2 port
+    outb(0xAE, STATUS_PORT);
+    // Enable second ps/2 port
+    outb(0xA8, STATUS_PORT);
+    // Enable reporting
+    outb(0xF4, DATA_PORT);
     enable_irq(MOUSE_IRQ);
 }
 
@@ -25,6 +42,7 @@ void mouse_init() {
  *   Function: 
  */
 void mouse_interrupt() {
+    uint8_t packet = inb(DATA_PORT);
     printf("mouse_interrupt occurred");
     send_eoi(MOUSE_IRQ);
 }

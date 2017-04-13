@@ -3,6 +3,8 @@
 
 //	max num of file descriptors is 8 per task
 #define MAX_DESC 8
+#define END_OF_KERNEL_PAGE 0x800000
+#define PCB_PLUS_STACK 8192
 
 #include "file_system.h"
 #include "rtc.h"
@@ -12,20 +14,41 @@
 typedef enum {NOT_USED, IN_USE} status_t;
 
 typedef struct fdesc {
-	uint32_t file_ops;
-	uint32_t inode;
-	uint32_t file_pos;
-	status_t flags;
+	uint32_t file_ops;					// pointer to file operations jump table
+	uint32_t inode;						// inode number
+	uint32_t file_pos;					// current position in file
+	status_t flags;						// status of file at the moment
 } fdesc_t;
-
 
 //	PCB below; any additional structs should be defined above this point
 typedef struct process_ctrl_blk {
 	//	I feel like there's a bunch of stuff missing here... but idk what.
-	
-	fdesc_t io_files[MAX_DESC];
+	fdesc_t io_files[MAX_DESC];			// file descriptor array
+	uint32_t gpr[8];					// eax ebx ecx edx ebp esi edi esp (order subject to change)
+	uint32_t* page_dir;					// pointer to process's page directory
+	pcb_t* parent_task;					// pointer to parent task's PCB
 } pcb_t;
 
+// A bitmap to optimize space in case a PCB is freed between other PCBs.
+// (This will be adapted to opening and closing files later.)
+uint32_t pcb_status = 0; // none of the upper 24 bits should be 1 unless we know we have space
+/*
+pcb_t * find_empty_pcb(void){
+	uint32_t temp_pcb_status = pcb_status, offset = 0;
+	while(__builtin_ffs(temp_pcb_status) == 1){
+		offset++; temp_pcb_status >>= 1;
+	}
+	pcb_status |= 0x01 << offset;
+	return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
+}
+
+void done_with_pcb(pcb_t* old_pcb){
+	// TOFIX
+	uint32_t offset = (uint32_t)(END_OF_KERNEL_PAGE - (uint8_t *)old_pcb)/PCB_PLUS_STACK;
+	pcb_status &= ~(0x01 << (offset-1));
+	return;
+}
+*/
 
 //	Section below is file ops jump tables for type-specific open(0), read(1), write(2), and close(3)
 void (*stdin[4]) = { NULL, terminal_read, NULL, NULL };		// read-only
@@ -97,5 +120,7 @@ int32_t close_file(pcb_t *blk, uint32_t fd_id)
 	} else
 		return -1;
 }
+
+pcb_t * cur_pcb;
 
 #endif /* PCB_H */

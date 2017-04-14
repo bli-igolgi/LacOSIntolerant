@@ -238,7 +238,18 @@ void gen_pro_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void page_fault() {
-    printf("Page fault encountered. Cache me osside, how bow dat?\n");
+    uint32_t cr2;
+
+    // Get the error stored in cr2
+    asm volatile (
+        "movl %%cr2, %%eax;"
+        "movl %%eax, %0;"
+        : "=m"(cr2)
+        :
+        : "%eax"
+    );
+
+    printf("Page fault encountered with error %x\n", cr2);
     while(1);
     return;
 }

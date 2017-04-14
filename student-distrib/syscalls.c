@@ -29,6 +29,8 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t entry = 0;
     dentry_t cmd_dentry;
     int i = 0, j = 0;
+    // Set the stack pointer to be just before the bottom of the page
+    uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
     
     /* ==== Parse arguments ==== */
     // Skip spaces in front of the command
@@ -68,11 +70,11 @@ int32_t sys_execute(const uint8_t *command) {
     TODO: Set up new page directory
     */
     if(!process_1_started) {
-        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, false, true);
+        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
         process_1_started = true;
     }
     else 
-        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, false, true);
+        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
 
     /* ==== Load file into memory ==== */
     entry = (file_data[27] << 24) | (file_data[26] << 16) | (file_data[25] << 8) | file_data[24];
@@ -95,11 +97,10 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Prepare for context switch ==== */
 
-    tss.esp0 = PROGRAM_1_PHYS - 0x4;
-    ltr(KERNEL_TSS);
+    // tss.esp0 = PROGRAM_1_PHYS - 0x4;
+    // ltr(KERNEL_TSS);
 
     /* ==== Push IRET context to stack ==== */
-
     asm volatile (
         "movw $0x2B, %%ax;"
         "movw %%ax, %%ds;"
@@ -115,7 +116,7 @@ int32_t sys_execute(const uint8_t *command) {
         "pushl %1;"
         "iret;"
         : 
-        : "r"(PROGRAM_VIRT), "r"(entry)
+        : "r"(stackp), "r"(entry)
         : "%eax"
     );
 

@@ -89,7 +89,6 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Create PCB ==== */
     init_pcb(cur_pcb);
-    cur_pcb->io_files[1].file_ops.write(0, "hello", 5);
     /*pcb_t* new_pcb = find_empty_pcb();
     memset(new_pcb, 0xA5, sizeof(pcb_t));
     if(!no_other_processes)
@@ -139,7 +138,8 @@ int32_t sys_execute(const uint8_t *command) {
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
     // printf("executed syscall read");
-    return -1;
+    cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+    return 0;
 }
 
 /*
@@ -150,7 +150,7 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
     // printf("executed syscall write");
     cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
-    return -1;
+    return 0;
 }
 
 /*

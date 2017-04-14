@@ -1,16 +1,6 @@
 
 #include "pcb.h"
 
-// Section below is file_ops jump tables for type-specific open(0), read(1), write(2), and close(3)
-f_ops_table stdin = { NULL, terminal_read, NULL, NULL };     // read-only
-f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
-/*
-f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
-f_ops_table regf_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
-f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
-*/
-
-
 // A bitmap to optimize space in case a PCB is freed between other PCBs.
 // (This will be adapted to opening and closing files later.)
 uint32_t pcb_status = 0; // none of the upper 24 bits should be 1 unless we know we have space
@@ -29,9 +19,6 @@ pcb_t* init_pcb(uint32_t *newBlk) {
     for(i = 0; i < MAX_DESC; i++)
         (*newBlk).io_files[i].flags = NOT_USED;
     
-    // automatically open stdin (fd #0) & stdout (fd #1)
-    open_file_desc(newBlk, stdin, 1, 0);
-    open_file_desc(newBlk, stdout, 1, 0);
 	
 	return newBlk;
 }

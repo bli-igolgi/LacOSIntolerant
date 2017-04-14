@@ -88,6 +88,10 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Create PCB ==== */
     pcb_t* cur_pcb = init_pcb(END_OF_KERNEL_PAGE - EIGHT_KB*num_procs);		// initialize a PCB at n-th process block
 	
+	// open stdin (fd #0) & stdout (fd #1)
+    open_file_desc(cur_pcb, stdin, 1, 0);
+    open_file_desc(cur_pcb, stdout, 1, 0);
+	
     cur_pcb->io_files[1].file_ops.write(0, "hello", 5);
     /*pcb_t* new_pcb = find_empty_pcb();
     memset(new_pcb, 0xA5, sizeof(pcb_t));

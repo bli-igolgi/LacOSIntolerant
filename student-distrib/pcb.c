@@ -57,6 +57,7 @@ int32_t open_file_desc(pcb_t *blk, void *file_op, uint32_t file_type, uint32_t i
             
             fd.file_pos = 0;                    // user read position always start at 0
             fd.flags = IN_USE;
+            (*blk).io_files[idx] = fd;
             return idx;
         }
     

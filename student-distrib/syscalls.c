@@ -18,11 +18,11 @@ int32_t sys_halt(uint8_t status) {
 }
 
 /*
- *   Inputs: 
+ *   Inputs: command - a string containing the command to be executed, along with arguments
  *   Return Value: -1 if command cannot be executed
  *                 256 if program dies by exception
  *                 0 - 255 if program executes halt system call, based on return of sys_halt
- *   Function: 
+ *   Function: Performs the command
  */
 int32_t sys_execute(const uint8_t *command) {
     uint8_t cmd[15], arg[30], file_data[FILE_H_SIZE];
@@ -52,6 +52,7 @@ int32_t sys_execute(const uint8_t *command) {
     // Check that the file is executable
     read_data(cmd_dentry.inode_num, 0, file_data, FILE_H_SIZE);
 
+    /*
     for(i = 0; i < FILE_H_SIZE; i++) {
         printf("%x",file_data[i]);
         if(i) {
@@ -60,6 +61,7 @@ int32_t sys_execute(const uint8_t *command) {
         }
     }
     printf("\n");
+    */
 
     // Check that the first 4 bytes match executable format
     if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
@@ -83,7 +85,9 @@ int32_t sys_execute(const uint8_t *command) {
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
-    init_pcb(&cur_pcb);
+    cur_pcb = (pcb_t *)(0x800000 - 0x2000);
+    init_pcb(cur_pcb);
+    // cur_pcb->io_files[1].file_ops[2](0, "hello", 5);
     /*pcb_t* new_pcb = find_empty_pcb();
     memset(new_pcb, 0xA5, sizeof(pcb_t));
     if(!no_other_processes)
@@ -116,6 +120,7 @@ int32_t sys_execute(const uint8_t *command) {
         "pushl $0x23;"      // Code segment selector
         "pushl %1;"
         "iret;"
+        "ret;"
         : 
         : "r"(stackp), "r"(entry)
         : "%eax"

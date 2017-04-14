@@ -15,8 +15,15 @@
 // sets flag field of file descriptors
 typedef enum {NOT_USED, IN_USE} status_t;
 
+typedef struct f_ops_table {
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*read)(int32_t fd, void *buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const void *buf, int32_t nbytes);
+    int32_t (*close)(int32_t fd);
+} f_ops_table;
+
 typedef struct fdesc {
-    uint32_t *file_ops;                 // pointer to file operations jump table
+    f_ops_table file_ops;               // pointer to file operations jump table
     uint32_t inode;                     // inode number
     uint32_t file_pos;                  // current position in file
     status_t flags;                     // status of file at the moment
@@ -34,12 +41,13 @@ struct pcb_t {
 };
 
 void init_pcb(pcb_t *newBlk);
-int32_t open_file_desc(pcb_t *blk, void *file_op, uint32_t file_type, uint32_t inode_num);
+int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t file_type, uint32_t inode_num);
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id);
 
 pcb_t *find_empty_pcb(void);
 void done_with_pcb(pcb_t* old_pcb);
 
+extern pcb_t *cur_pcb;
 extern uint32_t pcb_status;
 
 #endif /* PCB_H */

@@ -6,6 +6,9 @@
 
 static bool process_1_started = false;
 
+// The first pcb 8kB above the bottom of the kernel stack
+pcb_t *cur_pcb = (pcb_t *)(0x800000 - 0x2000);
+
 /*
  *   Inputs: 
  *   Return Value: 
@@ -85,9 +88,8 @@ int32_t sys_execute(const uint8_t *command) {
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
-    cur_pcb = (pcb_t *)(0x800000 - 0x2000);
     init_pcb(cur_pcb);
-    // cur_pcb->io_files[1].file_ops[2](0, "hello", 5);
+    cur_pcb->io_files[1].file_ops.write(0, "hello", 5);
     /*pcb_t* new_pcb = find_empty_pcb();
     memset(new_pcb, 0xA5, sizeof(pcb_t));
     if(!no_other_processes)
@@ -146,7 +148,8 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: 
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    printf("executed syscall write");
+    // printf("executed syscall write");
+    cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
     return -1;
 }
 

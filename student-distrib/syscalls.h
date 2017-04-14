@@ -28,7 +28,6 @@
 #include "file_system.h"
 #include "x86_desc.h"
 
-pcb_t *cur_pcb;
 
 /* The actual system calls */
 int32_t sys_halt(uint8_t status);

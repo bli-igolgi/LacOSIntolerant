@@ -60,6 +60,8 @@ int32_t rtc_open(const uint8_t* filename) {
 	// Set initial RTC frequency to 2
     set_int_freq(0x0F);
 	
+    f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
+    open_file_desc(cur_pcb, rtc_jt, 0, 0);
     return SUCCESS;
 }
 

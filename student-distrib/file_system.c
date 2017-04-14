@@ -14,6 +14,8 @@
  *   Function: system call to open a file
  */
 int32_t fsys_open_file(const uint8_t* filename) {
+    f_ops_table file_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
+    open_file_desc(cur_pcb, file_jt, 2, 0); // NEED TO PUT INODE #
     return SUCCESS;
 }
 
@@ -34,6 +36,8 @@ int32_t fsys_close_file(int32_t fd) {
  *   Function: system call to open a directory
  */
 int32_t fsys_open_dir(const uint8_t* filename) {
+    f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
+    open_file_desc(cur_pcb, dir_jt, 1, 0); // NEED TO PUT INODE #
     return SUCCESS;
 }
 

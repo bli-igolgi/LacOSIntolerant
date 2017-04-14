@@ -83,12 +83,13 @@ int32_t sys_execute(const uint8_t *command) {
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
-    /*  pcb_t* new_pcb = find_empty_pcb();
-        memset(new_pcb, 0xA5, sizeof(pcb_t));
-        if(!no_other_processes)
-            new_pcb->parent_task = cur_pcb; // gotta fix this
-        else
-            new_pcb->parent_task = NULL;
+    init_pcb(&cur_pcb);
+    /*pcb_t* new_pcb = find_empty_pcb();
+    memset(new_pcb, 0xA5, sizeof(pcb_t));
+    if(!no_other_processes)
+        new_pcb->parent_task = cur_pcb; // gotta fix this
+    else
+        new_pcb->parent_task = NULL;
     */
     /* ==== Open default FDs ==== */
     /* new_pcb->io_files[0] = (*stdin);
@@ -130,7 +131,7 @@ int32_t sys_execute(const uint8_t *command) {
  *   Function: 
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    printf("executed syscall read");
+    // printf("executed syscall read");
     return -1;
 }
 

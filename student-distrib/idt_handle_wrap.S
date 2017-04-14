@@ -54,7 +54,7 @@ PCB
     Each process has its own PCB
         Call system.exe in kernel.c to test system call
     Each PCB starts at the top of a 8kB block inside the kernel 
-        First PCB starts at  8MB - 1(8kB) and goes towards bigger memory addresses
+        First PCB starts at 8MB - 1(8kB) and goes towards bigger memory addresses
             First kernel stack starts at 8MB - 4B and goes towards smaller memory addresses
         Second PCB starts at 8MB - 2(8kB)
 
@@ -148,19 +148,6 @@ _sys_call_jmp_tab:
     .long sys_halt, sys_execute, sys_read, sys_write
     .long sys_open, sys_close, sys_getargs
     .long sys_vidmap, sys_set_handler, sys_sigreturn
-
-    /*		SET FOR DELETION
-    // Old system call code
-    # Push 4 call params from right (arg3) to left (cmd)
-    pushl   %edx
-    pushl   %ecx
-    pushl   %ebx
-    pushl   %eax
-    call    sys_call
-	# Remove arguments, and return value is stored in eax
-    leal    16(%esp), %esp
-    iret
-    */
     
 /* ========= INTERRUPTS ========= */
 

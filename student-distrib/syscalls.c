@@ -138,7 +138,8 @@ int32_t sys_execute(const uint8_t *command) {
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
     // printf("executed syscall read");
-    return -1;
+    cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+    return 0;
 }
 
 /*
@@ -149,7 +150,7 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
     // printf("executed syscall write");
     cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
-    return -1;
+    return 0;
 }
 
 /*

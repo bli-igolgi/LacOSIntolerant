@@ -14,6 +14,7 @@
 #include "mouse.h"
 #include "paging.h"
 #include "file_system.h"
+#include "syscalls.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */

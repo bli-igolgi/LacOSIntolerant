@@ -14,7 +14,7 @@
 #define SYS_SIGRETURN   10
 
 /* Constants used by the execute system call */
-#define FILE_H_SIZE      16*20
+#define FILE_H_SIZE      30
 #define PROGRAM_1_PHYS   0x800000       // 8MB
 #define PROGRAM_2_PHYS   0xC00000       // 12MB
 #define PROGRAM_VIRT     0x8000000      // 128MB
@@ -26,6 +26,7 @@
 #include "paging.h"
 #include "pcb.h"
 #include "file_system.h"
+#include "x86_desc.h"
 
 /* The actual system calls */
 int32_t sys_halt(uint8_t status);

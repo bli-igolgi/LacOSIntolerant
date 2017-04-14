@@ -62,7 +62,7 @@ int32_t sys_execute(const uint8_t *command) {
     // Check that the first 4 bytes match executable format
     if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
         return -1;
-    
+
     /* ==== Set up paging ==== */
     /*
     TODO: Set up new page directory
@@ -93,16 +93,25 @@ int32_t sys_execute(const uint8_t *command) {
        new_pcb->io_files[1] = (*stdout);
     */
 
-    /* ==== Prepare for context switch / Push IRET context to stack ==== */
-    asm volatile (
-        "movw $0x23, %%ax;"
-        "movw %%ax, %%ds;"
+    /* ==== Prepare for context switch ==== */
 
-        "mov %0, %%eax;"
-        "pushl $0x23;"      // Data segment selector (0x20 | 0x3 = 0x23)
+    tss.esp0 = PROGRAM_1_PHYS - 0x4;
+    ltr(KERNEL_TSS);
+
+    /* ==== Push IRET context to stack ==== */
+
+    asm volatile (
+        "movw $0x2B, %%ax;"
+        "movw %%ax, %%ds;"
+        "movw %%ax, %%es;"
+        "movw %%ax, %%fs;"
+        "movw %%ax, %%gs;" 
+
+        "movl %0, %%eax;"
+        "pushl $0x2B;"      // Data segment selector
         "pushl %%eax;"
         "pushf;"
-        "pushl $0x1B;"      // Code segment selector (0x18 | 0x3 = 0x1b)
+        "pushl $0x23;"      // Code segment selector
         "pushl %1;"
         "iret;"
         : 

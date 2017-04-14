@@ -12,7 +12,6 @@
 #include "lib.h"
 #include "keyboard.h"
 #include "rtc.h"
-#include "syscalls.h"
 
 // Designate idt_desc_t struct as trap gate with default values, used for exceptions
 #define SET_TRAP_GATE(str)          \

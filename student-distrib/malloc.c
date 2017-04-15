@@ -1,6 +1,7 @@
 #include "paging.h"
 #include "lib.h"
 #include "types.h"
+#include "paging.h"
 
 
 
@@ -14,21 +15,40 @@
  *   SIDE EFFECTS: sets bits in the user's page table
  */
 void * malloc(uint32_t size) {
-	// if the user requests too many bytes (more than one 4kB page), return NULL
-	if(size > PAGE_SIZE_4kB)
-		return NULL;
+
+	void * retval; // address of the memory the user requested
+
+	// check for the amount of memory the user wants
+	if (size >= PAGE_SIZE_4kB) {
+		// call function to allocate multiple (or one) pages
+		retval = malloc_large(size);
+	} else {
+		// call function to allocate a part of a page
+		retval = malloc_small(size);
+	}
+
+	return retval;
+
+}
+
+	// convert the size the smallest power of two that is larger than the number
+	uint32_t mem_size; // the size of the memory chunck we need to find
+	uint32_t num_pages; // the number of pages we need to find
 
 	// find an open page
+	// check each page
+	for(index=2; index<PAGE_ENTRIES+1; index++){
+
+	}
+
+	// if we could not find a page, return failure
+	return NULL;
 
 	// somehow mark it as present
 
 	// change the user's page table and page directory bits
 
 	// should we flush the tlb?
-
-
-	return NULL;
-}
 
 
 /* 
@@ -39,7 +59,7 @@ void * malloc(uint32_t size) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: changes bits in the user's page table
  */
-extern void free(void *ptr){
+void free(void *ptr){
 	// check if the page is present
 
 	// mark it as no longer present
@@ -51,6 +71,10 @@ extern void free(void *ptr){
 	return;
 }
 
+
+
+/******** NOTE: init_heap() needs to be called during the initialization*****/
+
 /*
  * init_heap
  *   DESCRIPTION: sets up the bookkeeping info for the heap
@@ -58,6 +82,26 @@ extern void free(void *ptr){
  *   RETURN VALUE: none
  *   SIZE EFFECTS: creates a kernal page for the bookkeeping info
  */
+void init_heap() {
+	// get the address of the last page in memory
+	uint32_t * page = SIZE_256MB - SIZE_4kB;
+
+	// map the last 4kB page -- 4kB page, kernel privileges, read/write
+	map_page(page, page, 0, 0, 1);
+
+	// clear the last page (initialize bookkeeping info)
+	for(i=0;i<PAGE_ENTRIES;i++)
+		page[i] = 0;
+
+	return;
+}
+
+
+
+// 256MB is the size of memory
+// last page - bookkeeping - starts at 256MB - 4kB
+// the start of pages range from 256MB - 2*4kB to 256MB - 1024*4kB
+
 
 
 /* Basic implementation:

@@ -33,21 +33,12 @@ typedef struct fdesc {
 // Forward declaration so that a pcb can contain another pcb
 typedef struct pcb_t pcb_t;
 struct pcb_t {
+    // I feel like there's a bunch of stuff missing here... but idk what.
     fdesc_t io_files[MAX_DESC];         // file descriptor array
     uint32_t gpr[8];                    // eax ebx ecx edx ebp esi edi esp (order subject to change)
     uint32_t* page_dir;                 // pointer to process's page directory
     pcb_t* parent_task;                 // pointer to parent task's PCB
 };
-
-// Section below is file_ops jump tables for type-specific open(0), read(1), write(2), and close(3)
-f_ops_table stdin = { NULL, terminal_read, NULL, NULL };     // read-only
-f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
-/*
-f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
-f_ops_table regf_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
-f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
-*/
-
 
 pcb_t* init_pcb(uint32_t *newBlk);
 int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t file_type, uint32_t inode_num);

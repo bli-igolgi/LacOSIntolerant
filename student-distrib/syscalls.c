@@ -128,6 +128,7 @@ int32_t sys_execute(const uint8_t *command) {
     printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
     return 0;
 }
+f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 
 /*
  *   Inputs: 
@@ -152,17 +153,31 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
 }
 
 /*
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs:		filename - the string that contains the name of the file
+ *   Return Value:	-1 if filename does not exist or specific file_open fails
+ *					0 - 7 file descriptor id# (fd) 
+ *   Function:		Checks the filename, and calls the file type specific open function
  */
 int32_t sys_open(const uint8_t *filename) {
-//    dentry_t cur_dentry;
-//    if(!read_dentry_by_name(filename, &cur_dentry))
-//      // EACH ENTRY NEEDS TO SET UP THE FD APPROPRIATELY
-//        return *(tableaux[cur_dentry.file_type])[0](filename);
-    printf("executed syscall open");
-    return FAILURE;
+    dentry_t cur_dentry;
+	
+    if(read_dentry_by_name(filename, &cur_dentry))
+		return FAILURE;
+	
+	if(cur_dentry.file_type < 3)
+		return (*tableaux[cur_dentry.file_type]).open(filename);
+	
+	return FAILURE;
+	/*switch(cur_dentry.file_type){
+		case RTC_DEV:
+			return rtc_open(filename);
+		case DIR_TYPE:
+			return fsys_open_dir(filename);
+		case REG_FILE:
+			return fsys_open_file(filename);
+		default:
+			return FAILURE;
+	} */
 }
 
 /*

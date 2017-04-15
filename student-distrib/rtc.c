@@ -49,20 +49,20 @@ void rtc_interrupt() {
     sti();
 }
 
+f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
+
 /*
  * int32_t rtc_open(const uint8_t* filename);
- *   Inputs: filename - pointer to the filename
- *   Return Value: 0 always
- *   Function: Opens the RTC and sets initial
- *              interrupt frequency to 2
+ *   Inputs: 		filename - pointer to the filename
+ *   Return Value:	-1 if no free file descriptors are available
+ *					0-7 (fd) if it doesn't fail
+ *   Function: 		Opens the RTC and sets initial interrupt frequency to 2
  */
 int32_t rtc_open(const uint8_t* filename) {
 	// Set initial RTC frequency to 2
     set_int_freq(0x0F);
 	
-    f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
-    open_file_desc(cur_pcb, rtc_jt, 0, 0);
-    return SUCCESS;
+    return open_file_desc(cur_pcb, rtc_jt, 0);		// RTC file inode # is 0
 }
 
 /*

@@ -8,16 +8,19 @@
 
 // Until the process control blocks are set up for each process, these are just stubs.
 
+f_ops_table regf_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
 /*
  * int32_t fsys_open_file(const uint8_t* filename);
- *   Inputs: filename -- name of file to be opened
- *   Return Value: 0 on success (every time at this point)
- *   Function: system call to open a file
+ *   Inputs: 		filename -- name of file to be opened
+ *   Return Value: -1 if no free file descriptors are available
+ *					0-7 (fd) if it doesn't fail
+ *   Function: 		system call to open a file
  */
 int32_t fsys_open_file(const uint8_t* filename) {
-    f_ops_table file_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
-    open_file_desc(cur_pcb, file_jt, 2, 0); // NEED TO PUT INODE #
-    return SUCCESS;
+	dentry_t temp_dentry;
+	read_dentry_by_name(filename, &temp_dentry);			// redundant, which is why func call order might be wrong...
+	
+    return open_file_desc(cur_pcb, regf_jt, temp_dentry.inode_num);		// regular file has specific inode #
 }
 
 /*
@@ -30,16 +33,16 @@ int32_t fsys_close_file(int32_t fd) {
     return SUCCESS;
 }
 
+f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
 /*
  * int32_t fsys_open_dir(const uint8_t* filename);
- *   Inputs: filename -- name of directory to be opened
- *   Return Value: 0 on success (every time at this point)
- *   Function: system call to open a directory
+ *   Inputs:		filename -- name of directory to be opened
+ *   Return Value:	-1 if no free file descriptors are available
+ *					0-7 (fd) if it doesn't fail
+ *   Function:		system call to open a directory
  */
 int32_t fsys_open_dir(const uint8_t* filename) {
-    f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
-    open_file_desc(cur_pcb, dir_jt, 1, 0); // NEED TO PUT INODE #
-    return SUCCESS;
+    return open_file_desc(cur_pcb, dir_jt, 0);		// directory inode # is 0
 }
 
 /*

@@ -1,16 +1,12 @@
 
 #include "pcb.h"
 
-// Section below is file_ops jump tables for type-specific open(0), read(1), write(2), and close(3)
-f_ops_table stdin = { NULL, terminal_read, NULL, NULL };     // read-only
-f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
-f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
-f_ops_table regf_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
-f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
-f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
-
 // A bitmap to optimize space in case a PCB is freed between other PCBs.
 uint32_t pcb_status = 0; // none of the upper 24 bits should be 1 unless we know we have space
+
+// Section below is file_ops jump tables for keyboard & terminal
+f_ops_table stdin = { NULL, terminal_read, NULL, NULL };     // read-only
+f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
 
 pcb_t * find_empty_pcb(void){
     uint32_t temp_pcb_status = pcb_status, offset = 0;
@@ -43,9 +39,9 @@ pcb_t * init_pcb() {
         newBlk->io_files[i].flags = NOT_USED;
     
     /* ==== Open default FDs ==== */
-    // automatically open stdin (fd #0) & stdout (fd #1)
-    open_file_desc(newBlk, stdin, 1, 0);
-    open_file_desc(newBlk, stdout, 1, 0);
+	// automatically open stdin (fd #0) & stdout (fd #1)
+    open_file_desc(newBlk, stdin, 0);
+    open_file_desc(newBlk, stdout, 0);
 
     return newBlk;
 }
@@ -53,13 +49,12 @@ pcb_t * init_pcb() {
 /*
  *  Inputs: blk         --  pointer to process control block
  *          file_op     --  file operation jump table associated with file type
- *          file_type   --  similar to file system: 0 for RTC, 1 for directory, 2 for reg files
  *          inode_num   --  inode number for this data file
  *  Return Value: 0 - 7 on success, -1 on failure
  *  Function: Dynamically assign an available file descriptor. Returns the file descriptor id# (io_file index)
  *              upon allocation success; fails if array is full / all file desc are occupied.
  */
-int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t file_type, uint32_t inode_num) {
+int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
     int idx;
     fdesc_t fd;
     for(idx = 0; idx < MAX_DESC; idx++)
@@ -67,10 +62,7 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t file_type, uint
             fd = (*blk).io_files[idx];
             fd.file_ops = file_op;  // jmp table exists for every file type
             
-            if(file_type == 2)
-                fd.inode = inode_num;
-            else
-                fd.inode = 0;                   // no inode # for directory or RTC device files
+			fd.inode = inode_num;	// inode # passed in should be 0 for directory or RTC device files
             
             fd.file_pos = 0;                    // user read position always start at 0
             fd.flags = IN_USE;

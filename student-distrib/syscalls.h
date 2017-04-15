@@ -20,6 +20,11 @@
 #define PROGRAM_VIRT     0x8000000      // 128MB
 #define PROGRAM_VIRT_OFF 0x48000        // Where to start copying the program image within the virtual space
 
+/* File type constants
+#define RTC_DEV		0
+#define DIR_TYPE	1
+#define REG_FILE	2 */
+
 #ifndef ASM
 
 #include "lib.h"
@@ -28,6 +33,9 @@
 #include "file_system.h"
 #include "x86_desc.h"
 
+extern f_ops_table rtc_jt;
+extern f_ops_table dir_jt;
+extern f_ops_table regf_jt;
 
 /* The actual system calls */
 int32_t sys_halt(uint8_t status);

@@ -167,10 +167,10 @@ int32_t sys_open(const uint8_t *filename) {
     if(read_dentry_by_name(filename, &cur_dentry))
 		return FAILURE;
 	
-	if(cur_dentry.file_type < 3)
+	if(cur_dentry.file_type < 3)		// 3 is the number of possible file types
 		return (*tableaux[cur_dentry.file_type]).open(filename);
-	
-	return FAILURE;
+	else
+		return FAILURE;
 	/*switch(cur_dentry.file_type){
 		case RTC_DEV:
 			return rtc_open(filename);
@@ -189,11 +189,7 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: 
  */
 int32_t sys_close(int32_t fd) {
-//    if(fd <= 1)
-        return FAILURE;
-    // done_with_fd(fd);
-    printf("executed syscall close");
-//    return SUCCESS;
+	return cur_pcb->io_files[fd].file_ops.close(fd);
 }
 
 /*

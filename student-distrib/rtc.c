@@ -68,11 +68,11 @@ int32_t rtc_open(const uint8_t* filename) {
 /*
  * int32_t rtc_close(int32_t fd);
  *   Inputs: fd - The RTC file descriptor
- *   Return Value: 0 always
+ *   Return Value: 
  *   Function: Closes the RTC
  */
 int32_t rtc_close(int32_t fd) {
-    return SUCCESS;
+    return close_file_desc(cur_pcb, fd);
 }
 
 /*

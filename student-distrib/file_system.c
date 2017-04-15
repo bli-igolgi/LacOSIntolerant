@@ -26,11 +26,11 @@ int32_t fsys_open_file(const uint8_t* filename) {
 /*
  * int32_t fsys_close_file(int32_t fd);
  *   Inputs: fd -- file descriptor of open file
- *   Return Value: 0 on success (every time at this point)
+ *   Return Value: 
  *   Function: system call to close a file
  */
 int32_t fsys_close_file(int32_t fd) {
-    return SUCCESS;
+    return close_file_desc(cur_pcb, fd);
 }
 
 f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
@@ -48,11 +48,11 @@ int32_t fsys_open_dir(const uint8_t* filename) {
 /*
  * int32_t fsys_close_dir(int32_t fd);
  *   Inputs: fd -- file descriptor of open directory
- *   Return Value: 0 on success (every time at this point)
+ *   Return Value: 
  *   Function: system call to close a directory
  */
 int32_t fsys_close_dir(int32_t fd) {
-    return SUCCESS;
+    return close_file_desc(cur_pcb, fd);
 }
 
 /*

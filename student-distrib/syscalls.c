@@ -15,7 +15,10 @@ pcb_t *cur_pcb = NULL;
  *   Function: 
  */
 int32_t sys_halt(uint8_t status) {
-    printf("executed syscall ");
+    printf("executed syscall halt\n");
+
+    // Restart first process if halt is called on it
+    if(pcb_status == 1) sys_execute((uint8_t *)"shell");
     // Zero extend the value
     return (status & 0xFF);
 }
@@ -90,12 +93,12 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();
+    // If we are spawning new task from original shell call
     if(pcb_status != 1)
         new_pcb->parent_task = cur_pcb;
     else
         new_pcb->parent_task = NULL;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
-    // new_pcb->io_files[1].file_ops.write(0, "hello", 5);
     if(!cur_pcb)
         cur_pcb = new_pcb;
 
@@ -125,7 +128,7 @@ int32_t sys_execute(const uint8_t *command) {
         : "%eax"
     );
 
-    printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
+    // printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
     return 0;
 }
 

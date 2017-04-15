@@ -126,7 +126,6 @@ _syscall:
     # Call the C system call corresponding to the sys call number
 	subl	$1, %eax						# shift cmd from index 1 to index 0
     call    *_sys_call_jmp_tab(, %eax, 4)
-    movl    $0, %eax
 
     # Restore the register values
     popl    %ebx

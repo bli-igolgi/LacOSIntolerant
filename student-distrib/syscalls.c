@@ -95,7 +95,7 @@ int32_t sys_execute(const uint8_t *command) {
     else
         new_pcb->parent_task = NULL;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
-    new_pcb->io_files[1].file_ops.write(0, "hello", 5);
+    // new_pcb->io_files[1].file_ops.write(0, "hello", 5);
     if(!cur_pcb)
         cur_pcb = new_pcb;
 
@@ -130,25 +130,25 @@ int32_t sys_execute(const uint8_t *command) {
 }
 
 /*
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd     - The file descriptor of the device
+ *           buf    - The buffer to read the data into
+ *           nbytes - How many bytes to read
+ *   Return Value: The number of bytes read, or -1 if failed
+ *   Function: Calls the read function corresponding to the device ID fd
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    // printf("executed syscall read");
-    cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
-    return -1;
+    return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
 }
 
 /*
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: fd     - The file descriptor of the device
+ *           buf    - The data to write
+ *           nbytes - How many bytes to write
+ *   Return Value: The number of bytes written
+ *   Function: Writes data to the specified device
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    // printf("executed syscall write");
-    cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
-    return -1;
+    return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
 }
 
 /*

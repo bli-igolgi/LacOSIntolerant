@@ -6,8 +6,8 @@
 
 static bool process_1_started = false;
 
-// The first pcb 8kB above the bottom of the kernel stack
-pcb_t *cur_pcb = (pcb_t *)(0x800000 - 0x2000);
+// Pointer to the PCB of the current running process
+pcb_t *cur_pcb = NULL;
 
 /*
  *   Inputs: 
@@ -73,6 +73,7 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Set up paging ==== */
     /*
     TODO: Set up new page directory
+    TODO: Fix below so that this works more generally with more than one process
     */
     if(!process_1_started) {
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
@@ -82,25 +83,21 @@ int32_t sys_execute(const uint8_t *command) {
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
 
     /* ==== Load file into memory ==== */
-    entry = (file_data[27] << 24) | (file_data[26] << 16) | (file_data[25] << 8) | file_data[24];
+    entry = *((uint32_t *)file_data+6);
     printf("entry: %x\n", entry);
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT | PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
-    init_pcb(cur_pcb);
-    cur_pcb->io_files[1].file_ops.write(0, "hello", 5);
-    /*pcb_t* new_pcb = find_empty_pcb();
-    memset(new_pcb, 0xA5, sizeof(pcb_t));
-    if(!no_other_processes)
-        new_pcb->parent_task = cur_pcb; // gotta fix this
+    pcb_t* new_pcb = init_pcb();
+    if(pcb_status != 1)
+        new_pcb->parent_task = cur_pcb;
     else
         new_pcb->parent_task = NULL;
-    */
-    /* ==== Open default FDs ==== */
-    /* new_pcb->io_files[0] = (*stdin);
-       new_pcb->io_files[1] = (*stdout);
-    */
+    new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
+    new_pcb->io_files[1].file_ops.write(0, "hello", 5);
+    if(!cur_pcb)
+        cur_pcb = new_pcb;
 
     /* ==== Prepare for context switch ==== */
 
@@ -139,6 +136,7 @@ int32_t sys_execute(const uint8_t *command) {
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
     // printf("executed syscall read");
+    cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
     return -1;
 }
 
@@ -159,8 +157,12 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
  *   Function: 
  */
 int32_t sys_open(const uint8_t *filename) {
+//    dentry_t cur_dentry;
+//    if(!read_dentry_by_name(filename, &cur_dentry))
+//      // EACH ENTRY NEEDS TO SET UP THE FD APPROPRIATELY
+//        return *(tableaux[cur_dentry.file_type])[0](filename);
     printf("executed syscall open");
-    return -1;
+    return FAILURE;
 }
 
 /*
@@ -169,8 +171,11 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: 
  */
 int32_t sys_close(int32_t fd) {
+//    if(fd <= 1)
+        return FAILURE;
+    // done_with_fd(fd);
     printf("executed syscall close");
-    return -1;
+//    return SUCCESS;
 }
 
 /*

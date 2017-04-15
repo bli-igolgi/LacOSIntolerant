@@ -3,6 +3,7 @@
  */
 
 #include "file_system.h"
+#include "pcb.h"
 #include "keyboard.h"
 
 // Until the process control blocks are set up for each process, these are just stubs.

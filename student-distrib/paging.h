@@ -10,7 +10,7 @@
 
 #define KERNEL_ADDR 0x400000          // address of the kernal in physical memory
 #define VIDEO       0xB8000           // start of video memory, from lib.c
-#define PAGE_TABLE_STARTADDR 0x800000 // start address of the page table
+#define PAGE_TABLE_STARTADDR 0x8800000 // start address of the page table
 
 // bit masks to isolate portions of the virtual address/page table or directory entries
 #define TOP_10_BITS     0xFFC00000          // dirctory bits

@@ -4,9 +4,8 @@
 // max num of file descriptors is 8 per task
 #define MAX_DESC            8
 #define END_OF_KERNEL_PAGE  0x800000
-#define PCB_PLUS_STACK      8192
+#define PCB_PLUS_STACK      0x2000
 #define FOUR_MB             0x400000
-#define EIGHT_KB            0x2000
 
 #include "file_system.h"
 #include "rtc.h"

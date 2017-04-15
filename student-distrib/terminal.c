@@ -28,7 +28,7 @@ int32_t terminal_close(int32_t fd) {
 /*
  * int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes);
  *   Inputs: fd     - The keyboard file descriptor
- *           buf    - The data to read
+ *           buf    - The buffer to read the data into
  *           nbytes - How many bytes to read
  *   Return Value: The number of bytes read, or -1 if failed
  *   Function: 
@@ -39,7 +39,7 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
     cli();
     new_line = false;
 
-    uint32_t buf_size = sizeof(read_buf);
+    int32_t buf_size = strlen((int8_t *)read_buf);
     // Move the data entered since the last newline into the buf
     memcpy(buf, read_buf, buf_size);
 
@@ -62,7 +62,7 @@ int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
 
     int b_written;
     // Display the passed in data
-    b_written = printf("%s", (int8_t *)buf);
+    b_written = printf("%s", (uint8_t *)buf);
 
     sti();
     return b_written;

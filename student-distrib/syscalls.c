@@ -4,8 +4,10 @@
 
 #include "syscalls.h"
 
-//	keeps track of number of processes
-static uint8_t num_procs = 0;
+static bool process_1_started = false;
+
+// The first pcb 8kB above the bottom of the kernel stack
+pcb_t *cur_pcb = (pcb_t *)(0x800000 - 0x2000);
 
 /*
  *   Inputs: 
@@ -72,9 +74,9 @@ int32_t sys_execute(const uint8_t *command) {
     /*
     TODO: Set up new page directory
     */
-    if(num_procs == 0) {
+    if(!process_1_started) {
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
-        num_procs++;	// now running 1 process
+        process_1_started = true;
     }
     else 
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
@@ -86,8 +88,7 @@ int32_t sys_execute(const uint8_t *command) {
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Create PCB ==== */
-    pcb_t* cur_pcb = init_pcb(END_OF_KERNEL_PAGE - EIGHT_KB*num_procs);		// initialize a PCB at n-th process block
-	
+    init_pcb(cur_pcb);
     cur_pcb->io_files[1].file_ops.write(0, "hello", 5);
     /*pcb_t* new_pcb = find_empty_pcb();
     memset(new_pcb, 0xA5, sizeof(pcb_t));

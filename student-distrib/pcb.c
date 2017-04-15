@@ -16,14 +16,12 @@ f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
 uint32_t pcb_status = 0; // none of the upper 24 bits should be 1 unless we know we have space
 
 /*
- *  Inputs: newBlk  -- mem loc of where new PCB goes
- *  Return Value:	Handle to created pcb struct
- *  Function: Initialize a pcb at newBlk address with default file descriptors
+ *  Inputs: newBlk  -- pointer to new process control block
+ *  Return Value: none
+ *  Function: Initialize a pcb with default file descriptors
  */
-pcb_t* init_pcb(uint32_t *newBlk) {
+void init_pcb(pcb_t *newBlk) {
     int i;
-	
-	*(pcb_t*)newBlk = (pcb_t){0};
     
     // make all file descriptors available
     for(i = 0; i < MAX_DESC; i++)
@@ -32,8 +30,6 @@ pcb_t* init_pcb(uint32_t *newBlk) {
     // automatically open stdin (fd #0) & stdout (fd #1)
     open_file_desc(newBlk, stdin, 1, 0);
     open_file_desc(newBlk, stdout, 1, 0);
-	
-	return newBlk;
 }
 
 /*

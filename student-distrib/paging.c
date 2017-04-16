@@ -93,12 +93,12 @@ void paging_init()
     );
 
     // map the kernel in the page directory -- large page, kernel privileges, read/write
-    map_page((void *)KERNEL_ADDR, (void *)KERNEL_ADDR, 1, 0, 1);
+    map_page((void *)KERNEL_ADDR, (void *)KERNEL_ADDR, 1, 0, 1, 0);
 
     // map the video memory in the page directory -- small page, kernel privileges, read/write
-    map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1);
+    map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1, 0);
 
-    map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1);
+    map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1, 0);
 
     // setting the bits to enable paging
     asm volatile (
@@ -131,7 +131,7 @@ void paging_init()
  *   SIDE EFFECTS: modifies the page directory and/or a page table
  *                 may create a new page table
  */
-int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write)
+int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write, bool remap)
 {
     unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;
@@ -154,7 +154,7 @@ int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privile
     page_dir_entry = page_dir_addr[page_dir_index];
 
     // check if the page directory entry is empty
-    if(!(page_dir_entry & PRESENT_BIT)){
+    if(!(page_dir_entry & PRESENT_BIT) || remap){
         // it's empty! set up the page/page table
 
         // this is a 4MB page
@@ -167,7 +167,7 @@ int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privile
             page_dir_entry += privileges*US_BIT;
             page_dir_entry += write*RW_BIT;
             page_dir_entry += PRESENT_BIT;
-            page_dir_entry += ((page_size&&(!privileges)&&write)?GLOBAL_BIT:0);
+            // page_dir_entry += ((page_size&&(!privileges)&&write)?GLOBAL_BIT:0);
 
             // save this entry to the page directory
             page_dir_addr[page_dir_index] = page_dir_entry;

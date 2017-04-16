@@ -18,7 +18,7 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
     int i;
     printf("executed syscall halt\n");
     // Remap the parent's page
-    map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
+    map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
 
     // Zero extend the return value
     uint32_t ret_val = (status & 0xFF);
@@ -33,17 +33,21 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
     }
 
     // Go back to the parent task
+    uint32_t esp_0 = cur_pcb->esp0, ss_0 = cur_pcb->ss0;
+    uint32_t *cur_esp = (uint32_t *)cur_pcb->parent_task->esp, *cur_ebp = (uint32_t *)cur_pcb->parent_task->ebp;
     cur_pcb = cur_pcb->parent_task;
     flush_tlb();
     // Restore the pointers to the stack
     if(cur_pcb) {
-        uint32_t *cur_esp = (uint32_t *)cur_pcb->esp, *cur_ebp = (uint32_t *)cur_pcb->ebp;
-        tss.esp0 = cur_pcb->esp0;
-        tss.ss0 = cur_pcb->ss0;
+//        tss.esp0 = cur_pcb->esp0;
+        tss.esp0 = esp_0;
+//        tss.ss0 = cur_pcb->ss0;
+        tss.ss0 = ss_0;
         asm volatile (
             "movl %2, %%eax\n\
             movl %1, %%ebp\n\
             movl %0, %%esp\n\
+            jmp we_are_done\n\
             leave\n\
             ret\n\
             "
@@ -97,10 +101,11 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Set up paging ==== */
     // TODO: Fix below so that this works more generally with more than one process
 
-    if(!pcb_status)
-        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
+    if(numproc==0)
+        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
     else 
-        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
+        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
+    flush_tlb();
 
     /* ==== Load file into memory ==== */
     entry = *((uint32_t *)file_data+6);
@@ -150,6 +155,8 @@ int32_t sys_execute(const uint8_t *command) {
         "pushl $0x23;"      // Code segment selector
         "pushl %1;"
         "iret;"
+        "we_are_done:"
+        "leave;"
         "ret;"
         : 
         : "r"(stackp), "r"(entry)

@@ -39,7 +39,7 @@ uint32_t page_directory[NUM_ENTRIES] __attribute__((aligned (SIZEOFDIR)));
 // paging functions -- function descriptions at the implementations
 extern void * resolve_virt_addr(void * virt_addr);
 extern void paging_init();
-extern int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write);
+extern int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write, bool remap);
 
 #endif
 

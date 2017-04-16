@@ -9,6 +9,7 @@
  * malloc
  *   DESCRIPTION:  Allocates memory for a user program
  *                 Marks the memory as in use
+ * 				   Calls the appropriate helper function based on the page size
  *   INPUTS:       size -- the number of bytes the user has requested
  *   RETURN VALUE: success -- a pointer to the memory allocated to the user program
  *                 failure -- NULL pointer
@@ -19,11 +20,11 @@ void * malloc(uint32_t size) {
 	void * retval; // address of the memory the user requested
 
 	// check for the amount of memory the user wants
-	if (size >= PAGE_SIZE_4kB) {
-		// call function to allocate multiple (or one) pages
+	if (size > PAGE_SIZE_4kB) {
+		// call function to allocate multiple pages
 		retval = malloc_large(size);
 	} else {
-		// call function to allocate a part of a page
+		// call function to allocate all or part of a page
 		retval = malloc_small(size);
 	}
 
@@ -31,24 +32,51 @@ void * malloc(uint32_t size) {
 
 }
 
-	// convert the size the smallest power of two that is larger than the number
-	uint32_t mem_size; // the size of the memory chunck we need to find
-	uint32_t num_pages; // the number of pages we need to find
+void * malloc_small(size) {
 
-	// find an open page
-	// check each page
-	for(index=2; index<PAGE_ENTRIES+1; index++){
+	uint32_t mem_size; // the size of the memory chunck to allocate
+
+
+	// convert the size to the smallest power of two larger than the number
+	if (size <= 256) {
+		mem_size = 256;
+	} else if (size <= 512) {
+		mem_size = 512;
+	} else if (size <= 1024) {
+		mem_size = 1024;
+	} else if (size <= 2048) {
+		mem_size = 2048;
+	} else {
+		mem_size = 4096;
+	}
+
+	// search through the pages for a page with an open spot
+	for (index=2; index<PAGE_ENTRIES+1; index++) {
+		// if the page has not been mapped, map it
+		// IF STATEMENT
+			// map the 4kB page -- 4kB page, user privileges, read/write
+			map_page(/*addr*/, /*addr*/, 0, 1, 1);
+
+			// mark the page as present in the bookkeeping bits
+			// MODIFY BOOKKEEPING BITS
 
 	}
 
-	// if we could not find a page, return failure
+
+
+
+	// return failure if we could not find a page
 	return NULL;
+}
+
+
 
 	// somehow mark it as present
 
 	// change the user's page table and page directory bits
 
-	// should we flush the tlb?
+
+
 
 
 /* 

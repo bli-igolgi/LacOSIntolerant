@@ -35,6 +35,9 @@ void * malloc(uint32_t size) {
 void * malloc_small(size) {
 
 	uint32_t mem_size; // the size of the memory chunck to allocate
+	uint32_t * page_start; // address of the start of the page we are considering
+	uint32_t * bookkeeping; // address of the bookkeeping info
+	void * ret_val;
 
 
 	// convert the size to the smallest power of two larger than the number
@@ -51,15 +54,31 @@ void * malloc_small(size) {
 	}
 
 	// search through the pages for a page with an open spot
-	for (index=2; index<PAGE_ENTRIES+1; index++) {
-		// if the page has not been mapped, map it
-		// IF STATEMENT
-			// map the 4kB page -- 4kB page, user privileges, read/write
-			map_page(/*addr*/, /*addr*/, 0, 1, 1);
+	for (index=1; index<PAGE_ENTRIES; index++) {
+		// compute the address of the start of the page
+		page_start = MEM_SIZE - PAGE_SIZE_4kB * (index + 1);
 
-			// mark the page as present in the bookkeeping bits
-			// MODIFY BOOKKEEPING BITS
+		// compute the address of the bookkeeping entry
+		bookkeeping = MEM_SIZE - 4 * (index + 1); // 4 bytes per long
 
+		// if the page has not been mapped, map it and set up the bookkeeping info
+		if (*bookkeeping & MALLOC_PRESENT == 0) {
+			// map the 4kB page with user privileges and read/write
+			map_page(page_start, page_start, 0, 1, 1);
+
+			// set the "present bit" and "4096 bytes" bit
+			*bookkeeping  = MALLOC_PRESENT | MALLOC_4096;
+		}
+
+		// check for the correct size chunk of memory
+
+		// check for the correct size
+		// if the correct size is not available, check for the next larger size
+		
+
+
+		// return the a pointer to this memory
+		return ret_val;
 	}
 
 
@@ -112,7 +131,7 @@ void free(void *ptr){
  */
 void init_heap() {
 	// get the address of the last page in memory
-	uint32_t * page = SIZE_256MB - SIZE_4kB;
+	uint32_t * page = MEM_SIZE - SIZE_4kB;
 
 	// map the last 4kB page -- 4kB page, kernel privileges, read/write
 	map_page(page, page, 0, 0, 1);

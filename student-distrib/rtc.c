@@ -86,8 +86,7 @@ int32_t rtc_close(int32_t fd) {
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
 	intr_occured = false;
     // Wait for an interrupt to occur
-    while(!intr_occured){}
-	
+    while(!intr_occured);
     return SUCCESS;
 }
 

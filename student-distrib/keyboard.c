@@ -29,7 +29,7 @@ extern unsigned char caps_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 
 // Buffer for the input data from the keyboard
-unsigned char read_buf[BUF_SIZE];
+unsigned char read_buf[BUF_SIZE+1];
 // Holds the location of the next char in the array
 uint32_t read_buf_index = 0;
 // Flag for whether enter has been pressed

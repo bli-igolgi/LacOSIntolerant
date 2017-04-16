@@ -78,9 +78,10 @@ int32_t sys_execute(const uint8_t *command) {
     printf("entry: %x\n", entry);
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT | PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
-
+				
     /* ==== Create PCB ==== */
-    pcb_t* new_pcb = init_pcb();
+    pcb_t* new_pcb = init_pcb();	
+
     // If we are spawning new task from original shell call
     if(pcb_status != 1)
         new_pcb->parent_task = cur_pcb;
@@ -99,6 +100,8 @@ int32_t sys_execute(const uint8_t *command) {
         );
     }
     cur_pcb = new_pcb;
+	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)
+	terminal_open(NULL);
     new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
     new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
 
@@ -136,7 +139,10 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
  *   Function: Calls the read function corresponding to the device ID fd
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+	if(fd == 0 || (1 < fd && fd < MAX_DESC) )			// bound-check; fd #1 should never be read from
+		return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+	else
+		return FAILURE;
 }
 
 /*
@@ -147,7 +153,10 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: Writes data to the specified device
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
+	if(0 < fd && fd < MAX_DESC)			// bound-check; fd #0 should never be written to
+		return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
+	else
+		return FAILURE;
 }
 
 /*
@@ -162,7 +171,7 @@ int32_t sys_open(const uint8_t *filename) {
     if(read_dentry_by_name(filename, &cur_dentry))
 		return FAILURE;
 	
-	if(cur_dentry.file_type < 3)		// 3 is the number of possible file types
+	if(cur_dentry.file_type < 3)		// 3 possible file types
 		return (*tableaux[cur_dentry.file_type]).open(filename);
 	else
 		return FAILURE;
@@ -184,7 +193,10 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: 
  */
 int32_t sys_close(int32_t fd) {
-	return cur_pcb->io_files[fd].file_ops.close(fd);
+	if(1 < fd && fd < MAX_DESC)			// bound-check; fd #0 & #1 should never be closed
+		return cur_pcb->io_files[fd].file_ops.close(fd);
+	else
+		return FAILURE;
 }
 
 /*

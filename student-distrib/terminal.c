@@ -4,25 +4,30 @@
 
 #include "terminal.h"
 
+// Section below is file_ops jump tables for keyboard & terminal
+f_ops_table stdin = { NULL, terminal_read, NULL, NULL };     // read-only
+f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
 
 /*
  * int32_t terminal_open(const uint8_t* filename);
- *   Inputs: filename - pointer to the filename
+ *   Inputs: filename - junk pointer
  *   Return Value: 0 always
- *   Function: Opens the terminal
+ *   Function: Opens the fd associated with stdin & stdout on terminal
  */
 int32_t terminal_open(const uint8_t* filename) {
-    return SUCCESS;
+	open_file_desc(cur_pcb, stdin, 0);
+    open_file_desc(cur_pcb, stdout, 0);
+	return SUCCESS;		// this function should never fail to find free fd...
 }
 
 /*
  * int32_t terminal_close(int32_t fd);
  *   Inputs: fd - The terminal file descriptor
- *   Return Value: 0 always
+ *   Return Value: -1 always
  *   Function: Closes the terminal
  */
 int32_t terminal_close(int32_t fd) {
-    return SUCCESS;
+    return FAILURE;		// this function should never be called
 }
 
 /*

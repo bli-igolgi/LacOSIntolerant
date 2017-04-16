@@ -64,9 +64,14 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
  *  Inputs: blk     --  pointer to process control block of interest
  *          fd_id   --  file to be closed's id #
  *  Return Value: 0 on completion
- *  Function: Find file descriptor and free it (assumes bound check was already done by general sys_close)
+ *  Function: Find file descriptor and free it
  */
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id) {
-    (*blk).io_files[fd_id].flags = NOT_USED;        // note: fdesc data is not cleared; use flags as access var!
-    return SUCCESS;
+    // Don't try to free if doesn't exist
+    if(blk->io_files[fd_id].flags == NOT_USED) return -1;
+    if(blk->io_files[fd_id].file_ops.close)
+        blk->io_files[fd_id].file_ops.close(fd_id);
+    // note: fdesc data is not cleared; use flags as access var!
+    blk->io_files[fd_id].flags = NOT_USED;
+    return 0;
 }

@@ -7,6 +7,7 @@
 // Pointer to the PCB of the current running process
 pcb_t *cur_pcb = NULL;
 uint32_t numproc = 0;
+f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 
 /*
  *   Inputs: 
@@ -14,17 +15,25 @@ uint32_t numproc = 0;
  *   Function: 
  */
  int32_t sys_halt(uint8_t status) {
+    int i;
     printf("executed syscall halt\n");
     // Remap the parent's page
     map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
-    // Restart first process if halt is called on it
-    // if(!pcb_status) sys_execute((uint8_t *)"shell");
-    // Mark the current PCB as ready for reuse
-    uint32_t stuff = (status & 0xFF);
+
+    // Zero extend the return value
+    uint32_t ret_val = (status & 0xFF);
     uint32_t offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
-    pcb_status &= ~(0x01 << (offset-1));
+    // Mark the current PCB as ready for reuse
+    pcb_status &= ~(1 << (offset-1));
+    // Free the file descriptors associated with the PCB
+    for(i = 0; i < MAX_DESC; i++)
+        close_file_desc(cur_pcb, i);
+
+    // Go back to the parent task
     cur_pcb = cur_pcb->parent_task;
-    if(cur_pcb){
+    flush_tlb();
+    // Restore the pointers to the stack
+    if(cur_pcb) {
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;
         asm volatile (
@@ -35,13 +44,11 @@ uint32_t numproc = 0;
             ret\n\
             "
             :
-            : "g"(cur_pcb->esp), "g"(cur_pcb->ebp), "g"(stuff)
+            : "g"(0x8400000-4), "g"(cur_pcb->ebp), "g"(ret_val)
             : "%eax"
         );
     }
-    return;
-    // Zero extend the value
-    return (status & 0xFF);
+    return ret_val;
 }
 
 /*
@@ -155,7 +162,6 @@ int32_t sys_execute(const uint8_t *command) {
     // printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
     return 0;
 }
-f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 
 /*
  *   Inputs: fd     - The file descriptor of the device
@@ -165,10 +171,8 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
  *   Function: Calls the read function corresponding to the device ID fd
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-	if(fd == 0 || (1 < fd && fd < MAX_DESC) )			// bound-check; fd #1 should never be read from
-		return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
-	else
-		return FAILURE;
+    if(!cur_pcb->io_files[fd].file_ops.read) return FAILURE;
+    return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
 }
 
 /*
@@ -179,10 +183,8 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: Writes data to the specified device
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-	if(0 < fd && fd < MAX_DESC)			// bound-check; fd #0 should never be written to
-		return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
-	else
-		return FAILURE;
+    if(!cur_pcb->io_files[fd].file_ops.write) return FAILURE;
+    return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
 }
 
 /*
@@ -219,10 +221,8 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: 
  */
 int32_t sys_close(int32_t fd) {
-	if(1 < fd && fd < MAX_DESC)			// bound-check; fd #0 & #1 should never be closed
-		return cur_pcb->io_files[fd].file_ops.close(fd);
-	else
-		return FAILURE;
+    if(!cur_pcb->io_files[fd].file_ops.close) return FAILURE;
+    return cur_pcb->io_files[fd].file_ops.close(fd);
 }
 
 /*

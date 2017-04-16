@@ -26,14 +26,18 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
     // Mark the current PCB as ready for reuse
     pcb_status &= ~(1 << (offset-1));
     // Free the file descriptors associated with the PCB
-    for(i = 0; i < MAX_DESC; i++)
+    for(i = 0; i < MAX_DESC; i++) {
+        if(cur_pcb->io_files[i].file_ops.close)
+            cur_pcb->io_files[i].file_ops.close(i);
         close_file_desc(cur_pcb, i);
+    }
 
     // Go back to the parent task
     cur_pcb = cur_pcb->parent_task;
     flush_tlb();
     // Restore the pointers to the stack
     if(cur_pcb) {
+        uint32_t *cur_esp = (uint32_t *)cur_pcb->esp, *cur_ebp = (uint32_t *)cur_pcb->ebp;
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;
         asm volatile (
@@ -44,7 +48,7 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
             ret\n\
             "
             :
-            : "g"(0x8400000-4), "g"(cur_pcb->ebp), "g"(ret_val)
+            : "g"(cur_esp), "g"(cur_ebp), "g"(ret_val)
             : "%eax"
         );
     }
@@ -93,9 +97,8 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Set up paging ==== */
     // TODO: Fix below so that this works more generally with more than one process
 
-    if(!pcb_status) {
+    if(!pcb_status)
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
-    }
     else 
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
 
@@ -133,12 +136,6 @@ int32_t sys_execute(const uint8_t *command) {
 	terminal_open(NULL);
 
     /* ==== Push IRET context to stack ==== */
-    /* At this point for testprint
-        esp: 0x7fff10
-        ebp: 0x7fffc8
-        esp0: 0x7fdffc
-        ss0: 0x18 
-    */
     asm volatile (
         "movw $0x2B, %%ax;"
         "movw %%ax, %%ds;"

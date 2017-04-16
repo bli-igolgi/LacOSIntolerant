@@ -37,9 +37,7 @@ struct pcb_t {
     fdesc_t io_files[MAX_DESC];         // file descriptor array
     uint32_t pid;                       // process id
     int fd_status;                      // bitmap of which fds are occupied
-    uint32_t esp;
-    uint32_t ebp;
-    uint32_t esp0;
+    uint32_t esp, ebp, esp0;
     uint16_t ss0;
     uint32_t* page_dir;                 // pointer to process's page directory
     pcb_t* parent_task;                 // pointer to parent task's PCB

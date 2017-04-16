@@ -1,14 +1,16 @@
 #include "pcb.h"
 
-// A bitmap to optimize space in case a PCB is freed between other PCBs.
-uint32_t pcb_status = 0; // none of the upper 24 bits should be 1 unless we know we have space
+// A bitmap to optimize space in case a PCB is freed between other PCBs
+// None of the upper 24 bits should be 1 unless we know we have space
+uint32_t pcb_status = 0;
 
 pcb_t * find_empty_pcb(void){
     uint32_t temp_pcb_status = pcb_status, offset = 0;
-    while(__builtin_ffs(temp_pcb_status) == 1){
-        offset++; temp_pcb_status >>= 1;
+    while(__builtin_ffs(temp_pcb_status) == 1) {
+        offset++;
+        temp_pcb_status >>= 1;
     }
-    pcb_status |= 0x01 << offset;
+    pcb_status |= 1 << offset;
     return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
 }
 
@@ -17,8 +19,8 @@ pcb_t * find_empty_pcb(void){
 // TODO: REWRITE ABOVE FUNCTIONS SO THAT THEY DO A SIMILAR THING WITH FDs
 
 /*
- *  Inputs: newBlk  -- pointer to new process control block
- *  Return Value: none
+ *  Inputs: none
+ *  Return Value: pointer to new process control block
  *  Function: Initialize a pcb
  */
 pcb_t * init_pcb() {
@@ -42,20 +44,18 @@ pcb_t * init_pcb() {
  */
 int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
     int idx;
-    fdesc_t fd;
-    for(idx = 0; idx < MAX_DESC; idx++)
-        if((*blk).io_files[idx].flags == NOT_USED) {
-            fd = (*blk).io_files[idx];
-            fd.file_ops = file_op;  // jmp table exists for every file type
-            
-			fd.inode = inode_num;	// inode # passed in should be 0 for directory or RTC device files
-            
-            fd.file_pos = 0;                    // user read position always start at 0
-            fd.flags = IN_USE;
-            (*blk).io_files[idx] = fd;
-            return idx;
-        }
-    
+    fdesc_t *fd;
+    for(idx = 0; idx < MAX_DESC; idx++) {
+        // Rename the accessor
+        fd = &(blk->io_files[idx]);
+        if(fd->flags != NOT_USED) continue;
+        fd->file_ops = file_op;
+        fd->inode = inode_num;
+        // user read position always start at 0
+        fd->file_pos = 0;                    
+        fd->flags = IN_USE;
+        return idx;
+    }
     // no unused file desc was found
     return -1;
 }
@@ -69,8 +69,6 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id) {
     // Don't try to free if doesn't exist
     if(blk->io_files[fd_id].flags == NOT_USED) return -1;
-    if(blk->io_files[fd_id].file_ops.close)
-        blk->io_files[fd_id].file_ops.close(fd_id);
     // note: fdesc data is not cleared; use flags as access var!
     blk->io_files[fd_id].flags = NOT_USED;
     return 0;

@@ -64,12 +64,11 @@ void keyboard_interrupt() {
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
         c = inb(DATA_PORT);
-        process_input(c);
+		send_eoi(KEYBOARD_IRQ);
         break;
     }
-    send_eoi(KEYBOARD_IRQ);
+    process_input(c);
 }
-
 
 /*
  * void process_input(char c);
@@ -80,6 +79,7 @@ void keyboard_interrupt() {
 void process_input(char c) {
     uint8_t c_print;
     int last;
+	static volatile bool rtc_loop;
     // Positive scan codes (key down)
     if(c >= 0) {
         switch(c) {
@@ -171,10 +171,11 @@ void process_input(char c) {
                         rtc_freq = 2;
                     rtc_write(0, &rtc_freq, 0);
 					
-					while(1){
+					rtc_loop = true;
+					do{
 						rtc_read(0,0,0);
 						putc('1');
-					}
+					}while(rtc_loop);
                     break;
                 }
                 // Treat it as a regular character
@@ -182,8 +183,14 @@ void process_input(char c) {
             case FIVE_KEY_P:
                 // Test case 5, press CTRL+5
                 if(ctrl) {
+					rtc_loop = false;
                     clear();
                     clear_buffer();
+                    clear();
+                    clear();
+                    clear();
+                    clear();
+                    clear();
                     break;
                 }
                 // Treat it as a regular character

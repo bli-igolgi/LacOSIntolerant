@@ -16,7 +16,6 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
  */
  int32_t sys_halt(uint8_t status) {
     int i;
-    printf("executed syscall halt\n");
     // Remap the parent's page
     map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
 
@@ -34,11 +33,11 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 
     // Go back to the parent task
     uint32_t esp_0 = cur_pcb->esp0, ss_0 = cur_pcb->ss0;
-    uint32_t *cur_esp = (uint32_t *)cur_pcb->parent_task->esp, *cur_ebp = (uint32_t *)cur_pcb->parent_task->ebp;
-    cur_pcb = cur_pcb->parent_task;
     flush_tlb();
+    cur_pcb = cur_pcb->parent_task;
     // Restore the pointers to the stack
     if(cur_pcb) {
+        uint32_t *cur_esp = (uint32_t *)cur_pcb->esp, *cur_ebp = (uint32_t *)cur_pcb->ebp;
 //        tss.esp0 = cur_pcb->esp0;
         tss.esp0 = esp_0;
 //        tss.ss0 = cur_pcb->ss0;
@@ -48,14 +47,13 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
             movl %1, %%ebp\n\
             movl %0, %%esp\n\
             jmp we_are_done\n\
-            leave\n\
-            ret\n\
             "
             :
             : "g"(cur_esp), "g"(cur_ebp), "g"(ret_val)
             : "%eax"
         );
     }
+    sys_execute((uint8_t *)"shell");
     return ret_val;
 }
 
@@ -109,7 +107,6 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Load file into memory ==== */
     entry = *((uint32_t *)file_data+6);
-    printf("entry: %x\n", entry);
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT | PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 				
@@ -126,7 +123,6 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {
-        printf("saving regs\n");
         asm volatile (
             "movl %%ebp, %1\n\
             movl %%esp, %0\n\
@@ -163,7 +159,6 @@ int32_t sys_execute(const uint8_t *command) {
         : "%eax"
     );
 
-    // printf("sys_execute, command: %s, cmd: %s, arg: %s\n", command, cmd, arg);
     return 0;
 }
 

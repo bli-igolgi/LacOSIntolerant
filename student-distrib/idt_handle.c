@@ -63,6 +63,15 @@ void idt_init(){
     lidt(idt_desc_ptr);
 }
 
+#define RETURN_256 do{\
+    asm volatile(\
+        "movl 0x100, %%eax"\
+        :\
+        :\
+        :"%eax"\
+    );\
+}while(0)
+
 /* ========== Exception Handlers ========== */
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x00
@@ -72,7 +81,7 @@ void idt_init(){
 */
 void div_zero_fault() {
     printf("Divide-by-zero fault occurred. Do you even math?\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -83,7 +92,7 @@ void div_zero_fault() {
 */
 void reserved_fault() {
     printf("RESERVED. You got an exception for intel used only...\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -94,7 +103,7 @@ void reserved_fault() {
 */
 void nmi_intr() {
     printf("Non-maskable interrupt triggered. Hardware wants attention bad.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -105,7 +114,7 @@ void nmi_intr() {
 */
 void breakpoint_trap() {
     printf("Breakpoint thrown. How long is this going to take?\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -116,7 +125,7 @@ void breakpoint_trap() {
 */
 void overflow_trap() {
     printf("Overflow detected. It's too big.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -127,7 +136,7 @@ void overflow_trap() {
 */
 void bound_range_fault() {
     printf("Bounds exceeded. Try a tigher fit.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -138,7 +147,7 @@ void bound_range_fault() {
 */
 void invalid_opcode_fault() {
     printf("Invalid opcode used. This is x86, bruh...\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -149,7 +158,7 @@ void invalid_opcode_fault() {
 */
 void device_na_fault() {
     printf("Device not available fault. You gonna wait today.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -160,7 +169,7 @@ void device_na_fault() {
 */
 void double_fault_abort() {
     printf("Double fault, abort! RIP, GG.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -171,7 +180,7 @@ void double_fault_abort() {
 */
 void seg_overrun_fault() {
     printf("Coprocessor Segment Overrun (reserved). Really shouldn't be getting this...\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -182,7 +191,7 @@ void seg_overrun_fault() {
 */
 void tss_fault() {
     printf("Invalid task state segment. No context switching for you, ha.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -193,7 +202,7 @@ void tss_fault() {
 */
 void seg_np_fault() {
     printf("Segment not present. Is your brain segment present?\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -204,7 +213,7 @@ void seg_np_fault() {
 */
 void ss_fault() {
     printf("Stack segment fault. Have fun debugging.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -215,7 +224,7 @@ void ss_fault() {
 */
 void gen_pro_fault() {
     printf("General protection fault. You're violating me.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -237,7 +246,7 @@ void page_fault() {
     );
 
     printf("Page fault encountered with error %x\n", cr2);
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -248,7 +257,7 @@ void page_fault() {
 */
 void dne_entry() {
     printf("Intel reserved. Why are you even getting this?!\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -259,7 +268,7 @@ void dne_entry() {
 */
 void fpu_math_fault() {
     printf("x87 FPU Floating-Point Error. No one actually knows...\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -270,7 +279,7 @@ void fpu_math_fault() {
 */
 void align_fault() {
     printf("Alignment check faulted. Guess your brain also needs re-alignment.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -281,7 +290,7 @@ void align_fault() {
 */
 void machine_chk_abort() {
     printf("Machine check failed, abort! Another RIP, GG.\n");
-    while(1);
+    RETURN_256;
     return;
 }
 
@@ -292,6 +301,6 @@ void machine_chk_abort() {
 */
 void simd_fpe_fault() {
     printf("Floating point exception. IDEK, but GL.\n");
-    while(1);
+    RETURN_256;
     return;
 }

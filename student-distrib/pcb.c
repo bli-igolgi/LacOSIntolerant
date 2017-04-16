@@ -1,4 +1,3 @@
-
 #include "pcb.h"
 
 // A bitmap to optimize space in case a PCB is freed between other PCBs.
@@ -17,9 +16,24 @@ pcb_t * find_empty_pcb(void){
     return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
 }
 
-void done_with_pcb(pcb_t* old_pcb){
-    uint32_t offset = (END_OF_KERNEL_PAGE - (uint32_t)old_pcb)/PCB_PLUS_STACK;
+void done_with_pcb(uint32_t status){
+    uint32_t offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
     pcb_status &= ~(0x01 << (offset-1));
+    cur_pcb = cur_pcb->parent_task;
+    if(cur_pcb){
+        tss.esp0 = cur_pcb->esp0;
+        tss.ss0 = cur_pcb->ss0;
+        asm volatile (
+            "movl %2, %%eax\n\
+            movl %1, %%ebp\n\
+            movl %0, %%esp\n\
+            leave\n\
+            ret\n\
+            "
+            :
+            : "m"(cur_pcb->esp), "m"(cur_pcb->ebp), "m"(status)
+        );
+    }
     return;
 }
 

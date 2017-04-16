@@ -98,11 +98,13 @@ void paging_init()
     // map the video memory in the page directory -- small page, kernel privileges, read/write
     map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1);
 
+    map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1);
+
     // setting the bits to enable paging
     asm volatile (
         // set PSE flag in cr4 to enable 4MB pages
         "movl  %%cr4, %%edi;\n"
-        "orl   $0x10, %%edi;\n"
+        "orl   $0x90, %%edi;\n"
         "movl  %%edi, %%cr4;\n"
 
         // set bit 31 of cr0 to enable paging
@@ -165,6 +167,7 @@ int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privile
             page_dir_entry += privileges*US_BIT;
             page_dir_entry += write*RW_BIT;
             page_dir_entry += PRESENT_BIT;
+            page_dir_entry += ((page_size&&(!privileges)&&write)?GLOBAL_BIT:0);
 
             // save this entry to the page directory
             page_dir_addr[page_dir_index] = page_dir_entry;

@@ -4,21 +4,23 @@
 
 #include "syscalls.h"
 
-static bool process_1_started = false;
-
 // Pointer to the PCB of the current running process
 pcb_t *cur_pcb = NULL;
+uint32_t numproc = 0;
 
 /*
  *   Inputs: 
  *   Return Value: 
  *   Function: 
  */
-int32_t sys_halt(uint8_t status) {
+ int32_t sys_halt(uint8_t status) {
     printf("executed syscall halt\n");
-
+    // Remap the parent's page
+    map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
     // Restart first process if halt is called on it
-    if(pcb_status == 1) sys_execute((uint8_t *)"shell");
+    // if(!pcb_status) sys_execute((uint8_t *)"shell");
+    // Mark the current PCB as ready for reuse
+    done_with_pcb((status & 0xFF));
     // Zero extend the value
     return (status & 0xFF);
 }
@@ -58,29 +60,15 @@ int32_t sys_execute(const uint8_t *command) {
     // Check that the file is executable
     read_data(cmd_dentry.inode_num, 0, file_data, FILE_H_SIZE);
 
-    /*
-    for(i = 0; i < FILE_H_SIZE; i++) {
-        printf("%x",file_data[i]);
-        if(i) {
-            if(i % 2 == 1) printf(" ");
-            if((i+1) % 16 == 0) printf("\n");
-        }
-    }
-    printf("\n");
-    */
-
     // Check that the first 4 bytes match executable format
     if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
         return -1;
 
     /* ==== Set up paging ==== */
-    /*
-    TODO: Set up new page directory
-    TODO: Fix below so that this works more generally with more than one process
-    */
-    if(!process_1_started) {
+    // TODO: Fix below so that this works more generally with more than one process
+
+    if(!pcb_status) {
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true);
-        process_1_started = true;
     }
     else 
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true);
@@ -98,14 +86,21 @@ int32_t sys_execute(const uint8_t *command) {
         new_pcb->parent_task = cur_pcb;
     else
         new_pcb->parent_task = NULL;
+    new_pcb->pid = ++numproc;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
-    if(!cur_pcb)
-        cur_pcb = new_pcb;
 
     /* ==== Prepare for context switch ==== */
-
-    // tss.esp0 = PROGRAM_1_PHYS - 0x4;
-    // ltr(KERNEL_TSS);
+    if(cur_pcb){
+        asm volatile (
+            "movl %%ebp, %1\n\
+            movl %%esp, %0\n\
+            "
+            : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
+        );
+    }
+    cur_pcb = new_pcb;
+    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
+    new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
 
     /* ==== Push IRET context to stack ==== */
     asm volatile (

@@ -10,6 +10,7 @@
 #include "file_system.h"
 #include "rtc.h"
 #include "terminal.h"
+#include "x86_desc.h"
 
 // sets flag field of file descriptors
 typedef enum {NOT_USED, IN_USE} status_t;
@@ -34,8 +35,12 @@ typedef struct pcb_t pcb_t;
 struct pcb_t {
     // I feel like there's a bunch of stuff missing here... but idk what.
     fdesc_t io_files[MAX_DESC];         // file descriptor array
+    uint32_t pid;                       // process id
     int fd_status;                      // bitmap of which fds are occupied
-    uint32_t gpr[8];                    // eax ebx ecx edx ebp esi edi esp (order subject to change)
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t esp0;
+    uint16_t ss0;
     uint32_t* page_dir;                 // pointer to process's page directory
     pcb_t* parent_task;                 // pointer to parent task's PCB
 };
@@ -46,7 +51,7 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num);
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id);
 
 pcb_t *find_empty_pcb(void);
-void done_with_pcb(pcb_t* old_pcb);
+void done_with_pcb();
 int find_empty_fd(void);
 void done_with_fd(int fd);
 

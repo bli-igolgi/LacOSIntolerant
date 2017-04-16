@@ -10,7 +10,7 @@
 
 #define KERNEL_ADDR 0x400000          // address of the kernal in physical memory
 #define VIDEO       0xB8000           // start of video memory, from lib.c
-#define PAGE_TABLE_STARTADDR 0x8800000 // start address of the page table
+#define PAGE_TABLE_STARTADDR 0xC000000 // start address of program page tables (192MB)
 
 // bit masks to isolate portions of the virtual address/page table or directory entries
 #define TOP_10_BITS     0xFFC00000          // dirctory bits
@@ -25,6 +25,7 @@
 #define RW_BIT        0x2             // is read/write set?
 #define US_BIT        0x4             // is supervisor set?
 #define PAGE_SIZE_BIT 0x80            // is this a 4MB page?
+#define GLOBAL_BIT    0x100           // is this a global page? (kernel only)
 
 #define SHIFT_FOR_DIRENTRY   22           // number of bits to remove to isolate directory entry number
 #define SHIFT_FOR_TABLEENTRY 12           // number of bits to remove to isolate table entry number

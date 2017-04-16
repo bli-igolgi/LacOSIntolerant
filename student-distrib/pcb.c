@@ -28,6 +28,7 @@ void done_with_pcb(uint32_t status){
             "
             :
             : "m"(cur_pcb->esp), "m"(cur_pcb->ebp), "m"(status)
+            : "%eax"
         );
     }
     return;

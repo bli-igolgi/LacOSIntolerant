@@ -87,11 +87,12 @@ int32_t sys_execute(const uint8_t *command) {
         new_pcb->parent_task = cur_pcb;
     else
         new_pcb->parent_task = NULL;
-    new_pcb->pid = ++numproc;
+    new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
 
     /* ==== Prepare for context switch ==== */
-    if(cur_pcb){
+    if(cur_pcb) {
+        printf("saving regs\n");
         asm volatile (
             "movl %%ebp, %1\n\
             movl %%esp, %0\n\
@@ -99,13 +100,19 @@ int32_t sys_execute(const uint8_t *command) {
             : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
         );
     }
+    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
+    new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
     cur_pcb = new_pcb;
 	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)
 	terminal_open(NULL);
-    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
-    new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
 
     /* ==== Push IRET context to stack ==== */
+    /* At this point for testprint
+        esp: 0x7fff10
+        ebp: 0x7fffc8
+        esp0: 0x7fdffc
+        ss0: 0x18 
+    */
     asm volatile (
         "movw $0x2B, %%ax;"
         "movw %%ax, %%ds;"

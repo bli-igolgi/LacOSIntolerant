@@ -18,24 +18,6 @@
 .align 4
 
 
-
-
-/*
-From discussion on system calls
-
-Open
-    Find the file in the file system and assign an unused file descriptor
-    File descriptors need to be set up according to the file type
-    Never check file names in open, only care about file types
-    Map read, write, and other functions
-Close
-    Close the file descriptor passed in (set it to be available)
-    Check for invalid descriptors
-Read, write
-    Call the corresponding read or write function
-
-*/
-
 /*
 From discussion on paging and program loader
 
@@ -94,8 +76,6 @@ To execute file - look at picture on piazza as a reference
     esp0 is the stack pointer for kernel (privilege level 0)
 
 */
-
-
 
 
 /* ========= SYSTEM CALL ========= */

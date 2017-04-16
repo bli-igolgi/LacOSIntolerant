@@ -90,12 +90,10 @@ int32_t sys_execute(const uint8_t *command) {
     printf("entry: %x\n", entry);
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT | PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
-
+				
     /* ==== Create PCB ==== */
-    pcb_t* new_pcb = init_pcb();
-	// open default stdin (fd #0) & stdout (fd #1) per process
-	terminal_open(NULL);
-	
+    pcb_t* new_pcb = init_pcb();	
+
     // If we are spawning new task from original shell call
     if(pcb_status != 1)
         new_pcb->parent_task = cur_pcb;
@@ -104,6 +102,9 @@ int32_t sys_execute(const uint8_t *command) {
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
     if(!cur_pcb)
         cur_pcb = new_pcb;
+	
+	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)
+	terminal_open(NULL);
 
     /* ==== Prepare for context switch ==== */
 

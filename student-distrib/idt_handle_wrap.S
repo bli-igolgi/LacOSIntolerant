@@ -95,7 +95,6 @@ _syscall:
     jg      _sys_call_fail
 
     # Save the unused registers
-    pushl   %ebp
     pushl   %edi
     pushl   %esi
     # Push the arguments onto the stack
@@ -113,7 +112,6 @@ _syscall:
     popl    %edx
     popl    %esi
     popl    %edi
-    popl    %ebp
 
     jmp     _sys_call_done
 

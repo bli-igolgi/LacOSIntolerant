@@ -26,7 +26,7 @@ void process_input(char c);
 uint8_t get_keymap(char c);
 void clear_buffer(void);
 
-extern unsigned char read_buf[BUF_SIZE];
+extern unsigned char read_buf[BUF_SIZE+1];
 extern uint32_t read_buf_index;
 extern bool new_line;
 

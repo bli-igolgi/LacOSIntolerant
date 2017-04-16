@@ -60,12 +60,27 @@ int32_t fsys_close_dir(int32_t fd) {
  *   Inputs: fd     -- file descriptor of open file
  *           buf    -- pointer to location to which data will be copied
  *           nbytes -- number of bytes to be copied
- *   Return Value: number of bytes read (which is 0 at every point)
+ *   Return Value: number of bytes read
  *   Function: system call to read from a file
  */
 int32_t fsys_read_file(int32_t fd, void *buf, int32_t nbytes) {
-    // This does not work without actual file descriptors.
-    return SUCCESS;
+    int32_t bytes_read;
+	uint32_t cur_file_pos = cur_pcb->io_files[fd].file_pos,
+			 cur_file_inode = cur_pcb->io_files[fd].inode,
+			 file_size = fs_addr[(cur_file_inode+1)*BLK_SIZE_UINTS];
+	
+	// check if initial file pos or that since last read is at or beyond eof
+	if(cur_file_pos >= file_size)
+		return 0;
+	
+	// read bytes to eof or end of buffer until whichever ends first
+	bytes_read = read_data(cur_file_inode, cur_file_pos, buf, nbytes);
+	
+	// update where user is reading in file
+	if(bytes_read > 0)
+		cur_pcb->io_files[fd].file_pos += bytes_read;
+	
+    return bytes_read;
 }
 
 /*
@@ -73,12 +88,31 @@ int32_t fsys_read_file(int32_t fd, void *buf, int32_t nbytes) {
  *   Inputs: fd     -- file descriptor of given directory
  *           buf    -- pointer to location to which data will be copied
  *           nbytes -- number of bytes to be copied
- *   Return Value: 0 on success (every time at this point)
+ *   Return Value: number of bytes copied to buf
  *   Function: system call to read from a directory
  */
 int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes) {
-    // This does not work without actual file descriptors.
-    return SUCCESS;
+	int32_t bytes_read;
+    uint32_t cur_dir_pos = cur_pcb->io_files[fd].file_pos,
+			 dir_size = fs_addr[0];
+	int8_t *cur_dir_name = (char*)(fs_addr + (cur_dir_pos + 1)*ENTRY_SIZE_UINTS);
+			 
+	// check if initial dir pos or that since last read is at or beyond last dir entry
+	if(cur_dir_pos >= dir_size)
+		return 0;
+	
+	// copy current dir entry's file name to buf up to 32 bytes with safeguard for non-null terminated case
+	if(cur_dir_name[FILENAME_LEN-1] != '\0'){
+		strncpy(buf, cur_dir_name, FILENAME_LEN);
+		bytes_read = FILENAME_LEN;
+	}else{
+		bytes_read = strlen(cur_dir_name);
+		strncpy(buf, cur_dir_name, bytes_read);
+	}
+	
+	// update directory entry user reads from next read op
+	cur_pcb->io_files[fd].file_pos += 1;
+	return bytes_read;
 }
 
 /*
@@ -90,7 +124,7 @@ int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: system call to write to a file
  */
 int32_t fsys_write_file(int32_t fd, const void *buf, int32_t nbytes) {
-    return FAILURE; // 3.2: Parse the _Read-Only_ File System
+    return FAILURE;		// 3.2: Parse the _Read-Only_ File System
 }
 
 /*
@@ -102,7 +136,7 @@ int32_t fsys_write_file(int32_t fd, const void *buf, int32_t nbytes) {
  *   Function: system call to write to a directory
  */
 int32_t fsys_write_dir(int32_t fd, const void *buf, int32_t nbytes) {
-    return FAILURE; // 3.2: Parse the _Read-Only_ File System
+    return FAILURE; 	// 3.2: Parse the _Read-Only_ File System
 }
 
 /*

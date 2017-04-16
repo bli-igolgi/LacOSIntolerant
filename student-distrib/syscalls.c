@@ -93,6 +93,9 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();
+	// open default stdin (fd #0) & stdout (fd #1) per process
+	terminal_open(NULL);
+	
     // If we are spawning new task from original shell call
     if(pcb_status != 1)
         new_pcb->parent_task = cur_pcb;
@@ -141,7 +144,10 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
  *   Function: Calls the read function corresponding to the device ID fd
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+	if(fd == 0 || (1 < fd && fd < MAX_DESC) )			// bound-check; fd #1 should never be read from
+		return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+	else
+		return FAILURE;
 }
 
 /*
@@ -152,7 +158,10 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: Writes data to the specified device
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
+	if(0 < fd && fd < MAX_DESC)			// bound-check; fd #0 should never be written to
+		return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
+	else
+		return FAILURE;
 }
 
 /*
@@ -167,7 +176,7 @@ int32_t sys_open(const uint8_t *filename) {
     if(read_dentry_by_name(filename, &cur_dentry))
 		return FAILURE;
 	
-	if(cur_dentry.file_type < 3)		// 3 is the number of possible file types
+	if(cur_dentry.file_type < 3)		// 3 possible file types
 		return (*tableaux[cur_dentry.file_type]).open(filename);
 	else
 		return FAILURE;
@@ -189,7 +198,10 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: 
  */
 int32_t sys_close(int32_t fd) {
-	return cur_pcb->io_files[fd].file_ops.close(fd);
+	if(1 < fd && fd < MAX_DESC)			// bound-check; fd #0 & #1 should never be closed
+		return cur_pcb->io_files[fd].file_ops.close(fd);
+	else
+		return FAILURE;
 }
 
 /*

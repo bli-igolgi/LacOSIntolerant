@@ -63,19 +63,6 @@ void idt_init(){
     lidt(idt_desc_ptr);
 }
 
-/* ========== System Call User ========== 	CURRENT NOT USED
-
-	INPUTS:	cmd - 1 of 10 currently support, enumerated calls to be executed
-			arg1, arg2, arg3 - cmd-dependent argument passed in; may be 0 or junk if unused
-	OUTPUTS: returns (int) 0 on success, -1 on failure
-	EFFECTS: [currently prints a simple msg when invoked]
-
-int32_t sys_call(int32_t cmd, int32_t arg1, int32_t arg2, int32_t arg3) {
-    printf("The system call you've called is not available right now. Please try again later.\n");
-    return 0;
-}
-*/
-
 /* ========== Exception Handlers ========== */
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x00

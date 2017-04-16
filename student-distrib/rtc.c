@@ -37,16 +37,15 @@ void rtc_init() {
  *              to allow interrupts to continue executing
  */
 void rtc_interrupt() {
-    cli();
-    // 
     intr_occured = true;
 
+	cli();
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
     inb(CMOS_REG_2);          // just throw away contents
-
+	sti();
+	
     send_eoi(RTC_IRQ);
-    sti();
 }
 
 f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };

@@ -220,13 +220,16 @@ int32_t sys_open(const uint8_t *filename) {
 }
 
 /*
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs:		fd - file descriptor handler given by sys_open
+ *   Return Value:	-1 if invalid descriptor or default descriptor
+ *					0 otherwise
+ *   Function: 		closes a file descriptor in current pcb by marking as unused
  */
 int32_t sys_close(int32_t fd) {
-    if(!cur_pcb->io_files[fd].file_ops.close) return FAILURE;
-    return cur_pcb->io_files[fd].file_ops.close(fd);
+	if(fd < 2)
+		return -1;		// user cannot close default fd (0 and 1)
+	else
+		return cur_pcb->io_files[fd].file_ops.close(fd);
 }
 
 /*

@@ -68,7 +68,7 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
  */
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id) {
     // Don't try to free if doesn't exist
-    if(blk->io_files[fd_id].flags == NOT_USED) return -1;
+    if(MAX_DESC <= fd_id) return -1;
     // note: fdesc data is not cleared; use flags as access var!
     blk->io_files[fd_id].flags = NOT_USED;
     return 0;

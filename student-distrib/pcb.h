@@ -15,6 +15,7 @@
 // sets flag field of file descriptors
 typedef enum {NOT_USED, IN_USE} status_t;
 
+/* Contains the functions that are kept in the jump table */
 typedef struct f_ops_table {
     int32_t (*open)(const uint8_t* filename);
     int32_t (*read)(int32_t fd, void *buf, int32_t nbytes);
@@ -22,26 +23,25 @@ typedef struct f_ops_table {
     int32_t (*close)(int32_t fd);
 } f_ops_table;
 
+/* One entry in the file descriptor array, specific to each PCB */
 typedef struct fdesc {
-    f_ops_table file_ops;               // pointer to file operations jump table
-    uint32_t inode;                     // inode number
-    uint32_t file_pos;                  // current position in file
-    status_t flags;                     // status of file at the moment
+    f_ops_table file_ops;           // pointer to file operations jump table
+    uint32_t inode;                 // inode number
+    uint32_t file_pos;              // current position in file
+    status_t flags;                 // status of file at the moment
 } fdesc_t;
 
-// PCB below; any additional structs should be defined above this point
 // Forward declaration so that a pcb can contain another pcb
 typedef struct pcb_t pcb_t;
 struct pcb_t {
-    // I feel like there's a bunch of stuff missing here... but idk what.
-    fdesc_t io_files[MAX_DESC];         // file descriptor array
-    uint32_t pid;                       // process id
-    int fd_status;                      // bitmap of which fds are occupied
+    fdesc_t io_files[MAX_DESC];     // file descriptor array
+    uint32_t pid;                   // process id - never decrements
+    uint32_t pcb_num;               // Logical number of the PCB
+    uint32_t fd_status;             // bitmap of which fds are occupied
     uint32_t esp, ebp, esp0;
     uint16_t ss0;
-    uint32_t* page_addr;                // pointer to process's page
-    pcb_t* parent_task;                 // pointer to parent task's PCB
-    uint32_t pcb_num;                    // number of the pcb (1-8)
+    uint32_t* page_addr;            // pointer to process's page
+    pcb_t* parent_task;             // pointer to parent task's PCB
 };
 
 

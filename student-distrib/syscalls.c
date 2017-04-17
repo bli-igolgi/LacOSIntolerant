@@ -70,8 +70,8 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
 
     // TEMPORARY: Only allow there to be 2 running tasks
-    if(our_popcount(pcb_status) == 2) {
-        printf("Only 2 tasks are currently supported\n");
+    if(our_popcount(pcb_status) == MAX_PROCESSES) {
+        printf("Only %d tasks are currently supported\n", MAX_PROCESSES);
         return 0;
     }
     
@@ -117,18 +117,21 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {
+        // Saves the current esp and ebp in the parent task
         asm volatile (
             "movl %%ebp, %1;"
             "movl %%esp, %0;"
             : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
         );
     }
+    // Switch to the child task
     cur_pcb = new_pcb;
-	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)
+	// Open default stdin (fd #0) & stdout (fd #1) per process
 	terminal_open(NULL);
 
     /* ==== Load file into memory ==== */
     entry = *((uint32_t *)file_data + 6);
+    // Load the executable into memory starting at 0x8048000
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
@@ -142,10 +145,10 @@ int32_t sys_execute(const uint8_t *command) {
 
         "movl %1, %%eax;"
         "pushl $0x2B;"      // Data segment selector
-        "pushl %%eax;"
+        "pushl %%eax;"      // ESP
         "pushf;"
         "pushl $0x23;"      // Code segment selector
-        "pushl %2;"
+        "pushl %2;"         // EIP
         "iret;"
         "we_are_done:"
         "movl %%eax, %0"

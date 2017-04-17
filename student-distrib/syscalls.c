@@ -98,30 +98,13 @@ int32_t sys_execute(const uint8_t *command) {
     if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
         return -1;
 
-    /* ==== Set up paging ==== */
-    // TODO: Fix below so that this works more generally with more than one process
-/*    if(numproc==0)
-        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-    else 
-        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-
-
-    //flush_tlb();
-*/
-
-    /* ==== Load file into memory ==== */
-    entry = *((uint32_t *)file_data+6);
-    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT | PROGRAM_VIRT_OFF),
-                *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
-				
     /* ==== Create PCB ==== */
-    pcb_t* new_pcb = init_pcb();	
+    pcb_t* new_pcb = init_pcb();    
 
     /* ==== Set up paging ==== */
     // map the process into the appropriate spot in physical memory
     map_page((void *) PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB, (void *) PROGRAM_VIRT, true, true, true, true);
     flush_tlb();
-
 
 /*
     // If we are spawning new task from original shell call
@@ -136,6 +119,20 @@ int32_t sys_execute(const uint8_t *command) {
 
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
+
+    // TODO: Fix below so that this works more generally with more than one process
+/*    if(numproc==0)
+        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
+    else 
+        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
+*/
+
+
+    /* ==== Load file into memory ==== */
+    entry = *((uint32_t *)file_data+6);
+    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
+                *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
+				
 
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {

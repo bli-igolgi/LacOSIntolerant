@@ -4,12 +4,11 @@
 // None of the upper 24 bits should be 1 unless we know we have space
 uint32_t pcb_status = 0;
 
-/* find_empty_pcb
-    INPUTS: none
-    OUTPUTS: none
-    RETURN VALUE: pointer to empty PCB block
-    SIDE EFFECTS: none
-*/
+/*
+ *  Inputs: none
+ *  Return Value: pointer to empty PCB block
+ *  Function: Gets the offset to the next empty block available to use for a PCB
+ */
 uint32_t find_empty_pcb() {
     // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
@@ -35,7 +34,7 @@ uint32_t find_empty_pcb() {
 pcb_t * init_pcb() {
     uint32_t offset = find_empty_pcb();
     pcb_t *newBlk = (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
-
+    // memset(newBlk, 0, 8192);
     // set the pcb number
     newBlk->pcb_num = offset;
 

@@ -4,7 +4,6 @@
 /* Constants used by the execute system call */
 #define FILE_H_SIZE      30
 #define PROGRAM_1_PHYS   0x800000       // 8MB
-#define PROGRAM_2_PHYS   0xC00000       // 12MB
 #define PROGRAM_VIRT     0x8000000      // 128MB
 #define PROGRAM_VIRT_OFF 0x48000        // Where to start copying the program image within the virtual space
 

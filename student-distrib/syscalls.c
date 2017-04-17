@@ -19,8 +19,6 @@ bool except_raised = 0;
     // Zero extend the return value
     uint32_t ret_val = (status & 0xFF),
              offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK,
-             esp_0 = cur_pcb->esp0,
-             ss_0 = cur_pcb->ss0,
              *cur_esp, *cur_ebp;
 
     // Remap the parent's page
@@ -37,8 +35,8 @@ bool except_raised = 0;
     if(cur_pcb) {
         cur_esp = (uint32_t *)cur_pcb->esp;
         cur_ebp = (uint32_t *)cur_pcb->ebp;
-        tss.esp0 = esp_0;
-        tss.ss0 = ss_0;
+        tss.esp0 = cur_pcb->esp0;
+        tss.ss0 = cur_pcb->ss0;
         // Restores the esp and ebp, and puts return value in eax
         asm volatile (
             "movl %2, %%eax;"
@@ -114,6 +112,8 @@ int32_t sys_execute(const uint8_t *command) {
     new_pcb->parent_task = cur_pcb;
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
+    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
+    new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
 
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {
@@ -123,8 +123,6 @@ int32_t sys_execute(const uint8_t *command) {
             : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
         );
     }
-    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
-    new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
     cur_pcb = new_pcb;
 	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)
 	terminal_open(NULL);
@@ -234,7 +232,7 @@ int32_t sys_close(int32_t fd) {
  *   Function: 
  */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
-    printf("executed syscall ");
+    printf("executed syscall\n");
     return -1;
 }
 
@@ -244,7 +242,7 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
  *   Function: 
  */
 int32_t sys_vidmap(uint8_t **screen_start) {
-    printf("executed syscall ");
+    printf("executed syscall\n");
     return -1;
 }
 
@@ -254,7 +252,7 @@ int32_t sys_vidmap(uint8_t **screen_start) {
  *   Function: 
  */
 int32_t sys_set_handler(int32_t signum, void *handler_address) {
-    printf("executed syscall ");
+    printf("executed syscall\n");
     return -1;
 }
 
@@ -264,7 +262,7 @@ int32_t sys_set_handler(int32_t signum, void *handler_address) {
  *   Function: 
  */
 int32_t sys_sigreturn(void) {
-    printf("executed syscall ");
+    printf("executed syscall\n");
     return -1;
 }
 

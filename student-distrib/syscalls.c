@@ -73,7 +73,7 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
 
     // TEMPORARY: Only allow there to be 2 running tasks
-    if(numproc == 3) {
+    if(numproc == 2) {
         printf("Only 2 tasks are currently supported\n");
         return 0;
     }

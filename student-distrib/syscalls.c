@@ -32,17 +32,16 @@ bool except_raised = 0;
         close_file_desc(cur_pcb, i);
     }
 
-    // Go back to the parent task
     uint32_t esp_0 = cur_pcb->esp0, ss_0 = cur_pcb->ss0;
     flush_tlb();
+    // Go back to the parent task
     cur_pcb = cur_pcb->parent_task;
     // Restore the pointers to the stack
     if(cur_pcb) {
         uint32_t *cur_esp = (uint32_t *)cur_pcb->esp, *cur_ebp = (uint32_t *)cur_pcb->ebp;
-//        tss.esp0 = cur_pcb->esp0;
         tss.esp0 = esp_0;
-//        tss.ss0 = cur_pcb->ss0;
         tss.ss0 = ss_0;
+        // Restores the esp and ebp, and puts return value in eax
         asm volatile (
             "movl %2, %%eax;"
             "movl %1, %%ebp;"
@@ -72,6 +71,12 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t ret_val;
     // Set the stack pointer to be just before the bottom of the page
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
+
+    // TEMPORARY: Only allow there to be 2 running tasks
+    if(numproc == 3) {
+        printf("Only 2 tasks are currently supported\n");
+        return 0;
+    }
     
     /* ==== Parse arguments ==== */
     // Skip spaces in front of the command
@@ -102,23 +107,14 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
-    map_page((void *) (PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB), (void *) PROGRAM_VIRT, true, true, true, true);
+    map_page((void *)(PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB),
+            (void *)PROGRAM_VIRT, true, true, true, true);
     flush_tlb();
 
     // Assign the parent task of the new pcb (will be NULL if this is the first process)
     new_pcb->parent_task = cur_pcb;
-
-
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
-
-    // TODO: Fix below so that this works more generally with more than one process
-/*    if(numproc==0)
-        map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-    else 
-        map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-*/
-				
 
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {

@@ -11,34 +11,32 @@ f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 bool except_raised = 0;
 
 /*
- *   Inputs: 
+ *   Inputs: status - the 8 bit return value
  *   Return Value: 
- *   Function: 
+ *   Function: Closes the respective process, restarting if the first process was halted
  */
  int32_t sys_halt(uint8_t status) {
-    int i;
+    // Zero extend the return value
+    uint32_t ret_val = (status & 0xFF),
+             offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK,
+             esp_0 = cur_pcb->esp0,
+             ss_0 = cur_pcb->ss0,
+             *cur_esp, *cur_ebp;
+
     // Remap the parent's page
     // TODO: Fix below so that this works more generally with more than one process
     map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-    // Zero extend the return value
-    uint32_t ret_val = (status & 0xFF);
-    uint32_t offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
     // Mark the current PCB as ready for reuse
     pcb_status &= ~(1 << (offset-1));
-    // Free the file descriptors associated with the PCB
-    for(i = 0; i < MAX_DESC; i++) {
-        if(cur_pcb->io_files[i].file_ops.close)
-            cur_pcb->io_files[i].file_ops.close(i);
-        close_file_desc(cur_pcb, i);
-    }
+    close_pcb(cur_pcb);
 
-    uint32_t esp_0 = cur_pcb->esp0, ss_0 = cur_pcb->ss0;
     flush_tlb();
     // Go back to the parent task
     cur_pcb = cur_pcb->parent_task;
     // Restore the pointers to the stack
     if(cur_pcb) {
-        uint32_t *cur_esp = (uint32_t *)cur_pcb->esp, *cur_ebp = (uint32_t *)cur_pcb->ebp;
+        cur_esp = (uint32_t *)cur_pcb->esp;
+        cur_ebp = (uint32_t *)cur_pcb->ebp;
         tss.esp0 = esp_0;
         tss.ss0 = ss_0;
         // Restores the esp and ebp, and puts return value in eax
@@ -48,10 +46,11 @@ bool except_raised = 0;
             "movl %0, %%esp;"
             "jmp we_are_done;"
             :
-            : "g"(cur_esp), "g"(cur_ebp), "g"(ret_val)
+            : "g"(cur_pcb->esp), "g"(cur_pcb->ebp), "g"(ret_val)
             : "%eax"
         );
     }
+    // Only gets here if the first process is the one that was halted
     sys_execute((uint8_t *)"shell");
     return ret_val;
 }
@@ -107,7 +106,7 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
-    map_page((void *)(PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB),
+    map_page((void *)(PROGRAM_1_PHYS + new_pcb->pcb_num * FOUR_MB),
             (void *)PROGRAM_VIRT, true, true, true, true);
     flush_tlb();
 
@@ -124,7 +123,7 @@ int32_t sys_execute(const uint8_t *command) {
             : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
         );
     }
-    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pcb_num)*PCB_PLUS_STACK - 4);
+    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
     new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
     cur_pcb = new_pcb;
 	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)

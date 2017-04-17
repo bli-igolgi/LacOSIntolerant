@@ -46,11 +46,11 @@ struct pcb_t {
 
 
 pcb_t * init_pcb();
+int32_t close_pcb(pcb_t *blk);
 int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num);
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id);
 
 uint32_t find_empty_pcb(void);
-// void done_with_pcb();
 int find_empty_fd(void);
 void done_with_fd(int fd);
 uint32_t our_popcount(uint32_t value);

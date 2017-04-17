@@ -96,7 +96,7 @@ int32_t fsys_read_dir(int32_t fd, void *buf, int32_t nbytes) {
     uint32_t cur_dir_pos = cur_pcb->io_files[fd].file_pos,
 			 dir_size = fs_addr[0];
 	int8_t *cur_dir_name = (char*)(fs_addr + (cur_dir_pos + 1)*ENTRY_SIZE_UINTS);
-			 
+	memset(buf, 0, FILENAME_LEN);
 	// check if initial dir pos or that since last read is at or beyond last dir entry
 	if(cur_dir_pos >= dir_size)
 		return 0;

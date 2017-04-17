@@ -53,6 +53,7 @@ uint32_t find_empty_pcb(void);
 // void done_with_pcb();
 int find_empty_fd(void);
 void done_with_fd(int fd);
+uint32_t our_popcount(uint32_t value);
 
 extern pcb_t *cur_pcb;
 extern uint32_t pcb_status;

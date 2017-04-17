@@ -73,7 +73,7 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
 
     // TEMPORARY: Only allow there to be 2 running tasks
-    if(numproc == 2) {
+    if(our_popcount(pcb_status) == 2) {
         printf("Only 2 tasks are currently supported\n");
         return 0;
     }
@@ -124,7 +124,7 @@ int32_t sys_execute(const uint8_t *command) {
             : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
         );
     }
-    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
+    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pcb_num)*PCB_PLUS_STACK - 4);
     new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
     cur_pcb = new_pcb;
 	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)

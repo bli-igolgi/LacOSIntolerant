@@ -31,6 +31,23 @@ uint32_t find_empty_pcb() {
 // TODO: REWRITE ABOVE FUNCTIONS SO THAT THEY DO A SIMILAR THING WITH FDs
 
 /*
+ * Inputs: status bitmap
+ * Return Value: number of bits set in the bitmap
+ * Determines the Hamming weight of the bitmap.
+ * (thanks Matt Howells from StackOverflow!)
+ */
+uint32_t our_popcount(uint32_t value){
+     uint32_t result = 0;
+     // The constant below consists of every other bit set.
+     result = value - ((value >> 1) & 0x55555555);
+     // The constant below consists of every two bits set followed by two bits unset.
+     result = (result & 0x33333333) + ((result >> 2) & 0x33333333);
+     // The first constant below consists of every four bits set followed by every four bits unset.
+     // The second constant below consists of every eighth bit set, starting with the first.
+     return (((result + (result >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+/*
  *  Inputs: none
  *  Return Value: pointer to new process control block
  *  Function: Initialize a pcb

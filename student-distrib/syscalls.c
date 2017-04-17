@@ -112,7 +112,7 @@ int32_t sys_execute(const uint8_t *command) {
     new_pcb->parent_task = cur_pcb;
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
-    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pid)*PCB_PLUS_STACK - 4);
+    new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pcb_num)*PCB_PLUS_STACK - 4);
     new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
 
     /* ==== Prepare for context switch ==== */

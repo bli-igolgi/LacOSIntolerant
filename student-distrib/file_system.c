@@ -274,7 +274,7 @@ void test_access_by_index(){
 }
 
 void test_access_by_file_name(){
-	char* filename = "frame1.txt";
+	char* filename = "created.txt";
     int are_we_good;
 	dentry_t to_print;
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator

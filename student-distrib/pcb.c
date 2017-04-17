@@ -4,17 +4,26 @@
 // None of the upper 24 bits should be 1 unless we know we have space
 uint32_t pcb_status = 0;
 
+/* find_empty_pcb
+    INPUTS: none
+    OUTPUTS: none
+    RETURN VALUE: pointer to empty PCB block
+    SIDE EFFECTS: none
+*/
 pcb_t * find_empty_pcb(void){
+    // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
+    // As long as the bit 0 of the PCB status we have is set...
     while(__builtin_ffs(temp_pcb_status) == 1) {
+        // Increase the offset and shift the status we have.
         offset++;
         temp_pcb_status >>= 1;
     }
+    // Set the appropriate bit in the PCB status.
     pcb_status |= 1 << offset;
+    // Return the appropriate pointer to the PCB block.
     return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
 }
-
-// void done_with_pcb(uint32_t status){}
 
 // TODO: REWRITE ABOVE FUNCTIONS SO THAT THEY DO A SIMILAR THING WITH FDs
 

@@ -39,7 +39,7 @@ struct pcb_t {
     int fd_status;                      // bitmap of which fds are occupied
     uint32_t esp, ebp, esp0;
     uint16_t ss0;
-    uint32_t* page_dir;                 // pointer to process's page directory
+    uint32_t* page_addr;                // pointer to process's page
     pcb_t* parent_task;                 // pointer to parent task's PCB
 };
 

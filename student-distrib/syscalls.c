@@ -18,8 +18,8 @@ bool except_raised = 0;
  int32_t sys_halt(uint8_t status) {
     int i;
     // Remap the parent's page
+    // TODO: Fix below so that this works more generally with more than one process
     map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-
     // Zero extend the return value
     uint32_t ret_val = (status & 0xFF);
     uint32_t offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
@@ -100,7 +100,6 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Set up paging ==== */
     // TODO: Fix below so that this works more generally with more than one process
-
     if(numproc==0)
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
     else 

@@ -43,8 +43,6 @@ void idt_init(){
     for(i = USED_EXCEPTIONS; i < NUM_VEC; i++)
         idt[i] = empty_entry;
 
-	// Fill in idt table below this code as interruptible gates
-    SET_TRAP_GATE(idt_entry);
 	
 	// defining entries #32 - #47 map to master & slave PICs interrupts
 	for(i = 0; i < PIC_INTRS; i++)
@@ -54,6 +52,9 @@ void idt_init(){
 			idt[i + 32] = idt_entry;
 		}
     
+	// Fill in idt table below this code as interruptible gates
+    SET_TRAP_GATE(idt_entry);
+	
     // Fill in idt table entry #128 / 0x80 with system call handler (as trap)
     idt_entry.dpl = 3;              //system calls are avail to user programs at DPL 3
     SET_IDT_ENTRY(idt_entry, _syscall);

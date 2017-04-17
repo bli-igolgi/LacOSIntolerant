@@ -187,10 +187,7 @@ void process_input(char c) {
                     clear();
                     clear_buffer();
                     clear();
-                    clear();
-                    clear();
-                    clear();
-                    clear();
+					clear_buffer();
                     break;
                 }
                 // Treat it as a regular character

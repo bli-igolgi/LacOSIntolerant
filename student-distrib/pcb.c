@@ -10,7 +10,7 @@ uint32_t pcb_status = 0;
     RETURN VALUE: pointer to empty PCB block
     SIDE EFFECTS: none
 */
-pcb_t * find_empty_pcb(void){
+uint32_t find_empty_pcb(void){
     // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
     // As long as the bit 0 of the PCB status we have is set...
@@ -21,8 +21,11 @@ pcb_t * find_empty_pcb(void){
     }
     // Set the appropriate bit in the PCB status.
     pcb_status |= 1 << offset;
+    // return the offset of the pcb
+    return offset;
+
     // Return the appropriate pointer to the PCB block.
-    return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
+    //return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
 }
 
 // TODO: REWRITE ABOVE FUNCTIONS SO THAT THEY DO A SIMILAR THING WITH FDs
@@ -33,7 +36,13 @@ pcb_t * find_empty_pcb(void){
  *  Function: Initialize a pcb
  */
 pcb_t * init_pcb() {
-    pcb_t *newBlk = find_empty_pcb();
+    uint32_t offset = find_empty_pcb();
+    pcb_t *newBlk = (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
+
+    // set the pcb number
+    newBlk->pcb_num = offset;
+
+    //pcb_t *newBlk = find_empty_pcb();
     int i;
     
     // make all file descriptors available

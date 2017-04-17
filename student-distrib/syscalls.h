@@ -7,6 +7,7 @@
 #define PROGRAM_2_PHYS   0xC00000       // 12MB
 #define PROGRAM_VIRT     0x8000000      // 128MB
 #define PROGRAM_VIRT_OFF 0x48000        // Where to start copying the program image within the virtual space
+#define PAGE_4MB         400000         // size of a 4MB page
 
 /* File type constants
 #define RTC_DEV		0

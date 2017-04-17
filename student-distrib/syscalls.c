@@ -100,11 +100,14 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Set up paging ==== */
     // TODO: Fix below so that this works more generally with more than one process
-    if(numproc==0)
+/*    if(numproc==0)
         map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
     else 
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
-    flush_tlb();
+
+
+    //flush_tlb();
+*/
 
     /* ==== Load file into memory ==== */
     entry = *((uint32_t *)file_data+6);
@@ -114,11 +117,23 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();	
 
+    /* ==== Set up paging ==== */
+    // map the process into the appropriate spot in physical memory
+    map_page((void *) PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB, (void *) PROGRAM_VIRT, true, true, true, true);
+    flush_tlb();
+
+
+/*
     // If we are spawning new task from original shell call
     if(pcb_status != 1)
         new_pcb->parent_task = cur_pcb;
     else
         new_pcb->parent_task = NULL;
+*/
+    // assign the parent task of the new pcb (will be NULL if this is the first process)
+    new_pcb->parent_task = cur_pcb;
+
+
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
 

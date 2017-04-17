@@ -102,7 +102,7 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
-    map_page((void *) PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB, (void *) PROGRAM_VIRT, true, true, true, true);
+    map_page((void *) (PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB), (void *) PROGRAM_VIRT, true, true, true, true);
     flush_tlb();
 
     // Assign the parent task of the new pcb (will be NULL if this is the first process)
@@ -118,12 +118,6 @@ int32_t sys_execute(const uint8_t *command) {
     else 
         map_page((void *) PROGRAM_2_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
 */
-
-
-    /* ==== Load file into memory ==== */
-    entry = *((uint32_t *)file_data + 6);
-    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
-                *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 				
 
     /* ==== Prepare for context switch ==== */
@@ -139,6 +133,11 @@ int32_t sys_execute(const uint8_t *command) {
     cur_pcb = new_pcb;
 	// open default stdin (fd #0) & stdout (fd #1) per process (terminal_open uses cur_pcb!!)
 	terminal_open(NULL);
+
+    /* ==== Load file into memory ==== */
+    entry = *((uint32_t *)file_data + 6);
+    read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
+                *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 
     /* ==== Push IRET context to stack ==== */
     asm volatile (

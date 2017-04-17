@@ -44,11 +44,10 @@ bool except_raised = 0;
 //        tss.ss0 = cur_pcb->ss0;
         tss.ss0 = ss_0;
         asm volatile (
-            "movl %2, %%eax\n\
-            movl %1, %%ebp\n\
-            movl %0, %%esp\n\
-            jmp we_are_done\n\
-            "
+            "movl %2, %%eax;"
+            "movl %1, %%ebp;"
+            "movl %0, %%esp;"
+            "jmp we_are_done;"
             :
             : "g"(cur_esp), "g"(cur_ebp), "g"(ret_val)
             : "%eax"
@@ -91,7 +90,7 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Check file validity ==== */
     // Make sure the name of the file is in the file system
     if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
-    // Check that the file is executable
+    // Read the first 30 bytes into file_data
     read_data(cmd_dentry.inode_num, 0, file_data, FILE_H_SIZE);
 
     // Check that the first 4 bytes match executable format
@@ -102,18 +101,11 @@ int32_t sys_execute(const uint8_t *command) {
     pcb_t* new_pcb = init_pcb();    
 
     /* ==== Set up paging ==== */
-    // map the process into the appropriate spot in physical memory
+    // Map the process into the appropriate spot in physical memory
     map_page((void *) PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB, (void *) PROGRAM_VIRT, true, true, true, true);
     flush_tlb();
 
-/*
-    // If we are spawning new task from original shell call
-    if(pcb_status != 1)
-        new_pcb->parent_task = cur_pcb;
-    else
-        new_pcb->parent_task = NULL;
-*/
-    // assign the parent task of the new pcb (will be NULL if this is the first process)
+    // Assign the parent task of the new pcb (will be NULL if this is the first process)
     new_pcb->parent_task = cur_pcb;
 
 
@@ -129,7 +121,7 @@ int32_t sys_execute(const uint8_t *command) {
 
 
     /* ==== Load file into memory ==== */
-    entry = *((uint32_t *)file_data+6);
+    entry = *((uint32_t *)file_data + 6);
     read_data(cmd_dentry.inode_num, 0, (void *) (PROGRAM_VIRT + PROGRAM_VIRT_OFF),
                 *(fs_addr + (cmd_dentry.inode_num+1)*BLK_SIZE_UINTS));
 				
@@ -137,9 +129,8 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {
         asm volatile (
-            "movl %%ebp, %1\n\
-            movl %%esp, %0\n\
-            "
+            "movl %%ebp, %1;"
+            "movl %%esp, %0;"
             : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
         );
     }
@@ -171,7 +162,7 @@ int32_t sys_execute(const uint8_t *command) {
         : "%eax"
     );
 
-    if(except_raised){
+    if(except_raised) {
         ret_val = 256;
         except_raised = 0;
     }

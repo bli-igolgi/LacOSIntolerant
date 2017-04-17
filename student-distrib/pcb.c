@@ -10,7 +10,7 @@ uint32_t pcb_status = 0;
     RETURN VALUE: pointer to empty PCB block
     SIDE EFFECTS: none
 */
-uint32_t find_empty_pcb(void){
+uint32_t find_empty_pcb() {
     // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
     // As long as the bit 0 of the PCB status we have is set...

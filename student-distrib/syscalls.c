@@ -8,6 +8,7 @@
 pcb_t *cur_pcb = NULL;
 uint32_t numproc = 0;
 f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
+bool except_raised = 0;
 
 /*
  *   Inputs: 
@@ -69,6 +70,7 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t entry = 0;
     dentry_t cmd_dentry;
     int i = 0, j = 0;
+    uint32_t ret_val;
     // Set the stack pointer to be just before the bottom of the page
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
     
@@ -144,22 +146,23 @@ int32_t sys_execute(const uint8_t *command) {
         "movw %%ax, %%fs;"
         "movw %%ax, %%gs;" 
 
-        "movl %0, %%eax;"
+        "movl %1, %%eax;"
         "pushl $0x2B;"      // Data segment selector
         "pushl %%eax;"
         "pushf;"
         "pushl $0x23;"      // Code segment selector
-        "pushl %1;"
+        "pushl %2;"
         "iret;"
         "we_are_done:"
-        "leave;"
-        "ret;"
-        : 
+        "movl %%eax, %0"
+        : "=m"(ret_val)
         : "r"(stackp), "r"(entry)
         : "%eax"
     );
 
-    return 0;
+    if(except_raised)
+        ret_val = 256;
+    return ret_val;
 }
 
 /*

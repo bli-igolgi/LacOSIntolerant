@@ -37,6 +37,7 @@ int32_t sys_vidmap(uint8_t **screen_start);
 int32_t sys_set_handler(int32_t signum, void *handler_address);
 int32_t sys_sigreturn(void);
 
+extern uint32_t except_raised;
 
 #define flush_tlb()                     \
 do {                                    \

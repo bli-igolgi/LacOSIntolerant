@@ -160,8 +160,10 @@ int32_t sys_execute(const uint8_t *command) {
         : "%eax"
     );
 
-    if(except_raised)
+    if(except_raised){
         ret_val = 256;
+        except_raised = 0;
+    }
     return ret_val;
 }
 

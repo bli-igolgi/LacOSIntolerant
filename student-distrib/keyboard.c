@@ -15,6 +15,7 @@
 #define THREE_KEY_P 0x04
 #define FOUR_KEY_P  0x05
 #define FIVE_KEY_P  0x06
+#define UP_KEY_P    0x48
 
 // The codes for key releases
 #define ENTER_KEY_R -100
@@ -30,8 +31,16 @@ extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 
 // Buffer for the input data from the keyboard
 unsigned char read_buf[BUF_SIZE+1];
+// Buffer for the last several commands
+unsigned char hist_buf[HIST_COM_NUM][BUF_SIZE+1];
 // Holds the location of the next char in the array
 uint32_t read_buf_index = 0;
+
+// Holds the location of the next command to put in the array
+uint32_t hist_buf_index = 0;
+// Holds the location of the current history command index
+uint32_t cur_hist_index = 0;
+
 // Flag for whether enter has been pressed
 bool new_line = false;
 
@@ -39,7 +48,7 @@ bool new_line = false;
 bool ctrl       = false,
      caps_lock  = false,
      l_shift    = false,
-	 r_shift	= false;
+     r_shift    = false;
 
 /*
  * void keyboard_init(void);
@@ -64,7 +73,7 @@ void keyboard_interrupt() {
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
         c = inb(DATA_PORT);
-		send_eoi(KEYBOARD_IRQ);
+        send_eoi(KEYBOARD_IRQ);
         break;
     }
     process_input(c);
@@ -79,7 +88,7 @@ void keyboard_interrupt() {
 void process_input(char c) {
     uint8_t c_print;
     int last;
-	static volatile bool rtc_loop;
+    static volatile bool rtc_loop;
     // Positive scan codes (key down)
     if(c >= 0) {
         switch(c) {
@@ -124,8 +133,8 @@ void process_input(char c) {
                 // Treat it as a regular character
                 else goto print_char;
             case L_SHIFT_P:
-				l_shift = true;
-				break;
+                l_shift = true;
+                break;
             case R_SHIFT_P:
                 r_shift = true;
                 break;
@@ -170,12 +179,12 @@ void process_input(char c) {
                     if(rtc_freq > 0x400)
                         rtc_freq = 2;
                     rtc_write(0, &rtc_freq, 0);
-					
-					rtc_loop = true;
-					do{
-						rtc_read(0,0,0);
-						putc('1');
-					}while(rtc_loop);
+                    
+                    rtc_loop = true;
+                    do {
+                        rtc_read(0,0,0);
+                        putc('1');
+                    } while(rtc_loop);
                     break;
                 }
                 // Treat it as a regular character
@@ -183,15 +192,20 @@ void process_input(char c) {
             case FIVE_KEY_P:
                 // Test case 5, press CTRL+5
                 if(ctrl) {
-					rtc_loop = false;
+                    rtc_loop = false;
                     clear();
                     clear_buffer();
-                    clear();
-					clear_buffer();
                     break;
                 }
                 // Treat it as a regular character
                 else goto print_char;
+            case UP_KEY_P:
+                clear_buffer();
+                int32_t buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
+                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index-1], buf_size);
+                cur_hist_index--;
+                read_buf_index = buf_size;
+                break;
             // Regular key press
             default:
 print_char:
@@ -210,8 +224,8 @@ print_char:
     else {
         switch(c) {
             case CTRL_KEY_R:  ctrl = false;     break;
-            case L_SHIFT_R:	  l_shift = false;	break;
-            case R_SHIFT_R:   r_shift = false;	break;
+            case L_SHIFT_R:   l_shift = false;  break;
+            case R_SHIFT_R:   r_shift = false;  break;
             default: break;
         }
     }
@@ -225,10 +239,29 @@ print_char:
  *              the correct key out of the keymap
  */
 uint8_t get_keymap(char c) {
-    if((l_shift | r_shift) && caps_lock)	return caps_shift_key_map[(unsigned char)c];
-    else if(l_shift | r_shift)          	return shift_key_map[(unsigned char)c];
-    else if(caps_lock)      				return caps_key_map[(unsigned char)c];
-    else                    				return reg_key_map[(unsigned char)c];
+    if((l_shift | r_shift) && caps_lock)    return caps_shift_key_map[(unsigned char)c];
+    else if(l_shift | r_shift)              return shift_key_map[(unsigned char)c];
+    else if(caps_lock)                      return caps_key_map[(unsigned char)c];
+    else                                    return reg_key_map[(unsigned char)c];
+}
+
+/*
+ * void add_to_history(void);
+ *   Inputs: command - the command to add to the history buffer
+ *   Return Value: none
+ *   Function: Put the last command into the history buffer,
+ *              if it exists and isn't the same as the previous command
+ */
+void add_to_history(int8_t *command) {
+    // TODO: Need to implement data shifting so new commands are placed in array
+    if(hist_buf_index >= HIST_COM_NUM) return;
+    int32_t buf_size = strlen((int8_t *)command);
+    // Put the last command into the history buffer,
+    // if it exists and isn't the same as the previous command
+    if(buf_size && strncmp((int8_t *)hist_buf[hist_buf_index-1], command, buf_size)) {
+        strncpy((int8_t *)hist_buf[hist_buf_index++], command, buf_size);
+    }
+    cur_hist_index = hist_buf_index;
 }
 
 /*
@@ -237,7 +270,7 @@ uint8_t get_keymap(char c) {
  *   Return Value: none
  *   Function: Resets the read buffer
  */
-void clear_buffer(void) {
-    memset(read_buf, 0, sizeof(read_buf));
+void clear_buffer() {
+    memset(read_buf, 0, strlen((int8_t *)read_buf));
     read_buf_index = 0;
 }

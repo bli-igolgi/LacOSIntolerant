@@ -87,7 +87,7 @@ void keyboard_interrupt() {
  */
 void process_input(char c) {
     uint8_t c_print;
-    int last;
+    int32_t buf_size, last;
     static volatile bool rtc_loop;
     // Positive scan codes (key down)
     if(c >= 0) {
@@ -200,11 +200,18 @@ void process_input(char c) {
                 // Treat it as a regular character
                 else goto print_char;
             case UP_KEY_P:
+                buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
+                if(!buf_size) break;
+                clear_cur_cmd();
                 clear_buffer();
-                int32_t buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
+
+                // Don't copy over the newline char
                 memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index-1], buf_size);
+                read_buf[buf_size-1] = '\0';
                 cur_hist_index--;
                 read_buf_index = buf_size;
+
+                printf((int8_t *)read_buf);
                 break;
             // Regular key press
             default:
@@ -243,6 +250,12 @@ uint8_t get_keymap(char c) {
     else if(l_shift | r_shift)              return shift_key_map[(unsigned char)c];
     else if(caps_lock)                      return caps_key_map[(unsigned char)c];
     else                                    return reg_key_map[(unsigned char)c];
+}
+
+void clear_cur_cmd() {
+    int char_cnt = read_buf_index;
+    while(--char_cnt > 0)
+        putc('\b');
 }
 
 /*

@@ -26,6 +26,8 @@ extern void keyboard_interrupt();
 
 void process_input(char c);
 uint8_t get_keymap(char c);
+
+void clear_cur_cmd();
 void add_to_history(int8_t *command);
 void clear_buffer(void);
 

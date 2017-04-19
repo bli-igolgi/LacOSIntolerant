@@ -33,7 +33,6 @@ typedef struct fdesc {
 // Forward declaration so that a pcb can contain another pcb
 typedef struct pcb_t pcb_t;
 struct pcb_t {
-    // I feel like there's a bunch of stuff missing here... but idk what.
     fdesc_t io_files[MAX_DESC];         // file descriptor array
     uint32_t pid;                       // process id
     int fd_status;                      // bitmap of which fds are occupied
@@ -42,6 +41,7 @@ struct pcb_t {
     uint32_t* page_addr;                // pointer to process's page
     pcb_t* parent_task;                 // pointer to parent task's PCB
     uint32_t pcb_num;                    // number of the pcb (1-8)
+	uint8_t arg[BUF_SIZE];					// maximum possible chars (for simplicity)
 };
 
 

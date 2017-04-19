@@ -69,7 +69,7 @@ void idt_init(){
 /*	DESCRIPTION: exception invoked for IDT vector 0x00
 	INPUT:	none
 	OUTPUT: none
-	EFFECTS: prints offending error msg, stalls system indefinitely
+	EFFECTS: prints offending error msg, squashes user program
 */
 void div_zero_fault() {
     printf("Divide-by-zero fault occurred. Do you even math?\n");

@@ -48,6 +48,9 @@ pcb_t * init_pcb() {
     // make all file descriptors available
     for(i = 0; i < MAX_DESC; i++)
         newBlk->io_files[i].flags = NOT_USED;
+	
+	// clear junk from stored arg buffer
+	memset(newBlk->arg, '\0', BUF_SIZE);
 
     return newBlk;
 }

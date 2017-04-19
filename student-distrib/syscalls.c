@@ -51,8 +51,10 @@ bool except_raised = 0;
             : "g"(cur_esp), "g"(cur_ebp), "g"(ret_val)
             : "%eax"
         );
-    }
-    sys_execute((uint8_t *)"shell");
+    } else
+		sys_execute((uint8_t *)"shell");
+	
+	//	this should never be reached
     return ret_val;
 }
 
@@ -64,7 +66,7 @@ bool except_raised = 0;
  *   Function: Performs the command
  */
 int32_t sys_execute(const uint8_t *command) {
-    uint8_t cmd[15], arg[30], file_data[FILE_H_SIZE];
+    uint8_t cmd[15], file_data[FILE_H_SIZE];
     uint32_t entry = 0;
     dentry_t cmd_dentry;
     int i = 0, j = 0;
@@ -77,21 +79,15 @@ int32_t sys_execute(const uint8_t *command) {
         printf("Only 2 tasks are currently supported\n");
         return 0;
     }
-    
-    /* ==== Parse arguments ==== */
+
+    /* ==== Parse command ==== */
     // Skip spaces in front of the command
     while(command[i] == ' ' && command[i] != '\0') i++;
     // Copy command into cmd until the next space
     while(command[i] != ' ' && command[i] != '\0') cmd[j++] = command[i++];
     cmd[j] = '\0';
     j = 0;
-
-    // Skip spaces in front of argument
-    while(command[i] == ' ' && command[i] != '\0') i++;
-    // Copy the ending part of command into argument
-    while(command[i] != '\0') arg[j++] = command[i++];
-    arg[j] = '\0';
-
+	
     /* ==== Check file validity ==== */
     // Make sure the name of the file is in the file system
     if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
@@ -105,6 +101,14 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();    
 
+	/* ==== Store arg in PCB ==== */
+    // Skip spaces in front of argument
+    while(command[i] == ' ' && command[i] != '\0') i++;
+    // Copy the ending part of command into argument
+    while(command[i] != '\0') 
+		new_pcb->arg[j++] = command[i++];
+    new_pcb->arg[j] = '\0';
+	
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
     map_page((void *)(PROGRAM_1_PHYS + new_pcb->pcb_num * PAGE_4MB),
@@ -204,16 +208,6 @@ int32_t sys_open(const uint8_t *filename) {
 		return (*tableaux[cur_dentry.file_type]).open(filename);
 	else
 		return FAILURE;
-	/*switch(cur_dentry.file_type){
-		case RTC_DEV:
-			return rtc_open(filename);
-		case DIR_TYPE:
-			return fsys_open_dir(filename);
-		case REG_FILE:
-			return fsys_open_file(filename);
-		default:
-			return FAILURE;
-	} */
 }
 
 /*
@@ -230,13 +224,21 @@ int32_t sys_close(int32_t fd) {
 }
 
 /*
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: 		buf - buffer to copy arg into
+ *					nbytes - number of bytes to copy into buf
+ *   Return Value:	-1 if null-terminated arg does not fit in buf
+ *					0 otherwise
+ *   Function:		get stored arg parsed from command at time of sys_execute
  */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
-    printf("executed syscall ");
-    return -1;
+	int32_t arg_len;
+	
+	// return if arg and NULL char cannot fit in buffer
+    if((arg_len = strlen(cur_pcb->arg)+1) > nbytes)
+		return FAILURE;
+	
+	memcpy(buf, cur_pcb->arg, arg_len);
+	return SUCCESS;
 }
 
 /*

@@ -16,6 +16,7 @@
 #define FOUR_KEY_P  0x05
 #define FIVE_KEY_P  0x06
 #define UP_KEY_P    0x48
+#define DOWN_KEY_P  0x50
 
 // The codes for key releases
 #define ENTER_KEY_R -100
@@ -202,16 +203,32 @@ void process_input(char c) {
             case UP_KEY_P:
                 buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
                 if(!buf_size) break;
+
+                /* Clear any current input */
                 clear_cur_cmd();
                 clear_buffer();
 
-                // Don't copy over the newline char
+                /* Copy the next history command into the read buffer and display it */
                 memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index-1], buf_size);
-                read_buf[buf_size-1] = '\0';
                 cur_hist_index--;
                 read_buf_index = buf_size;
-
                 printf((int8_t *)read_buf);
+
+                break;
+            case DOWN_KEY_P:
+                buf_size = strlen((int8_t *)hist_buf[cur_hist_index]);
+                if(!buf_size) break;
+
+                /* Clear any current input */
+                clear_cur_cmd();
+                clear_buffer();
+
+                /* Copy the next history command into the read buffer and display it */
+                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index], buf_size);
+                cur_hist_index++;
+                read_buf_index = buf_size;
+                printf((int8_t *)read_buf);
+
                 break;
             // Regular key press
             default:
@@ -254,8 +271,8 @@ uint8_t get_keymap(char c) {
 
 void clear_cur_cmd() {
     int char_cnt = read_buf_index;
-    while(--char_cnt > 0)
-        putc('\b');
+    while(char_cnt-- > 0)
+        process_input(BACKSPACE_P);
 }
 
 /*
@@ -268,7 +285,8 @@ void clear_cur_cmd() {
 void add_to_history(int8_t *command) {
     // TODO: Need to implement data shifting so new commands are placed in array
     if(hist_buf_index >= HIST_COM_NUM) return;
-    int32_t buf_size = strlen((int8_t *)command);
+    // Don't include the newline character
+    int32_t buf_size = strlen((int8_t *)command)-1;
     // Put the last command into the history buffer,
     // if it exists and isn't the same as the previous command
     if(buf_size && strncmp((int8_t *)hist_buf[hist_buf_index-1], command, buf_size)) {

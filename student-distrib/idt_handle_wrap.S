@@ -17,6 +17,12 @@
 
 .align 4
 
+/*
+MP3.4
+    Should be able to run all executables except sigtest
+
+*/
+
 /* ========= SYSTEM CALL ========= */
 
 # Description: wrapper to service system calls

@@ -15,6 +15,7 @@
 // sets flag field of file descriptors
 typedef enum {NOT_USED, IN_USE} status_t;
 
+/* Contains the functions that are kept in the jump table */
 typedef struct f_ops_table {
     int32_t (*open)(const uint8_t* filename);
     int32_t (*read)(int32_t fd, void *buf, int32_t nbytes);
@@ -22,14 +23,14 @@ typedef struct f_ops_table {
     int32_t (*close)(int32_t fd);
 } f_ops_table;
 
+/* One entry in the file descriptor array, specific to each PCB */
 typedef struct fdesc {
-    f_ops_table file_ops;               // pointer to file operations jump table
-    uint32_t inode;                     // inode number
-    uint32_t file_pos;                  // current position in file
-    status_t flags;                     // status of file at the moment
+    f_ops_table file_ops;           // pointer to file operations jump table
+    uint32_t inode;                 // inode number
+    uint32_t file_pos;              // current position in file
+    status_t flags;                 // status of file at the moment
 } fdesc_t;
 
-// PCB below; any additional structs should be defined above this point
 // Forward declaration so that a pcb can contain another pcb
 typedef struct pcb_t pcb_t;
 struct pcb_t {
@@ -46,13 +47,14 @@ struct pcb_t {
 
 
 pcb_t * init_pcb();
+int32_t close_pcb(pcb_t *blk);
 int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num);
 int32_t close_file_desc(pcb_t *blk, uint32_t fd_id);
 
 uint32_t find_empty_pcb(void);
-// void done_with_pcb();
 int find_empty_fd(void);
 void done_with_fd(int fd);
+uint32_t our_popcount(uint32_t value);
 
 extern pcb_t *cur_pcb;
 extern uint32_t pcb_status;

@@ -4,12 +4,11 @@
 // None of the upper 24 bits should be 1 unless we know we have space
 uint32_t pcb_status = 0;
 
-/* find_empty_pcb
-    INPUTS: none
-    OUTPUTS: none
-    RETURN VALUE: pointer to empty PCB block
-    SIDE EFFECTS: none
-*/
+/*
+ *  Inputs: none
+ *  Return Value: pointer to empty PCB block
+ *  Function: Gets the offset to the next empty block available to use for a PCB
+ */
 uint32_t find_empty_pcb() {
     // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
@@ -21,11 +20,8 @@ uint32_t find_empty_pcb() {
     }
     // Set the appropriate bit in the PCB status.
     pcb_status |= 1 << offset;
-    // return the offset of the pcb
+    // Return the offset of the pcb
     return offset;
-
-    // Return the appropriate pointer to the PCB block.
-    //return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
 }
 
 // TODO: REWRITE ABOVE FUNCTIONS SO THAT THEY DO A SIMILAR THING WITH FDs
@@ -38,11 +34,10 @@ uint32_t find_empty_pcb() {
 pcb_t * init_pcb() {
     uint32_t offset = find_empty_pcb();
     pcb_t *newBlk = (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
-
+    // memset(newBlk, 0, 8192);
     // set the pcb number
     newBlk->pcb_num = offset;
 
-    //pcb_t *newBlk = find_empty_pcb();
     int i;
     
     // make all file descriptors available
@@ -53,6 +48,22 @@ pcb_t * init_pcb() {
 	memset(newBlk->arg, '\0', BUF_SIZE);
 
     return newBlk;
+}
+
+/*
+ *  Inputs: blk --  pointer to process control block
+ *  Return Value: 0 on completion
+ *  Function: Free all of the file descriptors associated with the PCB,
+ *              and call the respective close function for each
+ */
+int32_t close_pcb(pcb_t *blk) {
+    int i;
+    for(i = 0; i < MAX_DESC; i++) {
+        if(cur_pcb->io_files[i].file_ops.close)
+            cur_pcb->io_files[i].file_ops.close(i);
+        close_file_desc(cur_pcb, i);
+    }
+    return 0;
 }
 
 /*
@@ -93,4 +104,21 @@ int32_t close_file_desc(pcb_t *blk, uint32_t fd_id) {
     // note: fdesc data is not cleared; use flags as access var!
     blk->io_files[fd_id].flags = NOT_USED;
     return 0;
+}
+
+/*
+ * Inputs: status bitmap
+ * Return Value: number of bits set in the bitmap
+ * Function: Determines the Hamming weight of the bitmap.
+ * (thanks Matt Howells from StackOverflow!)
+ */
+uint32_t our_popcount(uint32_t value){
+     uint32_t result = 0;
+     // The constant below consists of every other bit set.
+     result = value - ((value >> 1) & 0x55555555);
+     // The constant below consists of every two bits set followed by two bits unset.
+     result = (result & 0x33333333) + ((result >> 2) & 0x33333333);
+     // The first constant below consists of every four bits set followed by every four bits unset.
+     // The second constant below consists of every eighth bit set, starting with the first.
+     return (((result + (result >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }

@@ -23,7 +23,10 @@ bool except_raised = 0;
 
     // Remap the parent's page
     // TODO: Fix below so that this works more generally with more than one process
-    map_page((void *) PROGRAM_1_PHYS, (void *) PROGRAM_VIRT, true, true, true, true);
+    if(cur_pcb->parent_task)
+        map_page((void *) cur_pcb->parent_task->page_addr, (void *) PROGRAM_VIRT, true, true, true, true);
+    else
+        map_page((void *) PROGRAM_1_PHYS + cur_pcb->term_num * FOUR_MB, (void *) PROGRAM_VIRT, true, true, true, true);
     // Mark the current PCB as ready for reuse
     pcb_status &= ~(1 << (offset-1));
     close_pcb(cur_pcb);
@@ -107,8 +110,8 @@ int32_t sys_execute(const uint8_t *command) {
 	
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
-    map_page((void *)(PROGRAM_1_PHYS + new_pcb->pcb_num * FOUR_MB),
-            (void *)PROGRAM_VIRT, true, true, true, true);
+    new_pcb->page_addr = (uint32_t *)(PROGRAM_1_PHYS + new_pcb->pcb_num * FOUR_MB);
+    map_page((void *)(new_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
     flush_tlb();
 
     // Assign the parent task of the new pcb (will be NULL if this is the first process)
@@ -117,6 +120,7 @@ int32_t sys_execute(const uint8_t *command) {
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
     new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pcb_num)*PCB_PLUS_STACK - 4);
     new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
+    new_pcb->term_num = 0; // this will change when we work on virtual terminals
 
     /* ==== Prepare for context switch ==== */
     if(cur_pcb) {
@@ -233,7 +237,7 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
 	int32_t arg_len;
 	
 	// return if arg and NULL char cannot fit in buffer
-    if((arg_len = strlen(cur_pcb->arg)+1) > nbytes)
+    if((arg_len = strlen((int8_t *)cur_pcb->arg)+1) > nbytes)
 		return FAILURE;
 	
 	memcpy(buf, cur_pcb->arg, arg_len);

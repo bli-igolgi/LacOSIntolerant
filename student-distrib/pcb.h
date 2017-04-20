@@ -6,6 +6,7 @@
 #define END_OF_KERNEL_PAGE  0x800000
 #define PCB_PLUS_STACK      0x2000
 #define FOUR_MB             0x400000
+#define BUF_SIZE            128
 
 #include "file_system.h"
 #include "rtc.h"
@@ -37,6 +38,7 @@ struct pcb_t {
     fdesc_t io_files[MAX_DESC];         // file descriptor array
     uint32_t pid;                       // process id
     int fd_status;                      // bitmap of which fds are occupied
+    uint8_t term_num;                   // which terminal am I on?
     uint32_t esp, ebp, esp0;
     uint16_t ss0;
     uint32_t* page_addr;                // pointer to process's page

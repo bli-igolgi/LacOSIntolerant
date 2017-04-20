@@ -155,12 +155,14 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         return FAILURE;
     // Time to find this entry.
     for(i = 0; i < num_dir_entries; i++) {
+        // Clear poss_name
+        memset(poss_name, 0, FILENAME_LEN);
         // Find the right address, offsetting by 1 because inode0 is null
         uint32_t * cur_dentry = fs_addr + (i+1) * ENTRY_SIZE_UINTS;
         // Put the filename in poss_name
         strncpy(poss_name, (int8_t *)cur_dentry, FILENAME_LEN);
         // If the strings are the same
-        if(!strncmp(poss_name, (int8_t *)fname, strlen(poss_name))) {
+        if(!strncmp(poss_name, (int8_t *)fname, FILENAME_LEN)) {
             // Copy the directory entry and be done!
             memcpy(dentry, cur_dentry, ENTRY_SIZE_BYTES);
             return SUCCESS;

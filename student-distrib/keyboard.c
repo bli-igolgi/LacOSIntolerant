@@ -9,14 +9,20 @@
 #define L_KEY_P     0x26
 #define L_SHIFT_P   0x2A
 #define R_SHIFT_P   0x36
+#define ALT_KEY_P   0x38
 #define CAPS_LOCK_P 0x3A
+#define F1_KEY_P    0x3B
+#define F2_KEY_P    0x3C
+#define F3_KEY_P    0x3D
+#define UP_KEY_P    0x48
+#define DOWN_KEY_P  0x50
+
+// Number presses
 #define ONE_KEY_P   0x02
 #define TWO_KEY_P   0x03
 #define THREE_KEY_P 0x04
 #define FOUR_KEY_P  0x05
 #define FIVE_KEY_P  0x06
-#define UP_KEY_P    0x48
-#define DOWN_KEY_P  0x50
 
 // The codes for key releases
 #define ENTER_KEY_R -100
@@ -47,6 +53,7 @@ bool new_line = false;
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
+     alt        = false,
      caps_lock  = false,
      l_shift    = false,
      r_shift    = false;
@@ -123,6 +130,9 @@ void process_input(char c) {
             case CTRL_KEY_P:
                 ctrl = true;
                 break;
+            case ALT_KEY_P:
+                alt = true;
+                break;
             case L_KEY_P: 
                 // CTRL+L
                 if(ctrl) {
@@ -142,6 +152,62 @@ void process_input(char c) {
             case CAPS_LOCK_P:
                 caps_lock = !caps_lock;
                 break;
+
+            /* Multiple Terminals */
+            case F1_KEY_P:
+                if(alt) {
+
+                }
+                break;
+            case F2_KEY_P:
+                if(alt) {
+
+                }
+                break;
+            case F3_KEY_P:
+                if(alt) {
+
+                }
+                break;
+
+            /* Command History */
+            // TODO: Fix so that pressing up after going up and down the list doesn't skip
+            //          the last command in the list
+            case UP_KEY_P:
+                buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
+                if(!buf_size) break;
+
+                /* Clear any current input */
+                clear_cur_cmd();
+                clear_buffer();
+
+                /* Copy the next history command into the read buffer and display it */
+                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index-1], buf_size);
+                cur_hist_index--;
+                read_buf_index = buf_size;
+                printf((int8_t *)read_buf);
+
+                break;
+            case DOWN_KEY_P:
+                buf_size = strlen((int8_t *)hist_buf[cur_hist_index+1]);
+
+                /* Clear any current input */
+                clear_cur_cmd();
+                clear_buffer();
+
+                // Allow input to be cleared if come to end of list
+                if(!buf_size) break;
+
+                /* Copy the previous history command into the read buffer and display it */
+                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index+1], buf_size);
+                cur_hist_index++;
+                read_buf_index = buf_size;
+                printf((int8_t *)read_buf);
+
+                break;
+
+
+            /* MP3.2 Test Cases */
             case ONE_KEY_P:
                 // Test case 1, press CTRL+1
                 if(ctrl) {
@@ -200,40 +266,6 @@ void process_input(char c) {
                 }
                 // Treat it as a regular character
                 else goto print_char;
-            // TODO: Fix so that pressing up after going up and down the list doesn't skip
-            //          the last command in the list
-            case UP_KEY_P:
-                buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
-                if(!buf_size) break;
-
-                /* Clear any current input */
-                clear_cur_cmd();
-                clear_buffer();
-
-                /* Copy the next history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index-1], buf_size);
-                cur_hist_index--;
-                read_buf_index = buf_size;
-                printf((int8_t *)read_buf);
-
-                break;
-            case DOWN_KEY_P:
-                buf_size = strlen((int8_t *)hist_buf[cur_hist_index+1]);
-
-                /* Clear any current input */
-                clear_cur_cmd();
-                clear_buffer();
-
-                // Allow input to be cleared if come to end of list
-                if(!buf_size) break;
-
-                /* Copy the previous history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index+1], buf_size);
-                cur_hist_index++;
-                read_buf_index = buf_size;
-                printf((int8_t *)read_buf);
-
-                break;
             // Regular key press
             default:
 print_char:

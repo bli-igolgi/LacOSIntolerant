@@ -105,7 +105,7 @@ int32_t sys_execute(const uint8_t *command) {
     while(command[i] == ' ' && command[i] != '\0') i++;
     // Copy the ending part of command into argument
     while(command[i] != '\0') 
-    new_pcb->arg[j++] = command[i++];
+		new_pcb->arg[j++] = command[i++];
     new_pcb->arg[j] = '\0';
 	
     /* ==== Set up paging ==== */

@@ -4,3 +4,4 @@ student-distrib/mp3.img
 Makefile.dep
 cifs*
 syscalls/**/*
+mp3.pdf

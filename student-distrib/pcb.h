@@ -23,6 +23,8 @@ typedef struct f_ops_table {
     int32_t (*close)(int32_t fd);
 } f_ops_table;
 
+const f_ops_table empty_f_ops_tab;
+
 /* One entry in the file descriptor array, specific to each PCB */
 typedef struct fdesc {
     f_ops_table file_ops;           // pointer to file operations jump table

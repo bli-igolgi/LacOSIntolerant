@@ -98,11 +98,12 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
  *  Return Value: 0 on completion
  *  Function: Find file descriptor and free it
  */
-int32_t close_file_desc(pcb_t *blk, uint32_t fd_id) {
+int32_t close_file_desc(pcb_t *blk, uint32_t fd) {
     // Don't try to free if doesn't exist
-    if(MAX_DESC <= fd_id) return -1;
+    if(MAX_DESC <= fd || fd < 0) return -1;
+    cur_pcb->io_files[fd].file_ops = empty_f_ops_tab;
     // note: fdesc data is not cleared; use flags as access var!
-    blk->io_files[fd_id].flags = NOT_USED;
+    blk->io_files[fd].flags = NOT_USED;
     return 0;
 }
 

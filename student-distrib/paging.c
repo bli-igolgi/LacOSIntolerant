@@ -98,22 +98,8 @@ void paging_init()
     // map the video memory in the page directory -- small page, kernel privileges, read/write
     map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0, 0, 1, 0);
 
-
-
-
-
-
     // map the alternate video memory page
-    if(map_page((void *)VIDMAP_PHYS_ADDR, (void *)VIDMAP_VIRT_ADDR,
-        false, true, true, false) == -1)
-        printf("vidmap fail in paging.c");
-    // map the alternate video memory page
-    // map_page(*screen_start, VIDMAP_VIRT_ADDR, false, true, true, false);
-
-
-
-
-
+    map_page((void *)VIDMAP_PHYS_ADDR, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
 
     map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1, 0);
 

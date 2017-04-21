@@ -195,6 +195,8 @@ entry (unsigned long magic, unsigned long addr)
         terminal_write(0, temp_buf, 0);
     } */
 
+    clear_screen();
+
     /* Execute the first program ('shell') ... */
     sys_execute((uint8_t *)"     shell        fun");
 

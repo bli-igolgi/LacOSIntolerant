@@ -253,11 +253,15 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
  *              at a pre-set virtual address
  */
 int32_t sys_vidmap(uint8_t **screen_start) {
-    // If the location is invalid
-    // if(1) return -1;
-    // Return failed if the map page function fails
-    if(map_page(*screen_start, (void *)VIDMAP_VIRT_ADDR, false, true, true, false) == -1)
+    // The location needs to fall within the program executable page
+    if(screen_start < (uint8_t **)PROGRAM_VIRT ||
+        screen_start > (uint8_t **)(PROGRAM_VIRT + FOUR_MB)) {
+        printf("sys_vidmap fail 1\n");
         return -1;
+    }
+    // Map the address provided to the same virtual address
+    *screen_start = (void *)(VIDMAP_VIRT_ADDR);
+    
     return VIDMAP_VIRT_ADDR;
 }
 

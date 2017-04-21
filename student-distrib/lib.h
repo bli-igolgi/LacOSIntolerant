@@ -7,10 +7,10 @@
 
 #include "types.h"
 
-#define VIDEO 0xB8000
-#define NUM_COLS 80
-#define NUM_ROWS 25
-#define ATTRIB 0x7
+#define VIDEO_ADDR 	0xB8000
+#define NUM_COLS 	80
+#define NUM_ROWS 	25
+#define ATTRIB 		0x7
 
 extern int screen_x;
 extern int screen_y;

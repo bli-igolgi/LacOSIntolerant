@@ -7,7 +7,9 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-#define NULL 0
+#define NULL        0
+#define FOUR_MB     0x400000
+#define FOUR_KB     0x1000
 
 #ifndef ASM
 

@@ -5,7 +5,6 @@
 #define MAX_DESC            8
 #define END_OF_KERNEL_PAGE  0x800000
 #define PCB_PLUS_STACK      0x2000
-#define FOUR_MB             0x400000
 #define BUF_SIZE            128
 
 #include "file_system.h"

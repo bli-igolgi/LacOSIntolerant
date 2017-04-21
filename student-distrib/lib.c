@@ -6,7 +6,7 @@
 
 int screen_x;
 int screen_y;
-static char* video_mem = (char *)VIDEO;
+static char* video_mem = (char *)VIDEO_ADDR;
 
 /*
  * void set_screen_pos(int x, int y);

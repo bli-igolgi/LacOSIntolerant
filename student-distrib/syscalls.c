@@ -179,7 +179,9 @@ int32_t sys_execute(const uint8_t *command) {
  *   Function: Calls the read function corresponding to the device ID fd
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    if(!cur_pcb->io_files[fd].file_ops.read) return -1;
+    // Check that the file descriptor is in range and the read function exists
+    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops.read)
+        return -1;
     return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
 }
 
@@ -191,7 +193,9 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: Writes data to the specified device
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    if(!cur_pcb->io_files[fd].file_ops.write) return -1;
+    // Check that the file descriptor is in range and the write function exists
+    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops.write)
+        return -1;
     return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
 }
 
@@ -219,10 +223,10 @@ int32_t sys_open(const uint8_t *filename) {
  *   Function: closes a file descriptor in current pcb by marking as unused
  */
 int32_t sys_close(int32_t fd) {
-    if(fd < 2)
-        return -1;      // user cannot close default fd (0 and 1)
-    else
-        return cur_pcb->io_files[fd].file_ops.close(fd);
+    // User cannot close default fd (0 and 1)
+    if(fd < 2 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops.close)
+        return -1;
+    return cur_pcb->io_files[fd].file_ops.close(fd);
 }
 
 /*
@@ -250,11 +254,11 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
  */
 int32_t sys_vidmap(uint8_t **screen_start) {
     // If the location is invalid
-    if(1) return -1;
+    // if(1) return -1;
     // Return failed if the map page function fails
-    if(map_page(*screen_start, VIDMAP_VIRT_ADDR, false, true, true, false == -1))
+    if(map_page(*screen_start, (void *)VIDMAP_VIRT_ADDR, false, true, true, false) == -1)
         return -1;
-    return *screen_start;
+    return VIDMAP_VIRT_ADDR;
 }
 
 /*   Unless we decide to implement signals, this is as it will remain.
@@ -263,7 +267,6 @@ int32_t sys_vidmap(uint8_t **screen_start) {
  *   Function: 
  */
 int32_t sys_set_handler(int32_t signum, void *handler_address) {
-    printf("executed syscall\n");
     return -1;
 }
 
@@ -273,7 +276,6 @@ int32_t sys_set_handler(int32_t signum, void *handler_address) {
  *   Function: 
  */
 int32_t sys_sigreturn(void) {
-    printf("executed syscall\n");
     return -1;
 }
 

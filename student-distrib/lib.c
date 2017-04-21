@@ -65,11 +65,11 @@ void scroll(void) {
 * void clear(void);
 *   Inputs: void
 *   Return Value: none
-*	Function: Clears video memory
+*	Function: Clears the screen
 */
 
 void
-clear(void)
+clear_screen(void)
 {
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {

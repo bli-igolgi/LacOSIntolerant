@@ -137,7 +137,7 @@ void process_input(char c) {
                 // CTRL+L
                 if(ctrl) {
                     // Clears video memory
-                    clear();
+                    clear_screen();
                     clear_buffer();
                     break;
                 }
@@ -238,8 +238,6 @@ void process_input(char c) {
             case FOUR_KEY_P:
                 // Test case 4, press CTRL+4
                 if(ctrl) {
-                    clear();
-                    clear_buffer();
                     // Double the frequency
                     rtc_freq <<= 1;
                     // Don't allow to go above 1024 Hz
@@ -247,11 +245,15 @@ void process_input(char c) {
                         rtc_freq = 2;
                     rtc_write(0, &rtc_freq, 0);
                     
+                    /*
+                    clear_screen();
+                    clear_buffer();
                     rtc_loop = true;
                     do {
                         rtc_read(0,0,0);
                         putc('1');
                     } while(rtc_loop);
+                    */
                     break;
                 }
                 // Treat it as a regular character
@@ -260,7 +262,7 @@ void process_input(char c) {
                 // Test case 5, press CTRL+5
                 if(ctrl) {
                     rtc_loop = false;
-                    clear();
+                    clear_screen();
                     clear_buffer();
                     break;
                 }

@@ -98,6 +98,19 @@ void paging_init()
     // map the video memory in the page directory -- small page, kernel privileges, read/write
     map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1, 0);
 
+
+
+
+
+
+    // map the alternate video memory page
+    // map_page(*screen_start, VIDMAP_VIRT_ADDR, false, true, true, false);
+
+
+
+
+
+
     map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1, 0);
 
     // setting the bits to enable paging

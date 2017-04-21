@@ -263,7 +263,7 @@ void test_access_by_index(){
 	becausenonullisguaranteed[FILENAME_LEN] = '\0';
 	uint32_t num_of_files = fs_addr[0];
    	int i, file_size;
-    clear();
+    clear_screen();
     clear_buffer();
     // Read all of the files
    	for(i = 0; i < num_of_files; ++i){
@@ -281,7 +281,7 @@ void test_access_by_file_name(){
 	dentry_t to_print;
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
 	uint32_t file_size, printed = 0, how_much, i;
-    clear();
+    clear_screen();
     clear_buffer();
 	read_dentry_by_name((uint8_t *)filename, &to_print);
 	file_size = fs_addr[(to_print.inode_num+1)*BLK_SIZE_UINTS]; // over 4 because uint32_t indices
@@ -308,7 +308,7 @@ void test_data_printing(){
 	char temp_string[NUM_COLS+1] = {0}; // plus 1 for a guaranteed null terminator
 	char becausenonullisguaranteed[33];
 	becausenonullisguaranteed[32] = '\0';
-    clear();
+    clear_screen();
     clear_buffer();
 	index_to_be_printed++;
 	index_to_be_printed %= num_of_files;

@@ -36,7 +36,7 @@ entry (unsigned long magic, unsigned long addr)
     multiboot_info_t *mbi;
 
     /* Clear the screen. */
-    clear();
+    clear_screen();
 
     /* Am I booted by a Multiboot-compliant boot loader? */
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)

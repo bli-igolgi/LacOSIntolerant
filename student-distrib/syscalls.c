@@ -51,9 +51,9 @@ bool except_raised = 0;
             : "%eax"
         );
     } else
-		sys_execute((uint8_t *)"shell");
-	
-	//	this should never be reached
+        sys_execute((uint8_t *)"shell");
+    
+    //  this should never be reached
     return ret_val;
 }
 
@@ -86,7 +86,7 @@ int32_t sys_execute(const uint8_t *command) {
     while(command[i] != ' ' && command[i] != '\0') cmd[j++] = command[i++];
     cmd[j] = '\0';
     j = 0;
-	
+    
     /* ==== Check file validity ==== */
     // Make sure the name of the file is in the file system
     if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
@@ -100,14 +100,14 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();    
 
-	/* ==== Store arg in PCB ==== */
+    /* ==== Store arg in PCB ==== */
     // Skip spaces in front of argument
     while(command[i] == ' ' && command[i] != '\0') i++;
     // Copy the ending part of command into argument
     while(command[i] != '\0') 
-		new_pcb->arg[j++] = command[i++];
+        new_pcb->arg[j++] = command[i++];
     new_pcb->arg[j] = '\0';
-	
+    
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
     new_pcb->page_addr = (uint32_t *)(PROGRAM_1_PHYS + new_pcb->pcb_num * FOUR_MB);
@@ -133,8 +133,8 @@ int32_t sys_execute(const uint8_t *command) {
     }
     // Switch to the child task
     cur_pcb = new_pcb;
-	// Open default stdin (fd #0) & stdout (fd #1) per process
-	terminal_open(NULL);
+    // Open default stdin (fd #0) & stdout (fd #1) per process
+    terminal_open(NULL);
 
     /* ==== Load file into memory ==== */
     entry = *((uint32_t *)file_data + 6);
@@ -196,52 +196,50 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
 }
 
 /*
- *   Inputs:		filename - the string that contains the name of the file
- *   Return Value:	-1 if filename does not exist or specific file_open fails
- *					0 - 7 file descriptor id# (fd) 
- *   Function:		Checks the filename, and calls the file type specific open function
+ *   Inputs: filename - the string that contains the name of the file
+ *   Return Value: -1 if filename does not exist or specific file_open fails
+ *                  0 - 7 file descriptor id# (fd) 
+ *   Function: Checks the filename, and calls the file type specific open function
  */
 int32_t sys_open(const uint8_t *filename) {
     dentry_t cur_dentry;
-	
+    
     if(read_dentry_by_name(filename, &cur_dentry))
-		return FAILURE;
-	
-	if(cur_dentry.file_type < 3)		// 3 possible file types
-		return (*tableaux[cur_dentry.file_type]).open(filename);
-	else
-		return FAILURE;
+        return FAILURE;
+    
+    if(cur_dentry.file_type < 3)        // 3 possible file types
+        return (*tableaux[cur_dentry.file_type]).open(filename);
+    else
+        return FAILURE;
 }
 
 /*
- *   Inputs:		fd - file descriptor handler given by sys_open
- *   Return Value:	-1 if invalid descriptor or default descriptor
- *					0 otherwise
- *   Function: 		closes a file descriptor in current pcb by marking as unused
+ *   Inputs: fd - file descriptor handler given by sys_open
+ *   Return Value: -1 if invalid descriptor or default descriptor, 0 otherwise
+ *   Function: closes a file descriptor in current pcb by marking as unused
  */
 int32_t sys_close(int32_t fd) {
-	if(fd < 2)
-		return -1;		// user cannot close default fd (0 and 1)
-	else
-		return cur_pcb->io_files[fd].file_ops.close(fd);
+    if(fd < 2)
+        return -1;      // user cannot close default fd (0 and 1)
+    else
+        return cur_pcb->io_files[fd].file_ops.close(fd);
 }
 
 /*
- *   Inputs: 		buf - buffer to copy arg into
- *					nbytes - number of bytes to copy into buf
- *   Return Value:	-1 if null-terminated arg does not fit in buf
- *					0 otherwise
- *   Function:		get stored arg parsed from command at time of sys_execute
+ *   Inputs: buf    - buffer to copy arg into
+ *           nbytes - number of bytes to copy into buf
+ *   Return Value: -1 if null-terminated arg does not fit in buf, 0 otherwise
+ *   Function: get stored arg parsed from command at time of sys_execute
  */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
-	int32_t arg_len;
-	
-	// return if arg and NULL char cannot fit in buffer
+    int32_t arg_len;
+    
+    // return if arg and NULL char cannot fit in buffer
     if((arg_len = strlen((int8_t *)cur_pcb->arg)+1) > nbytes)
-		return FAILURE;
-	
-	memcpy(buf, cur_pcb->arg, arg_len);
-	return SUCCESS;
+        return FAILURE;
+    
+    memcpy(buf, cur_pcb->arg, arg_len);
+    return SUCCESS;
 }
 
 /*

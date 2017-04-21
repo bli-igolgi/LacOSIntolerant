@@ -266,6 +266,7 @@ void process_input(char c) {
                 }
                 // Treat it as a regular character
                 else goto print_char;
+
             // Regular key press
             default:
 print_char:
@@ -305,10 +306,21 @@ uint8_t get_keymap(char c) {
     else                                    return reg_key_map[(unsigned char)c];
 }
 
+/*
+ * void clear_cur_cmd(void);
+ *   Inputs: none
+ *   Return Value: none
+ *   Function: Clears the command currently displayed on the screen,
+ *              as well as the read buffer holding the command
+ */
 void clear_cur_cmd() {
     int char_cnt = read_buf_index;
+    // Clear the screen
     while(char_cnt-- > 0)
         process_input(BACKSPACE_P);
+
+    // Clear the buffer
+    clear_buffer();
 }
 
 /*

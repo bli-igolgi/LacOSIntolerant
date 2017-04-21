@@ -122,17 +122,18 @@ void paging_init()
 /* 
  * map_page
  *   DESCRIPTION: maps a page at the physical address to the given virtual address
- *   INPUTS: phys_addr -- the physical address to be mapped to
- *           virtual_addr -- the virtual address given
- *           page_size -- 1 for 4MB page, 0 for 4kB page
- *           privileges -- 1 for user privileges, 0 for kernel privileges
- *           write -- 1 for read/write, 0 for read only
+ *   INPUTS: phys_addr      -- the physical address to be mapped to
+ *           virtual_addr   -- the virtual address given
+ *           page_size      -- 1 for 4MB page, 0 for 4kB page
+ *           privileges     -- 1 for user privileges, 0 for kernel privileges
+ *           write          -- 1 for read/write, 0 for read only
+ *           remap          -- used only for sys_execute, to overwrite mapping a page
  *   RETURN VALUE: 0 for a success, 1 for failure
  *   SIDE EFFECTS: modifies the page directory and/or a page table
  *                 may create a new page table
  */
-int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write, bool remap)
-{
+int map_page(void * phys_addr, void * virtual_addr, bool page_size, 
+                bool privileges, bool write, bool remap) {
     unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;
     int index;

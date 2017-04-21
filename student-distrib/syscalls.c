@@ -179,7 +179,7 @@ int32_t sys_execute(const uint8_t *command) {
  *   Function: Calls the read function corresponding to the device ID fd
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
-    if(!cur_pcb->io_files[fd].file_ops.read) return FAILURE;
+    if(!cur_pcb->io_files[fd].file_ops.read) return -1;
     return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
 }
 
@@ -191,7 +191,7 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  *   Function: Writes data to the specified device
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
-    if(!cur_pcb->io_files[fd].file_ops.write) return FAILURE;
+    if(!cur_pcb->io_files[fd].file_ops.write) return -1;
     return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
 }
 
@@ -205,12 +205,12 @@ int32_t sys_open(const uint8_t *filename) {
     dentry_t cur_dentry;
     
     if(read_dentry_by_name(filename, &cur_dentry))
-        return FAILURE;
+        return -1;
     
     if(cur_dentry.file_type < 3)        // 3 possible file types
         return (*tableaux[cur_dentry.file_type]).open(filename);
     else
-        return FAILURE;
+        return -1;
 }
 
 /*
@@ -236,20 +236,25 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
     
     // return if arg and NULL char cannot fit in buffer
     if((arg_len = strlen((int8_t *)cur_pcb->arg)+1) > nbytes)
-        return FAILURE;
+        return -1;
     
     memcpy(buf, cur_pcb->arg, arg_len);
-    return SUCCESS;
+    return 0;
 }
 
 /*
- *   Inputs: 
- *   Return Value: 
- *   Function: 
+ *   Inputs: The address to map
+ *   Return Value: The address that was mapped
+ *   Function: Maps the text-mode video memory into user space
+ *              at a pre-set virtual address
  */
 int32_t sys_vidmap(uint8_t **screen_start) {
-    printf("executed syscall\n");
-    return -1;
+    // If the location is invalid
+    if(1) return -1;
+    // Return failed if the map page function fails
+    if(map_page(*screen_start, VIDMAP_VIRT_ADDR, false, true, true, false == -1))
+        return -1;
+    return *screen_start;
 }
 
 /*   Unless we decide to implement signals, this is as it will remain.

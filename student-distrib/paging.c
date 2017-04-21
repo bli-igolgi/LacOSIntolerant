@@ -128,7 +128,7 @@ void paging_init()
  *           privileges     -- 1 for user privileges, 0 for kernel privileges
  *           write          -- 1 for read/write, 0 for read only
  *           remap          -- used only for sys_execute, to overwrite mapping a page
- *   RETURN VALUE: 0 for a success, 1 for failure
+ *   RETURN VALUE: 0 for a success, -1 for failure
  *   SIDE EFFECTS: modifies the page directory and/or a page table
  *                 may create a new page table
  */

@@ -7,6 +7,7 @@
 #define PROGRAM_VIRT     0x8000000      // 128MB
 #define PROGRAM_VIRT_OFF 0x48000        // Where to start copying the program image within the virtual space
 #define MAX_PROCESSES    2
+#define VIDMAP_VIRT_ADDR NULL
 
 /* File type constants
 #define RTC_DEV		0

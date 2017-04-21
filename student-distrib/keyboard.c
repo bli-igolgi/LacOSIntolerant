@@ -200,6 +200,8 @@ void process_input(char c) {
                 }
                 // Treat it as a regular character
                 else goto print_char;
+            // TODO: Fix so that pressing up after going up and down the list doesn't skip
+            //          the last command in the list
             case UP_KEY_P:
                 buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
                 if(!buf_size) break;
@@ -216,15 +218,17 @@ void process_input(char c) {
 
                 break;
             case DOWN_KEY_P:
-                buf_size = strlen((int8_t *)hist_buf[cur_hist_index]);
-                if(!buf_size) break;
+                buf_size = strlen((int8_t *)hist_buf[cur_hist_index+1]);
 
                 /* Clear any current input */
                 clear_cur_cmd();
                 clear_buffer();
 
-                /* Copy the next history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index], buf_size);
+                // Allow input to be cleared if come to end of list
+                if(!buf_size) break;
+
+                /* Copy the previous history command into the read buffer and display it */
+                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index+1], buf_size);
                 cur_hist_index++;
                 read_buf_index = buf_size;
                 printf((int8_t *)read_buf);

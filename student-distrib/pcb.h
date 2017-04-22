@@ -7,6 +7,7 @@
 #define PCB_PLUS_STACK      0x2000
 #define BUF_SIZE            128
 
+#include "lib.h"
 #include "file_system.h"
 #include "rtc.h"
 #include "terminal.h"
@@ -44,10 +45,9 @@ struct pcb_t {
     uint16_t ss0;
     uint32_t* page_addr;                // pointer to process's page
     pcb_t* parent_task;                 // pointer to parent task's PCB
-    uint32_t pcb_num;                    // number of the pcb (1-8)
-	uint8_t arg[BUF_SIZE];					// maximum possible chars (for simplicity)
+    uint32_t pcb_num;                   // number of the pcb (1-8)
+	uint8_t arg[BUF_SIZE];              // maximum possible chars (for simplicity)
 };
-
 
 pcb_t * init_pcb();
 int32_t close_pcb(pcb_t *blk);

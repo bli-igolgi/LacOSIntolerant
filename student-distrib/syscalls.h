@@ -20,6 +20,7 @@
 #include "pcb.h"
 #include "file_system.h"
 #include "x86_desc.h"
+#include "multi_term.h"
 
 extern f_ops_table rtc_jt;
 extern f_ops_table dir_jt;

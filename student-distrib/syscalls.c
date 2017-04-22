@@ -18,11 +18,19 @@ bool except_raised = 0;
  int32_t sys_halt(uint8_t status) {
     // Zero extend the return value
     uint32_t ret_val = (status & 0xFF),
-             offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK,
-             *cur_esp, *cur_ebp;
+             offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
 
-    // Remap the parent's page
-    // TODO: Fix below so that this works more generally with more than one process
+    term_t term1;
+    term_t term2;
+
+    term1.vid_mem = (uint8_t *)VIDEO_ADDR1;
+    term2.vid_mem = (uint8_t *)VIDEO_ADDR2;
+
+
+    switch_screen(&term1, &term2);
+    switch_screen(&term2, &term1);
+
+    // Remap to the parent's page
     if(cur_pcb->parent_task)
         map_page((void *) cur_pcb->parent_task->page_addr, (void *) PROGRAM_VIRT, true, true, true, true);
     else
@@ -36,8 +44,6 @@ bool except_raised = 0;
     cur_pcb = cur_pcb->parent_task;
     // Restore the pointers to the stack
     if(cur_pcb) {
-        cur_esp = (uint32_t *)cur_pcb->esp;
-        cur_ebp = (uint32_t *)cur_pcb->ebp;
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;
         // Restores the esp and ebp, and puts return value in eax
@@ -53,7 +59,7 @@ bool except_raised = 0;
     } else
         sys_execute((uint8_t *)"shell");
     
-    //  this should never be reached
+    // This should never be reached
     return ret_val;
 }
 
@@ -72,6 +78,7 @@ int32_t sys_execute(const uint8_t *command) {
     uint32_t ret_val;
     // Set the stack pointer to be just before the bottom of the page
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
+
 
     // TEMPORARY: Only allow there to be 2 running tasks
     if(our_popcount(pcb_status) == MAX_PROCESSES) {

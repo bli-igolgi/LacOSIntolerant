@@ -92,13 +92,16 @@ void paging_init()
         : "r"(page_directory)
     );
 
-    // map the kernel in the page directory -- large page, kernel privileges, read/write
+    // Map the kernel in the page directory -- large page, kernel privileges, read/write
     map_page((void *)KERNEL_ADDR, (void *)KERNEL_ADDR, 1, 0, 1, 0);
 
-    // map the video memory in the page directory -- small page, kernel privileges, read/write
-    map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0, 0, 1, 0);
+    // Map the video memory in the page directory -- small page, kernel privileges, read/write
+    map_page((void *)VIDEO_ADDR1, (void *)VIDEO_ADDR1, 0, 0, 1, 0);
+    // Map the pages for the video memory for the other 2 terminals
+    map_page((void *)VIDEO_ADDR2, (void *)VIDEO_ADDR2, 0, 0, 1, 0);
+    map_page((void *)VIDEO_ADDR3, (void *)VIDEO_ADDR3, 0, 0, 1, 0);
 
-    // map the alternate video memory page
+    // Map the alternate video memory page for vidmap
     map_page((void *)VIDMAP_PHYS_ADDR, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
 
     map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1, 0);

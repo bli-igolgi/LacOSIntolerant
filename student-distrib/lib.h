@@ -15,7 +15,7 @@
 extern int screen_x;
 extern int screen_y;
 
-void set_screen_pos(int x, int y);
+void set_keyboard_pos(int x, int y);
 void set_cursor_pos(int row, int col);
 
 int32_t printf(int8_t *format, ...);

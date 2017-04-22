@@ -162,20 +162,20 @@ entry (unsigned long magic, unsigned long addr)
     }
     
     /* Initialize devices, memory, filesystem, enable device interrupts on the
-     * PIC, any other initialization stuff... */	
-	
+     * PIC, any other initialization stuff... */
+
     // Init the PIC
     i8259_init();
 
 	// Initialize the IDT
     idt_init();
-	
+
     // Init the keyboard
     keyboard_init();
     // Init the rtc
     rtc_init();
     // Init the mouse
-    // mouse_init();
+    mouse_init();
 
     // Initialize paging
     paging_init();

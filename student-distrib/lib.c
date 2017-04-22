@@ -9,12 +9,12 @@ int screen_y;
 static char* video_mem = (char *)VIDEO_ADDR;
 
 /*
- * void set_screen_pos(int x, int y);
+ * void set_keyboard_pos(int x, int y);
  *   Inputs: x,y - the new screen position
  *   Return Value: none
  *	 Function: Puts the keyboard cursor at the specified location
  */
-void set_screen_pos(int x, int y) {
+void set_keyboard_pos(int x, int y) {
 	screen_x = x;
 	screen_y = y;
 }
@@ -60,7 +60,6 @@ void scroll(void) {
 }
 
 
-
 /*
 * void clear(void);
 *   Inputs: void
@@ -76,7 +75,7 @@ clear_screen(void)
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    set_screen_pos(0, 0);
+    set_keyboard_pos(0, 0);
     set_cursor_pos(0, 0);
 }
 

@@ -20,15 +20,9 @@ bool except_raised = 0;
     uint32_t ret_val = (status & 0xFF),
              offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
 
-    term_t term1;
-    term_t term2;
 
-    term1.vid_mem = (uint8_t *)VIDEO_ADDR1;
-    term2.vid_mem = (uint8_t *)VIDEO_ADDR2;
-
-
-    switch_screen(&term1, &term2);
-    switch_screen(&term2, &term1);
+    switch_screen(0, 1);
+    switch_screen(1, 0);
 
     // Remap to the parent's page
     if(cur_pcb->parent_task)

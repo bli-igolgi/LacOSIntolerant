@@ -156,11 +156,12 @@ void process_input(char c) {
             /* Multiple Terminals */
             case F1_KEY_P:
                 if(alt) {
-
                 }
                 break;
             case F2_KEY_P:
                 if(alt) {
+                    // If already on terminal 2, don't do anything
+                    if(cur_term->term_id == terminals[1].term_id) break;
 
                 }
                 break;

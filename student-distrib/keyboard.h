@@ -3,6 +3,7 @@
 
 #include "driver.h"
 #include "i8259.h"
+#include "multi_term.h"
 
 // For testing RTC
 #include "rtc.h"

@@ -180,6 +180,9 @@ entry (unsigned long magic, unsigned long addr)
     // Initialize paging
     paging_init();
 
+    // Initialize multiple terminals
+    multi_term_init();
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close

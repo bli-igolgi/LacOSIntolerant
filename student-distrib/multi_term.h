@@ -2,6 +2,7 @@
 #define MULT_TERM_H
 
 #include "lib.h"
+#include "paging.h"
 
 
 typedef struct term_t {
@@ -10,7 +11,10 @@ typedef struct term_t {
     uint8_t *vid_mem;                       // Pointer to this terminal's video memory
 } term_t;
 
+extern term_t terminals[3];
+extern term_t *cur_term;
 
-void switch_screen(term_t *term1, term_t *term2);
+void multi_term_init();
+void switch_screen(int cur_term, int new_term);
 
 #endif

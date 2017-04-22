@@ -7,6 +7,7 @@
 static char* video_mem = (char *)VIDEO_ADDR;
 
 term_t terminals[3];
+term_t *cur_term;
 
 
 void multi_term_init() {
@@ -17,6 +18,8 @@ void multi_term_init() {
     terminals[0].vid_mem = (uint8_t *)TERM1_VID;
     terminals[1].vid_mem = (uint8_t *)TERM2_VID;
     terminals[2].vid_mem = (uint8_t *)TERM3_VID;
+
+    cur_term = &terminals[0];
 }
 
 void switch_screen(int cur_term, int new_term) {
@@ -29,23 +32,5 @@ void switch_screen(int cur_term, int new_term) {
 
         *(video_mem + (i << 1)) = *(new_vid + (i << 1));
         *(video_mem + (i << 1) + 1) = *(new_vid + (i << 1) + 1);
-
-
-
-        // Save temporarily for swapping
-        // uint8_t term1_char = *(uint8_t *)(term1_vid + (i << 1));
-        // uint8_t term1_attrib = *(uint8_t *)(term1_vid + (i << 1) + 1);
-
-        // // Put terminal 2 into terminal 1
-        // *(uint8_t *)(term1_vid + (i << 1)) = *(uint8_t *)(term2_vid + (i << 1));
-        // *(uint8_t *)(term1_vid + (i << 1) + 1) = *(uint8_t *)(term2_vid + (i << 1) + 1);
-
-        // // Put terminal 1 into terminal 2
-        // *(uint8_t *)(term2_vid + (i << 1)) = term1_char;
-        // *(uint8_t *)(term2_vid + (i << 1) + 1) = term1_attrib;
     }
-    // Swap the pointers to each terminals' video memory
-    // temp = term1_vid;
-    // term1_vid = term2_vid;
-    // term2_vid = temp;
 }

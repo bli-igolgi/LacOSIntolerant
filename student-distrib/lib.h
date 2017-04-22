@@ -14,6 +14,8 @@
 
 extern int screen_x;
 extern int screen_y;
+extern int cursor_x;
+extern int cursor_y;
 
 void set_keyboard_pos(int x, int y);
 void set_cursor_pos(int row, int col);

@@ -11,8 +11,6 @@
 #include "file_system.h"
 
 #define KEYBOARD_IRQ    1
-// Size of the input data, not including the null character
-#define BUF_SIZE        128
 #define KEY_MAP_SIZE    128
 // The number of commands to keep in the history buffer
 #define HIST_COM_NUM    10

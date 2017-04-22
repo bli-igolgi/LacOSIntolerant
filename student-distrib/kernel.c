@@ -180,6 +180,8 @@ entry (unsigned long magic, unsigned long addr)
     // Initialize paging
     paging_init();
 
+    clear_screen();
+
     // Initialize multiple terminals
     multi_term_init();
 
@@ -187,7 +189,6 @@ entry (unsigned long magic, unsigned long addr)
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    printf("Enabling Interrupts\n");
     sti();
     
     // Testing terminal read/write
@@ -197,8 +198,6 @@ entry (unsigned long magic, unsigned long addr)
         terminal_read(0, temp_buf, 0);
         terminal_write(0, temp_buf, 0);
     } */
-
-    clear_screen();
 
     /* Execute the first program ('shell') ... */
     sys_execute((uint8_t *)"     shell        fun");

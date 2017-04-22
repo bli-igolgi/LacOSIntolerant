@@ -10,8 +10,6 @@
 
 #define KERNEL_ADDR 0x400000           // address of the kernal in physical memory
 #define TERM1_VID (VIDEO_ADDR + 0x1000)  // start of video memory for first terminal
-#define TERM2_VID (VIDEO_ADDR + 0x2000)  // start of video memory for second terminal
-#define TERM3_VID (VIDEO_ADDR + 0x3000)  // start of video memory for third terminal
 #define PAGE_TABLE_STARTADDR 0xC000000 // start address of program page tables (192MB)
 
 // bit masks to isolate portions of the virtual address/page table or directory entries

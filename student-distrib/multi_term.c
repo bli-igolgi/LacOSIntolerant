@@ -6,31 +6,39 @@
 
 static char* video_mem = (char *)VIDEO_ADDR;
 
-term_t terminals[3];
-term_t *cur_term;
-
+term_t terminals[MAX_TERM_NUM];
+int cur_term_id = 0;
 
 void multi_term_init() {
-    terminals[0].term_id = 1;
-    terminals[1].term_id = 2;
-    terminals[2].term_id = 3;
-
-    terminals[0].vid_mem = (uint8_t *)TERM1_VID;
-    terminals[1].vid_mem = (uint8_t *)TERM2_VID;
-    terminals[2].vid_mem = (uint8_t *)TERM3_VID;
-
-    cur_term = &terminals[0];
+    uint32_t i;
+    for(i = 0; i < MAX_TERM_NUM; i++){
+        terminals[i].term_id = i;
+        terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
+        terminals[i].key_x = terminals[i].key_y = 0;
+        terminals[i].curs_x = terminals[i].curs_y = 0;
+    }
 }
 
-void switch_screen(int cur_term, int new_term) {
-    int32_t i;
-    uint8_t *cur_vid = terminals[cur_term].vid_mem,
-            *new_vid = terminals[new_term].vid_mem;
-    for(i = 0; i < NUM_COLS * NUM_ROWS; i++) {
-        *(cur_vid + (i << 1)) = *(video_mem + (i << 1));
-        *(cur_vid + (i << 1) + 1) = *(video_mem + (i << 1) + 1);
+void switch_terminal(int new_term_id) {
+    terminals[cur_term_id].key_x = screen_x;
+    terminals[cur_term_id].key_y = screen_y;
+    terminals[cur_term_id].curs_x = cursor_x;
+    terminals[cur_term_id].curs_y = cursor_y;
 
-        *(video_mem + (i << 1)) = *(new_vid + (i << 1));
-        *(video_mem + (i << 1) + 1) = *(new_vid + (i << 1) + 1);
+    switch_screen(new_term_id);
+    set_keyboard_pos(terminals[new_term_id].key_x, terminals[new_term_id].key_y);
+    set_cursor_pos(terminals[new_term_id].curs_x, terminals[new_term_id].curs_y);
+
+
+    cur_term_id = new_term_id;
+}
+
+void switch_screen(int new_term_id) {
+    int32_t i;
+    uint8_t *cur_vid = terminals[cur_term_id].vid_mem,
+            *new_vid = terminals[new_term_id].vid_mem;
+    for(i = 0; i < 2 * NUM_COLS * NUM_ROWS; i++) {
+        *(cur_vid + i) = *(video_mem + i);
+        *(video_mem + i) = *(new_vid + i);
     }
 }

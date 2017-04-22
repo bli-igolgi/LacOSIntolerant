@@ -6,6 +6,8 @@
 
 int screen_x;
 int screen_y;
+int cursor_x;
+int cursor_y;
 static char* video_mem = (char *)VIDEO_ADDR;
 
 /*
@@ -27,6 +29,8 @@ void set_keyboard_pos(int x, int y) {
  */
 void set_cursor_pos(int row, int col) {
 	uint16_t position = (row * 80) + col;
+	cursor_x = row;
+	cursor_y = col;
 
 	// Cursor LOW port to vga INDEX register
 	outb(0x0F, 0x3D4);

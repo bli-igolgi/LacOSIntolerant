@@ -20,10 +20,6 @@ bool except_raised = 0;
     uint32_t ret_val = (status & 0xFF),
              offset = (END_OF_KERNEL_PAGE - (uint32_t)cur_pcb)/PCB_PLUS_STACK;
 
-
-    switch_screen(0, 1);
-    switch_screen(1, 0);
-
     // Remap to the parent's page
     if(cur_pcb->parent_task)
         map_page((void *) cur_pcb->parent_task->page_addr, (void *) PROGRAM_VIRT, true, true, true, true);

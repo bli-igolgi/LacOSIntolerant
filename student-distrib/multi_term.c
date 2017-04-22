@@ -42,3 +42,18 @@ void switch_screen(int new_term_id) {
         *(video_mem + i) = *(new_vid + i);
     }
 }
+
+void switch_stackframe(int new_term_id){
+    asm volatile(
+        "movl %%esp, %0;"
+        "movl %%ebp, %1;"
+        "pushal;"
+        "movl %2, %%esp;"
+        "movl %3, %%ebp;"
+        "popal"
+        ""
+        : "=m"(terminals[cur_term_id].esp), "=m"(terminals[cur_term_id].ebp)
+        : "m"(terminals[new_term_id].esp), "m"(terminals[new_term_id].ebp)
+    );
+    return;
+}

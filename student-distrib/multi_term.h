@@ -15,6 +15,7 @@ typedef struct term_t {
     uint8_t *vid_mem;                       // Pointer to this terminal's video memory
     uint8_t key_buf[BUF_SIZE+1];      // Buffer for the input data from the keyboard
     uint32_t key_buf_index;
+    uint32_t esp, ebp;                      // The current terminals esp and ebp
 } term_t;
 
 extern term_t terminals[3];
@@ -23,5 +24,6 @@ extern int cur_term_id;
 void multi_term_init();
 void switch_terminal(int new_term_id);
 void switch_screen(int new_term_id);
+void switch_stackframe(int new_term_id);
 
 #endif

@@ -99,8 +99,8 @@ void paging_init()
     map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0, 0, 1, 0);
     // Map the pages for the video memory for the 3 terminals
     map_page((void *)TERM1_VID, (void *)TERM1_VID, 0, 0, 1, 0);
-    map_page((void *)(TERM1_VID+0x1000), (void *)(TERM1_VID+0x1000), 0, 0, 1, 0);
-    map_page((void *)(TERM1_VID+0x2000), (void *)(TERM1_VID+0x2000), 0, 0, 1, 0);
+    map_page((void *)(TERM1_VID+FOUR_KB), (void *)(TERM1_VID+FOUR_KB), 0, 0, 1, 0);
+    map_page((void *)(TERM1_VID+2*FOUR_KB), (void *)(TERM1_VID+2*FOUR_KB), 0, 0, 1, 0);
 
     // Map the alternate video memory page for vidmap
     map_page((void *)VIDMAP_PHYS_ADDR, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);

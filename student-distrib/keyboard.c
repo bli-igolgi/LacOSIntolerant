@@ -81,10 +81,10 @@ void keyboard_interrupt() {
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
         c = inb(DATA_PORT);
-        send_eoi(KEYBOARD_IRQ);
         break;
     }
     process_input(c);
+    send_eoi(KEYBOARD_IRQ);
 }
 
 /*
@@ -161,11 +161,8 @@ void process_input(char c) {
             case F3_KEY_P:
                 if(alt) {
                     int tid = c - F1_KEY_P;
-                    // If already on terminal 2, don't do anything
-                    if(cur_term_id == terminals[tid].term_id) break;
-                    printf("We were on term %d, now we are on terminal %d\n", cur_term_id, terminals[tid].term_id);
-                    switch_terminal(tid);
-                    cur_term_id = tid;
+                    // If already on the terminal that was selected, don't do anything
+                    if(cur_term_id != tid) switch_terminal(tid);
                 }
                 break;
 

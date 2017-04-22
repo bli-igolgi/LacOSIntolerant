@@ -3,6 +3,8 @@
 
 #include "lib.h"
 #include "paging.h"
+#include "i8259.h"
+#include "pcb.h"
 
 #define MAX_TERM_NUM    3
 // Size of the input data, not including the null character
@@ -13,9 +15,10 @@ typedef struct term_t {
     uint8_t term_id;                        // Which terminal this is
     uint8_t curs_x, curs_y, key_x, key_y;   // The cursor and keyboard positions
     uint8_t *vid_mem;                       // Pointer to this terminal's video memory
-    uint8_t key_buf[BUF_SIZE+1];      // Buffer for the input data from the keyboard
+    uint8_t key_buf[BUF_SIZE+1];            // Buffer for the input data from the keyboard
     uint32_t key_buf_index;
     uint32_t esp, ebp;                      // The current terminals esp and ebp
+    struct pcb_t *cur_task;
 } term_t;
 
 extern term_t terminals[3];

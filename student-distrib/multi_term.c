@@ -3,6 +3,7 @@
  */
 
 #include "multi_term.h"
+#include "syscalls.h"
 
 static char* video_mem = (char *)VIDEO_ADDR;
 
@@ -16,6 +17,8 @@ void multi_term_init() {
         terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
         terminals[i].key_x = terminals[i].key_y = 0;
         terminals[i].curs_x = terminals[i].curs_y = 0;
+        terminals[i].key_buf_index = terminals[i].esp = terminals[i].ebp = 0;
+        terminals[i].cur_task = NULL;
     }
 }
 
@@ -29,8 +32,7 @@ void switch_terminal(int new_term_id) {
     set_keyboard_pos(terminals[new_term_id].key_x, terminals[new_term_id].key_y);
     set_cursor_pos(terminals[new_term_id].curs_x, terminals[new_term_id].curs_y);
 
-
-    cur_term_id = new_term_id;
+    switch_stackframe(new_term_id);
 }
 
 void switch_screen(int new_term_id) {
@@ -43,17 +45,28 @@ void switch_screen(int new_term_id) {
     }
 }
 
-void switch_stackframe(int new_term_id){
+void switch_stackframe(int new_term_id) {
     asm volatile(
+        "pushal;"
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
-        "pushal;"
-        "movl %2, %%esp;"
-        "movl %3, %%ebp;"
-        "popal"
-        ""
-        : "=m"(terminals[cur_term_id].esp), "=m"(terminals[cur_term_id].ebp)
-        : "m"(terminals[new_term_id].esp), "m"(terminals[new_term_id].ebp)
+        :"=m"(terminals[cur_term_id].esp), "=m"(terminals[cur_term_id].ebp)
     );
+    cur_term_id = new_term_id;
+    if(!terminals[new_term_id].cur_task) {
+        // Send end of interrupt for the keyboard
+        send_eoi(1);
+        sys_execute((uint8_t *)"shell");
+    }
+    else {
+        asm volatile(
+            "movl %0, %%esp;"
+            "movl %1, %%ebp;"
+            "popal"
+            ""
+            : 
+            : "m"(terminals[new_term_id].esp), "m"(terminals[new_term_id].ebp)
+        );
+    }
     return;
 }

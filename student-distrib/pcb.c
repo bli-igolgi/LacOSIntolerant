@@ -113,7 +113,7 @@ int32_t close_file_desc(pcb_t *blk, uint32_t fd) {
  * Function: Determines the Hamming weight of the bitmap.
  * (thanks Matt Howells from StackOverflow!)
  */
-uint32_t our_popcount(uint32_t value){
+uint32_t our_popcount(uint32_t value) {
      uint32_t result = 0;
      // The constant below consists of every other bit set.
      result = value - ((value >> 1) & 0x55555555);

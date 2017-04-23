@@ -7,6 +7,7 @@
 // Global flag to indicate if the current interrupt cycle will be skipped
 volatile bool intr_occured = false;
 uint32_t rtc_freq = 0x400;
+f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
 
 /*
  * void rtc_init(void);
@@ -37,42 +38,39 @@ void rtc_init() {
  *              to allow interrupts to continue executing
  */
 void rtc_interrupt() {
-    cli();
-    // 
     intr_occured = true;
 
+	cli();
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
     inb(CMOS_REG_2);          // just throw away contents
-
+	sti();
+	
     send_eoi(RTC_IRQ);
-    sti();
 }
 
 /*
  * int32_t rtc_open(const uint8_t* filename);
- *   Inputs: filename - pointer to the filename
- *   Return Value: 0 always
- *   Function: Opens the RTC and sets initial
- *              interrupt frequency to 2
+ *   Inputs: 		filename - pointer to the filename
+ *   Return Value:	-1 if no free file descriptors are available
+ *					0-7 (fd) if it doesn't fail
+ *   Function: 		Opens the RTC and sets initial interrupt frequency to 2
  */
 int32_t rtc_open(const uint8_t* filename) {
 	// Set initial RTC frequency to 2
     set_int_freq(0x0F);
 	
-    f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
-    open_file_desc(cur_pcb, rtc_jt, 0, 0);
-    return SUCCESS;
+    return open_file_desc(cur_pcb, rtc_jt, 0);		// RTC file inode # is 0
 }
 
 /*
  * int32_t rtc_close(int32_t fd);
  *   Inputs: fd - The RTC file descriptor
- *   Return Value: 0 always
+ *   Return Value: 
  *   Function: Closes the RTC
  */
 int32_t rtc_close(int32_t fd) {
-    return SUCCESS;
+    return close_file_desc(cur_pcb, fd);
 }
 
 /*
@@ -86,8 +84,7 @@ int32_t rtc_close(int32_t fd) {
 int32_t rtc_read(int32_t fd, void *buf, int32_t nbytes) {
 	intr_occured = false;
     // Wait for an interrupt to occur
-    while(!intr_occured){}
-	
+    while(!intr_occured);
     return SUCCESS;
 }
 

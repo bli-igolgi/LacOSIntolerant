@@ -17,86 +17,11 @@
 
 .align 4
 
-
-
-
 /*
-From discussion on system calls
-
-Open
-    Find the file in the file system and assign an unused file descriptor
-    File descriptors need to be set up according to the file type
-    Never check file names in open, only care about file types
-    Map read, write, and other functions
-Close
-    Close the file descriptor passed in (set it to be available)
-    Check for invalid descriptors
-Read, write
-    Call the corresponding read or write function
+MP3.4
+    Should be able to run all executables except sigtest
 
 */
-
-/*
-From discussion on paging and program loader
-
-Program always goes between 128-132MB in virtual memory
-Physical memory starts at 8MB + (process number * 4MB)
-    Process number starts from 0
-Flush TLB after swapping page
-Must be able to support 2 processes for checkpoint 3 (8-12 and 12-16MB)
-
-Program loader
-    Checks ELF magic constant
-    Copy file contents to the correct location (don't use memcpy, because file might be larger than 8kB, and then will go to next PCB)
-    Find the first instruction's address
-
-PCB
-    Each process has its own PCB
-        Call system.exe in kernel.c to test system call
-    Each PCB starts at the top of a 8kB block inside the kernel 
-        First PCB starts at 8MB - 1(8kB) and goes towards bigger memory addresses
-            First kernel stack starts at 8MB - 4B and goes towards smaller memory addresses
-        Second PCB starts at 8MB - 2(8kB)
-
-        PID PCB starts at 8MB - (PID+1)*8kB
-            PID PCB kernel stack starts at 8MB - PID*8kB - 4B    (set kernel's esp to this value, PID starts from 0)
-            4B is because we don't want esp to go outside page
-        etc.
-    Switch the kernel stack when switching PCB
-    Every kernel stack is 8kB
-    Kernel goes up in memory, PCB goes down
-    What you need in a PCB:
-        file descriptor array
-        whatever you think is necessary for running/stopping a program and should be process specific
-
-To execute file - look at picture on piazza as a reference
-    First check arguments (everything before first space is argument, everything after is arguments, must trim spaces)
-    Save arguments
-    Check file validity (whether it is there, if it is executable)
-    Set up paging - Use 4MB page to map to 128-132MB
-    Flush the TLB right away
-    Load the file to memory
-    Start setting up PCB
-    Prepare the context switch (change certain registers)
-    Push IRET context onto stack (should be 5 different 32 bit values, may need to extend them)
-        1. Return address (the first instruction address)
-        2. Other values to help do context switch
-    Call IRET (will take values, do magic, and go somewhere else)
-        Should go to first process we are trying to run (shell)
-        We should be able to type something to the shell now
-            Everything is the same for the typed command to set up, except paging
-            Make sure to not save page for process run from shell in the same place, otherwise won't be able to return to shell
-
-    Halt
-        Restore values set up in PCB, depends on how PCB was set up initially (be careful)
-        Jump back to execute, stopped right after the IRET instruction when setting up the first PCB
-
-    esp0 is the stack pointer for kernel (privilege level 0)
-
-*/
-
-
-
 
 /* ========= SYSTEM CALL ========= */
 
@@ -105,7 +30,7 @@ To execute file - look at picture on piazza as a reference
 #				ebx - arg1
 #				ecx - arg2
 #				edx - arg3
-#	  Outputs: 0 for success, -1 for failure
+#	  Outputs: -1 for failure, otherwise whatever is returned by system call C function
 #	 Clobbers: eax
 _syscall:
     /* Check that command argument is valid, between 1 and 10 */
@@ -115,7 +40,6 @@ _syscall:
     jg      _sys_call_fail
 
     # Save the unused registers
-    pushl   %ebp
     pushl   %edi
     pushl   %esi
     # Push the arguments onto the stack
@@ -126,7 +50,6 @@ _syscall:
     # Call the C system call corresponding to the sys call number
 	subl	$1, %eax						# shift cmd from index 1 to index 0
     call    *_sys_call_jmp_tab(, %eax, 4)
-    movl    $0, %eax
 
     # Restore the register values
     popl    %ebx
@@ -134,7 +57,6 @@ _syscall:
     popl    %edx
     popl    %esi
     popl    %edi
-    popl    %ebp
 
     jmp     _sys_call_done
 

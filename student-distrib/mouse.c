@@ -42,7 +42,7 @@ void mouse_init() {
  *   Function: 
  */
 void mouse_interrupt() {
-    uint8_t packet = inb(DATA_PORT);
+    // uint8_t packet = inb(DATA_PORT);
     printf("mouse_interrupt occurred");
     send_eoi(MOUSE_IRQ);
 }

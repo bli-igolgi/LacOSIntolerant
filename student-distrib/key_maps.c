@@ -16,22 +16,22 @@ unsigned char reg_key_map[128] = {
  '\\', 'z', 'x', 'c', 'v', 'b', 'n',                /* 49 */
   'm', ',', '.', '/', 0,                            /* Right shift - 54 */
   '*',
-    0,  /* Alt            */
+    0,  /* Alt - 56       */
   ' ',  /* Space bar      */
     0,  /* Caps lock - 58 */
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /* F1 - F10 Keys */
     0,  /* Num lock - 69  */
     0,  /* Scroll Lock    */
     0,  /* Home key       */
-    0,  /* Up Arrow       */
+    0,  /* Up Arrow - 72  */
     0,  /* Page Up        */
   '-',  
     0,  /* Left Arrow     */
     0,  
     0,  /* Right Arrow    */
   '+',  
-    0,  /* 79 - End key   */
-    0,  /* Down Arrow     */
+    0,  /* End key        */
+    0,  /* Down Arrow - 80*/
     0,  /* Page Down      */
     0,  /* Insert Key     */
     0,  /* Delete Key     */

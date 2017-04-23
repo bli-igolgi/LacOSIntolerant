@@ -36,7 +36,7 @@ entry (unsigned long magic, unsigned long addr)
     multiboot_info_t *mbi;
 
     /* Clear the screen. */
-    clear();
+    clear_screen();
 
     /* Am I booted by a Multiboot-compliant boot loader? */
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
@@ -173,7 +173,7 @@ entry (unsigned long magic, unsigned long addr)
     // Init the keyboard
     keyboard_init();
     // Init the rtc
-    // rtc_init();
+    rtc_init();
     // Init the mouse
     // mouse_init();
 
@@ -194,6 +194,8 @@ entry (unsigned long magic, unsigned long addr)
         terminal_read(0, temp_buf, 0);
         terminal_write(0, temp_buf, 0);
     } */
+
+    clear_screen();
 
     /* Execute the first program ('shell') ... */
     sys_execute((uint8_t *)"     shell        fun");

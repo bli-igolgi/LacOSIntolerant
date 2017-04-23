@@ -1,83 +1,93 @@
-
 #include "pcb.h"
 
-// Section below is file_ops jump tables for type-specific open(0), read(1), write(2), and close(3)
-f_ops_table stdin = { NULL, terminal_read, NULL, NULL };     // read-only
-f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
-f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
-f_ops_table regf_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
-f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
-f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
+// A bitmap to optimize space in case a PCB is freed between other PCBs
+// None of the upper 24 bits should be 1 unless we know we have space
+uint32_t pcb_status = 0;
 
-// A bitmap to optimize space in case a PCB is freed between other PCBs.
-uint32_t pcb_status = 0; // none of the upper 24 bits should be 1 unless we know we have space
-
-pcb_t * find_empty_pcb(void){
+/*
+ *  Inputs: none
+ *  Return Value: pointer to empty PCB block
+ *  Function: Gets the offset to the next empty block available to use for a PCB
+ */
+uint32_t find_empty_pcb() {
+    // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
-    while(__builtin_ffs(temp_pcb_status) == 1){
-        offset++; temp_pcb_status >>= 1;
+    // As long as the bit 0 of the PCB status we have is set...
+    while(__builtin_ffs(temp_pcb_status) == 1) {
+        // Increase the offset and shift the status we have.
+        offset++;
+        temp_pcb_status >>= 1;
     }
-    pcb_status |= 0x01 << offset;
-    return (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
-}
-
-void done_with_pcb(pcb_t* old_pcb){
-    uint32_t offset = (END_OF_KERNEL_PAGE - (uint32_t)old_pcb)/PCB_PLUS_STACK;
-    pcb_status &= ~(0x01 << (offset-1));
-    return;
+    // Set the appropriate bit in the PCB status.
+    pcb_status |= 1 << offset;
+    // Return the offset of the pcb
+    return offset;
 }
 
 // TODO: REWRITE ABOVE FUNCTIONS SO THAT THEY DO A SIMILAR THING WITH FDs
 
 /*
- *  Inputs: newBlk  -- pointer to new process control block
- *  Return Value: none
- *  Function: Initialize a pcb with default file descriptors
+ *  Inputs: none
+ *  Return Value: pointer to new process control block
+ *  Function: Initialize a pcb
  */
 pcb_t * init_pcb() {
-    pcb_t *newBlk = find_empty_pcb();
+    uint32_t offset = find_empty_pcb();
+    pcb_t *newBlk = (pcb_t *)(END_OF_KERNEL_PAGE - PCB_PLUS_STACK*(offset+1));
+    // memset(newBlk, 0, 8192);
+    // set the pcb number
+    newBlk->pcb_num = offset;
+
     int i;
     
     // make all file descriptors available
     for(i = 0; i < MAX_DESC; i++)
         newBlk->io_files[i].flags = NOT_USED;
-    
-    /* ==== Open default FDs ==== */
-    // automatically open stdin (fd #0) & stdout (fd #1)
-    open_file_desc(newBlk, stdin, 1, 0);
-    open_file_desc(newBlk, stdout, 1, 0);
+	
+	// clear junk from stored arg buffer
+	memset(newBlk->arg, '\0', BUF_SIZE);
 
     return newBlk;
 }
 
 /*
+ *  Inputs: blk --  pointer to process control block
+ *  Return Value: 0 on completion
+ *  Function: Free all of the file descriptors associated with the PCB,
+ *              and call the respective close function for each
+ */
+int32_t close_pcb(pcb_t *blk) {
+    int i;
+    for(i = 0; i < MAX_DESC; i++) {
+        if(cur_pcb->io_files[i].file_ops.close)
+            cur_pcb->io_files[i].file_ops.close(i);
+        close_file_desc(cur_pcb, i);
+    }
+    return 0;
+}
+
+/*
  *  Inputs: blk         --  pointer to process control block
  *          file_op     --  file operation jump table associated with file type
- *          file_type   --  similar to file system: 0 for RTC, 1 for directory, 2 for reg files
  *          inode_num   --  inode number for this data file
  *  Return Value: 0 - 7 on success, -1 on failure
  *  Function: Dynamically assign an available file descriptor. Returns the file descriptor id# (io_file index)
  *              upon allocation success; fails if array is full / all file desc are occupied.
  */
-int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t file_type, uint32_t inode_num) {
+int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
     int idx;
-    fdesc_t fd;
-    for(idx = 0; idx < MAX_DESC; idx++)
-        if((*blk).io_files[idx].flags == NOT_USED) {
-            fd = (*blk).io_files[idx];
-            fd.file_ops = file_op;  // jmp table exists for every file type
-            
-            if(file_type == 2)
-                fd.inode = inode_num;
-            else
-                fd.inode = 0;                   // no inode # for directory or RTC device files
-            
-            fd.file_pos = 0;                    // user read position always start at 0
-            fd.flags = IN_USE;
-            (*blk).io_files[idx] = fd;
-            return idx;
-        }
-    
+    fdesc_t *fd;
+    for(idx = 0; idx < MAX_DESC; idx++) {
+        // Rename the accessor
+        fd = &(blk->io_files[idx]);
+        if(fd->flags != NOT_USED) continue;
+        fd->file_ops = file_op;
+        fd->inode = inode_num;
+        // user read position always start at 0
+        fd->file_pos = 0;                    
+        fd->flags = IN_USE;
+        return idx;
+    }
     // no unused file desc was found
     return -1;
 }
@@ -85,13 +95,31 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t file_type, uint
 /*
  *  Inputs: blk     --  pointer to process control block of interest
  *          fd_id   --  file to be closed's id #
- *  Return Value: 0 on success, -1 on failure
- *  Function: Find file descriptor and free it, if it is in-use / valid (except for stdin & stdout)
+ *  Return Value: 0 on completion
+ *  Function: Find file descriptor and free it
  */
-int32_t close_file_desc(pcb_t *blk, uint32_t fd_id) {
-    if(1 < fd_id && fd_id < MAX_DESC) {
-        (*blk).io_files[fd_id].flags = NOT_USED;        // note: fdesc data is not cleared; use flags as access var!
-        return 0;
-    } else
-        return -1;
+int32_t close_file_desc(pcb_t *blk, uint32_t fd) {
+    // Don't try to free if doesn't exist
+    if(MAX_DESC <= fd || fd < 0) return -1;
+    cur_pcb->io_files[fd].file_ops = empty_f_ops_tab;
+    // note: fdesc data is not cleared; use flags as access var!
+    blk->io_files[fd].flags = NOT_USED;
+    return 0;
+}
+
+/*
+ * Inputs: status bitmap
+ * Return Value: number of bits set in the bitmap
+ * Function: Determines the Hamming weight of the bitmap.
+ * (thanks Matt Howells from StackOverflow!)
+ */
+uint32_t our_popcount(uint32_t value){
+     uint32_t result = 0;
+     // The constant below consists of every other bit set.
+     result = value - ((value >> 1) & 0x55555555);
+     // The constant below consists of every two bits set followed by two bits unset.
+     result = (result & 0x33333333) + ((result >> 2) & 0x33333333);
+     // The first constant below consists of every four bits set followed by every four bits unset.
+     // The second constant below consists of every eighth bit set, starting with the first.
+     return (((result + (result >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }

@@ -93,16 +93,21 @@ void paging_init()
     );
 
     // map the kernel in the page directory -- large page, kernel privileges, read/write
-    map_page((void *)KERNEL_ADDR, (void *)KERNEL_ADDR, 1, 0, 1);
+    map_page((void *)KERNEL_ADDR, (void *)KERNEL_ADDR, 1, 0, 1, 0);
 
     // map the video memory in the page directory -- small page, kernel privileges, read/write
-    map_page((void *)VIDEO, (void *)VIDEO, 0, 0, 1);
+    map_page((void *)VIDEO_ADDR, (void *)VIDEO_ADDR, 0, 0, 1, 0);
+
+    // map the alternate video memory page
+    map_page((void *)VIDMAP_PHYS_ADDR, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
+
+    map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1, 0);
 
     // setting the bits to enable paging
     asm volatile (
         // set PSE flag in cr4 to enable 4MB pages
         "movl  %%cr4, %%edi;\n"
-        "orl   $0x10, %%edi;\n"
+        "orl   $0x90, %%edi;\n"
         "movl  %%edi, %%cr4;\n"
 
         // set bit 31 of cr0 to enable paging
@@ -120,17 +125,18 @@ void paging_init()
 /* 
  * map_page
  *   DESCRIPTION: maps a page at the physical address to the given virtual address
- *   INPUTS: phys_addr -- the physical address to be mapped to
- *           virtual_addr -- the virtual address given
- *           page_size -- 1 for 4MB page, 0 for 4kB page
- *           privileges -- 1 for user privileges, 0 for kernel privileges
- *           write -- 1 for read/write, 0 for read only
- *   RETURN VALUE: 0 for a success, 1 for failure
+ *   INPUTS: phys_addr      -- the physical address to be mapped to
+ *           virtual_addr   -- the virtual address given
+ *           page_size      -- 1 for 4MB page, 0 for 4kB page
+ *           privileges     -- 1 for user privileges, 0 for kernel privileges
+ *           write          -- 1 for read/write, 0 for read only
+ *           remap          -- used only for sys_execute, to overwrite mapping a page
+ *   RETURN VALUE: 0 for a success, -1 for failure
  *   SIDE EFFECTS: modifies the page directory and/or a page table
  *                 may create a new page table
  */
-int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privileges, bool write)
-{
+int map_page(void * phys_addr, void * virtual_addr, bool page_size, 
+                bool privileges, bool write, bool remap) {
     unsigned long page_dir_index, page_dir_entry, page_table_index, page_table_entry;
     unsigned long * page_dir_addr, * page_table_addr;
     int index;
@@ -152,7 +158,7 @@ int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privile
     page_dir_entry = page_dir_addr[page_dir_index];
 
     // check if the page directory entry is empty
-    if(!(page_dir_entry & PRESENT_BIT)){
+    if(!(page_dir_entry & PRESENT_BIT) || remap){
         // it's empty! set up the page/page table
 
         // this is a 4MB page
@@ -165,6 +171,7 @@ int map_page(void * phys_addr, void * virtual_addr, bool page_size, bool privile
             page_dir_entry += privileges*US_BIT;
             page_dir_entry += write*RW_BIT;
             page_dir_entry += PRESENT_BIT;
+            // page_dir_entry += ((page_size&&(!privileges)&&write)?GLOBAL_BIT:0);
 
             // save this entry to the page directory
             page_dir_addr[page_dir_index] = page_dir_entry;

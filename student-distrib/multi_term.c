@@ -37,6 +37,8 @@ void multi_term_init() {
  *               updating video memory and switching to the other process
  */
 void switch_terminal(int new_term_id) {
+    // Clear interrupts to prevent terminal switching to happen again
+    cli();
     switch_screen(new_term_id);
 
     switch_keyboard_and_cursor_pos(new_term_id);
@@ -100,6 +102,7 @@ void switch_stackframe(int new_term_id) {
         sys_execute((uint8_t *)"shell");
     }
     else {
+        sti();
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"

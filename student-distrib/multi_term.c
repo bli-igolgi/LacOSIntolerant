@@ -36,16 +36,27 @@ void multi_term_init() {
  *               updating video memory and switching to the other process
  */
 void switch_terminal(int new_term_id) {
+    switch_screen(new_term_id);
+
+    switch_keyboard_and_cursor_pos(new_term_id);
+
+    switch_stackframe(new_term_id);
+}
+
+/*
+ * void switch_keyboard_and_cursor_pos(int new_term_id);
+ *   Inputs: new_term_id - the ID of the terminal to switch to
+ *   Return Value: none
+ *   Function: Saves and switches the current keyboard and cursor positions
+ */
+void switch_keyboard_and_cursor_pos(int new_term_id) {
     terminals[cur_term_id].key_x = screen_x;
     terminals[cur_term_id].key_y = screen_y;
     terminals[cur_term_id].curs_x = cursor_x;
     terminals[cur_term_id].curs_y = cursor_y;
 
-    switch_screen(new_term_id);
     set_keyboard_pos(terminals[new_term_id].key_x, terminals[new_term_id].key_y);
     set_cursor_pos(terminals[new_term_id].curs_x, terminals[new_term_id].curs_y);
-
-    switch_stackframe(new_term_id);
 }
 
 /*
@@ -57,6 +68,7 @@ void switch_terminal(int new_term_id) {
  */
 void switch_screen(int new_term_id) {
     int32_t i;
+    // Multiply by 2 so the attribute part of video memory is also copied
     for(i = 0; i < 2 * NUM_COLS * NUM_ROWS; i++) {
         *(terminals[cur_term_id].vid_mem + i) = *(video_mem + i);
         *(video_mem + i) = *(terminals[new_term_id].vid_mem + i);

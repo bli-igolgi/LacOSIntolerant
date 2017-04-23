@@ -18,7 +18,7 @@ int cur_term_id = 0;
  */
 void multi_term_init() {
     uint32_t i;
-    for(i = 0; i < MAX_TERM_NUM; i++){
+    for(i = 0; i < MAX_TERM_NUM; i++) {
         terminals[i].term_id = i;
         terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
         terminals[i].key_x = terminals[i].key_y = 0;
@@ -57,11 +57,9 @@ void switch_terminal(int new_term_id) {
  */
 void switch_screen(int new_term_id) {
     int32_t i;
-    uint8_t *cur_vid = terminals[cur_term_id].vid_mem,
-            *new_vid = terminals[new_term_id].vid_mem;
     for(i = 0; i < 2 * NUM_COLS * NUM_ROWS; i++) {
-        *(cur_vid + i) = *(video_mem + i);
-        *(video_mem + i) = *(new_vid + i);
+        *(terminals[cur_term_id].vid_mem + i) = *(video_mem + i);
+        *(video_mem + i) = *(terminals[new_term_id].vid_mem + i);
     }
 }
 
@@ -87,6 +85,7 @@ void switch_stackframe(int new_term_id) {
         sys_execute((uint8_t *)"shell");
     }
     else {
+        cur_pcb = terminals[new_term_id].cur_task;
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"

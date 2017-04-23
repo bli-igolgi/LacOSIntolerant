@@ -9,7 +9,7 @@
 #define NUM_ENTRIES 1024              // the number of entries in a page table or page directory
 
 #define KERNEL_ADDR 0x400000           // address of the kernal in physical memory
-#define TERM1_VID (VIDEO_ADDR + FOUR_KB)  // start of video memory for first terminal
+// #define TERM1_VID (VIDEO_ADDR + FOUR_KB)  // start of video memory for first terminal
 #define PAGE_TABLE_STARTADDR 0xC000000 // start address of program page tables (192MB)
 
 // bit masks to isolate portions of the virtual address/page table or directory entries
@@ -30,6 +30,8 @@
 #define SHIFT_FOR_DIRENTRY   22           // number of bits to remove to isolate directory entry number
 #define SHIFT_FOR_TABLEENTRY 12           // number of bits to remove to isolate table entry number
 /****************************************************/
+
+#define MAX_TERM_NUM     3              // The number of terminals we support
 
 #define VIDMAP_PHYS_ADDR VIDEO_ADDR
 // The preset virtual address for vidmap

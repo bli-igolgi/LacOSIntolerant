@@ -6,7 +6,7 @@
 #include "i8259.h"
 #include "pcb.h"
 
-#define MAX_TERM_NUM    3
+// #define MAX_TERM_NUM    MAX_TERM_NUM
 // Size of the input data, not including the null character
 #define BUF_SIZE        128
 

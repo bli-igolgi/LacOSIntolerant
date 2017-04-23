@@ -241,6 +241,9 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
     // return if arg and NULL char cannot fit in buffer
     if((arg_len = strlen((int8_t *)cur_pcb->arg)+1) > nbytes)
         return -1;
+
+    if (arg_len <= 1)
+        return -1;
     
     memcpy(buf, cur_pcb->arg, arg_len);
     return 0;

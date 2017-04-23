@@ -162,7 +162,8 @@ void process_input(char c) {
                 if(alt) {
                     int tid = c - F1_KEY_P;
                     // If already on the terminal that was selected, don't do anything
-                    if(cur_term_id != tid) switch_terminal(tid);
+                    if(cur_term_id != tid)
+                        switch_terminal(tid);
                 }
                 break;
 

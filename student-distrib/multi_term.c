@@ -26,6 +26,7 @@ void multi_term_init() {
         terminals[i].key_buf_index = terminals[i].esp = terminals[i].ebp = 0;
         terminals[i].cur_task = NULL;
     }
+    cur_pcb = terminals[0].cur_task;
 }
 
 /*
@@ -91,13 +92,14 @@ void switch_stackframe(int new_term_id) {
     );
     cur_term_id = new_term_id;
     // If this terminal hasn't been run yet, start shell on it
+    cur_pcb = terminals[new_term_id].cur_task;
     if(!terminals[new_term_id].cur_task) {
         // Send end of interrupt for the keyboard
         send_eoi(1);
+        sti();
         sys_execute((uint8_t *)"shell");
     }
     else {
-        cur_pcb = terminals[new_term_id].cur_task;
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"

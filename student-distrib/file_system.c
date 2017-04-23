@@ -9,6 +9,7 @@
 // Until the process control blocks are set up for each process, these are just stubs.
 
 f_ops_table regf_jt = { fsys_open_file, fsys_read_file, fsys_write_file, fsys_close_file };
+f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
 /*
  * int32_t fsys_open_file(const uint8_t* filename);
  *   Inputs: 		filename -- name of file to be opened
@@ -33,7 +34,6 @@ int32_t fsys_close_file(int32_t fd) {
     return close_file_desc(cur_pcb, fd);
 }
 
-f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_dir };
 /*
  * int32_t fsys_open_dir(const uint8_t* filename);
  *   Inputs:		filename -- name of directory to be opened

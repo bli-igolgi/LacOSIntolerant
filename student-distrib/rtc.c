@@ -7,6 +7,7 @@
 // Global flag to indicate if the current interrupt cycle will be skipped
 volatile bool intr_occured = false;
 uint32_t rtc_freq = 0x400;
+f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
 
 /*
  * void rtc_init(void);
@@ -47,8 +48,6 @@ void rtc_interrupt() {
 	
     send_eoi(RTC_IRQ);
 }
-
-f_ops_table rtc_jt = { rtc_open, rtc_read, rtc_write, rtc_close };
 
 /*
  * int32_t rtc_open(const uint8_t* filename);

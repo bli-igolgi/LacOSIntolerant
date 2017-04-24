@@ -209,7 +209,7 @@ int32_t sys_open(const uint8_t *filename) {
     
     if(read_dentry_by_name(filename, &cur_dentry))
         return -1;
-    if(cur_dentry.file_type >= 3)
+    if(cur_dentry.file_type >= 3) // 3 file types
         return -1;
     return open_file_desc(cur_pcb, (uint8_t *)filename);
 }

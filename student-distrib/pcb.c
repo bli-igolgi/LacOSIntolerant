@@ -90,6 +90,7 @@ int32_t open_file_desc(pcb_t *blk, uint8_t *filename) {
         // user read position always start at 0
         fd->file_pos = 0;                    
         fd->flags = IN_USE;
+        // The numbers in the next line are the lengths of the strings above.
         if((isstdin = strncmp((int8_t *)filename, (int8_t*)stdinstr, 5)) && (isstdout = strncmp((int8_t *)filename, (int8_t *)stdoutstr, 6))){
     	    read_dentry_by_name((uint8_t *)filename, &temp_dentry);			// redundant, which is why func call order might be wrong...
             fd->inode = temp_dentry.inode_num;

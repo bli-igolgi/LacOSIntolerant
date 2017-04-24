@@ -6,6 +6,8 @@
 
 #include "timer.h"
 
+static uint32_t timer_ticks = 0;
+
 /*
  * void pit_init();
  *   Inputs: none
@@ -13,7 +15,8 @@
  *   Function: Initializes the PIT, and enables the IRQ line
  */
 void pit_init() {
-    set_pit_freq(FREQUENCY);
+    // Set the frequency to 1000 Hz, so that interrupts can happen in milliseconds
+    set_pit_freq(1000);
     enable_irq(PIT_IRQ);
 }
 
@@ -39,7 +42,11 @@ void set_pit_freq(uint32_t hz) {
 void pit_interrupt() {
     cli();
 
-    printf("%d milliseconds has passed\n", TIME_QUANTUM);
+    // Perform the task switch
+    if(++timer_ticks >= TIME_QUANTUM) {
+        timer_ticks = 0;
+        // printf("%d milliseconds has passed\n", TIME_QUANTUM);
+    }
 
     sti();
     send_eoi(PIT_IRQ);

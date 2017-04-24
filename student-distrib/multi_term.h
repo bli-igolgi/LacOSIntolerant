@@ -7,8 +7,7 @@
 #include "pcb.h"
 
 #define BUF_SIZE        128     // The size of the read buffer for the keyboard
-#define TIME_QUANTUM    1000      // The length each task will get, in milliseconds
-#define FREQUENCY       (1000 / TIME_QUANTUM)
+#define TIME_QUANTUM    40      // The length each task will get, in milliseconds
 
 
 typedef struct term_t {

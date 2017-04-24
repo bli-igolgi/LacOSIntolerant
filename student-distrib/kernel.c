@@ -180,6 +180,9 @@ entry (unsigned long magic, unsigned long addr)
     // Initialize paging
     paging_init();
 
+    // Initialize the programmable interrupt timer
+    pit_init();
+
     clear_screen();
 
     // Initialize multiple terminals
@@ -190,14 +193,6 @@ entry (unsigned long magic, unsigned long addr)
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     sti();
-    
-    // Testing terminal read/write
-    /* while(1) {
-        unsigned char temp_buf[BUF_SIZE+1];
-        terminal_write(0, "> ", 0);
-        terminal_read(0, temp_buf, 0);
-        terminal_write(0, temp_buf, 0);
-    } */
 
     /* Execute the first program ('shell') ... */
     sys_execute((uint8_t *)"shell");

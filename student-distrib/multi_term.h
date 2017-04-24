@@ -6,9 +6,9 @@
 #include "i8259.h"
 #include "pcb.h"
 
-// #define MAX_TERM_NUM    MAX_TERM_NUM
-// Size of the input data, not including the null character
-#define BUF_SIZE        128
+#define BUF_SIZE        128     // The size of the read buffer for the keyboard
+#define TIME_QUANTUM    1000      // The length each task will get, in milliseconds
+#define FREQUENCY       (1000 / TIME_QUANTUM)
 
 
 typedef struct term_t {

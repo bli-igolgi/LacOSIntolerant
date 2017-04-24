@@ -87,7 +87,7 @@ void switch_screen(int new_term_id) {
 void switch_stackframe(int new_term_id) {
     // Push registers and save the esp and ebp
     asm volatile(
-        "pushal;"
+        //"pushal;"
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
         :"=r"(terminals[cur_term_id].esp), "=r"(terminals[cur_term_id].ebp)
@@ -102,12 +102,16 @@ void switch_stackframe(int new_term_id) {
         sys_execute((uint8_t *)"shell");
     }
     else {
-        sti();
+        map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
+        flush_tlb();
+        tss.esp0 = cur_pcb->esp0;
+        tss.ss0 = cur_pcb->ss0;
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"
             "movl %1, %%ebp;"
-            "popal;"
+            //"popal"
+            ""
             : 
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );

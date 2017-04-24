@@ -43,6 +43,15 @@ do {                                \
     str.present = 1;                \
 } while(0)
 
+// Prints the exception message, then calls sys_halt
+#define PRINT_MESSAGE(message)      \
+do {                                \
+    printf(message);                \
+    except_raised = 1;              \
+    sys_halt(0);                    \
+    return;                         \
+} while(0)
+
 // Initializes interrupt descriptor table
 extern void idt_init(void);
 

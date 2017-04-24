@@ -17,11 +17,9 @@ f_ops_table dir_jt = { fsys_open_dir, fsys_read_dir, fsys_write_dir, fsys_close_
  *					0-7 (fd) if it doesn't fail
  *   Function: 		system call to open a file
  */
-int32_t fsys_open_file(const uint8_t* filename) {
-	dentry_t temp_dentry;
-	read_dentry_by_name(filename, &temp_dentry);			// redundant, which is why func call order might be wrong...
-	
-    return open_file_desc(cur_pcb, regf_jt, temp_dentry.inode_num);		// regular file has specific inode #
+int32_t fsys_open_file(const uint8_t* filename) {	
+    // return open_file_desc(cur_pcb, regf_jt, temp_dentry.inode_num);		// regular file has specific inode #
+    return 0;
 }
 
 /*
@@ -42,7 +40,8 @@ int32_t fsys_close_file(int32_t fd) {
  *   Function:		system call to open a directory
  */
 int32_t fsys_open_dir(const uint8_t* filename) {
-    return open_file_desc(cur_pcb, dir_jt, 0);		// directory inode # is 0
+    // return open_file_desc(cur_pcb, dir_jt, 0);		// directory inode # is 0
+    return 0;
 }
 
 /*
@@ -223,7 +222,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         return SUCCESS;
     // Truncate if necessary.
     if(offset + remaining > file_length)   // if this is true, then not all of the bytes will be copied,
-        remaining += offset-file_length; // so make sure you don't copy garbage
+        remaining = file_length-offset; // so make sure you don't copy garbage
     // Check that a bad data block isn't present.
     if(cur_inode[cur_block_num+1] >= num_blocks)
         return FAILURE;
@@ -237,6 +236,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
             // copy from specific position to end of block if we need more than one block
             if(start_offset+remaining > BLK_SIZE_BYTES)
                 cur_to_do = BLK_SIZE_BYTES - start_offset;
+            // special case when starting with really short file
+            else if(!offset && length >= file_length){
+                cur_to_do = remaining = file_length;
+            }
             // else just do the whole thing
             else
                 cur_to_do = remaining;

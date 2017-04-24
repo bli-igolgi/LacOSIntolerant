@@ -59,8 +59,8 @@ void rtc_interrupt() {
 int32_t rtc_open(const uint8_t* filename) {
 	// Set initial RTC frequency to 2
     set_int_freq(0x0F);
-	
-    return open_file_desc(cur_pcb, rtc_jt, 0);		// RTC file inode # is 0
+	return 0;
+    // return open_file_desc(cur_pcb, rtc_jt, 0);		// RTC file inode # is 0
 }
 
 /*

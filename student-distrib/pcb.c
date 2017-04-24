@@ -3,6 +3,7 @@
 // A bitmap to optimize space in case a PCB is freed between other PCBs
 // None of the upper 24 bits should be 1 unless we know we have space
 uint32_t pcb_status = 0;
+f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 
 /*
  *  Inputs: none
@@ -41,8 +42,10 @@ pcb_t * init_pcb() {
     int i;
     
     // make all file descriptors available
-    for(i = 0; i < MAX_DESC; i++)
+    for(i = 0; i < MAX_DESC; i++){
         newBlk->io_files[i].flags = NOT_USED;
+        newBlk->io_files[i].file_ops = &empty_f_ops_tab;
+    }
 	
 	// clear junk from stored arg buffer
 	memset(newBlk->arg, '\0', BUF_SIZE);
@@ -59,8 +62,8 @@ pcb_t * init_pcb() {
 int32_t close_pcb(pcb_t *blk) {
     int i;
     for(i = 0; i < MAX_DESC; i++) {
-        if(cur_pcb->io_files[i].file_ops.close)
-            cur_pcb->io_files[i].file_ops.close(i);
+        if(cur_pcb->io_files[i].file_ops->close)
+            cur_pcb->io_files[i].file_ops->close(i);
         close_file_desc(cur_pcb, i);
     }
     return 0;
@@ -74,19 +77,35 @@ int32_t close_pcb(pcb_t *blk) {
  *  Function: Dynamically assign an available file descriptor. Returns the file descriptor id# (io_file index)
  *              upon allocation success; fails if array is full / all file desc are occupied.
  */
-int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
-    int idx;
+int32_t open_file_desc(pcb_t *blk, uint8_t *filename) {
+// int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
+    int idx, isstdin, isstdout;
+    char* stdinstr = "stdin", *stdoutstr = "stdout";
+	dentry_t temp_dentry;
     fdesc_t *fd;
     for(idx = 0; idx < MAX_DESC; idx++) {
         // Rename the accessor
         fd = &(blk->io_files[idx]);
         if(fd->flags != NOT_USED) continue;
-        fd->file_ops = file_op;
-        fd->inode = inode_num;
         // user read position always start at 0
         fd->file_pos = 0;                    
         fd->flags = IN_USE;
+        if((isstdin = strncmp((int8_t *)filename, (int8_t*)stdinstr, 5)) && (isstdout = strncmp((int8_t *)filename, (int8_t *)stdoutstr, 6))){
+    	    read_dentry_by_name((uint8_t *)filename, &temp_dentry);			// redundant, which is why func call order might be wrong...
+            fd->inode = temp_dentry.inode_num;
+            fd->file_ops = tableaux[temp_dentry.file_type];
+            fd->file_ops->open((uint8_t *)filename);
+        }
+        else{
+            if(!isstdin)
+                fd->file_ops = &stdin;
+            else if(!isstdout)
+                fd->file_ops = &stdout;
+            fd->inode = 0;
+        }
         return idx;
+//        fd->file_ops = file_op;
+//        fd->inode = inode_num;
     }
     // no unused file desc was found
     return -1;
@@ -101,7 +120,7 @@ int32_t open_file_desc(pcb_t *blk, f_ops_table file_op, uint32_t inode_num) {
 int32_t close_file_desc(pcb_t *blk, uint32_t fd) {
     // Don't try to free if doesn't exist
     if(MAX_DESC <= fd || fd < 0) return -1;
-    cur_pcb->io_files[fd].file_ops = empty_f_ops_tab;
+    cur_pcb->io_files[fd].file_ops = &empty_f_ops_tab;
     // note: fdesc data is not cleared; use flags as access var!
     blk->io_files[fd].flags = NOT_USED;
     return 0;

@@ -7,7 +7,6 @@
 // Pointer to the PCB of the current running process
 pcb_t *cur_pcb = NULL;
 uint32_t numproc = 0;
-f_ops_table* tableaux[3] = {&rtc_jt, &dir_jt, &regf_jt};
 bool except_raised = 0;
 
 /*
@@ -180,9 +179,9 @@ int32_t sys_execute(const uint8_t *command) {
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
     // Check that the file descriptor is in range and the read function exists
-    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops.read)
+    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops->read)
         return -1;
-    return cur_pcb->io_files[fd].file_ops.read(fd, buf, nbytes);
+    return cur_pcb->io_files[fd].file_ops->read(fd, buf, nbytes);
 }
 
 /*
@@ -194,9 +193,9 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
     // Check that the file descriptor is in range and the write function exists
-    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops.write)
+    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops->write)
         return -1;
-    return cur_pcb->io_files[fd].file_ops.write(fd, buf, nbytes);
+    return cur_pcb->io_files[fd].file_ops->write(fd, buf, nbytes);
 }
 
 /*
@@ -210,11 +209,9 @@ int32_t sys_open(const uint8_t *filename) {
     
     if(read_dentry_by_name(filename, &cur_dentry))
         return -1;
-    
-    if(cur_dentry.file_type < 3)        // 3 possible file types
-        return (*tableaux[cur_dentry.file_type]).open(filename);
-    else
+    if(cur_dentry.file_type >= 3)
         return -1;
+    return open_file_desc(cur_pcb, (uint8_t *)filename);
 }
 
 /*
@@ -224,9 +221,9 @@ int32_t sys_open(const uint8_t *filename) {
  */
 int32_t sys_close(int32_t fd) {
     // User cannot close default fd (0 and 1)
-    if(fd < 2 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops.close)
+    if(fd < 2 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops->close)
         return -1;
-    return cur_pcb->io_files[fd].file_ops.close(fd);
+    return cur_pcb->io_files[fd].file_ops->close(fd);
 }
 
 /*

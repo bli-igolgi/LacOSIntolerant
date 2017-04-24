@@ -40,5 +40,7 @@ void test_data_printing();
 // Reading from directory should read all file names and add to buffer, including '.'
 // Reading from file should read all of the bytes and add to buffer, even non-printable characters
 // inode0 is NULL
+extern struct f_ops_table dir_jt;
+extern struct f_ops_table regf_jt;
 
 #endif

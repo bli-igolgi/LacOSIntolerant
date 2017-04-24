@@ -15,8 +15,9 @@ f_ops_table stdout = { NULL, NULL, terminal_write, NULL };   // write-only
  *   Function: Opens the fd associated with stdin & stdout on terminal
  */
 int32_t terminal_open(const uint8_t* filename) {
-	open_file_desc(cur_pcb, stdin, 0);
-    open_file_desc(cur_pcb, stdout, 0);
+    char* standard_input = "stdin", *standard_output = "stdout";
+	open_file_desc(cur_pcb, (uint8_t *)standard_input);
+    open_file_desc(cur_pcb, (uint8_t *)standard_output);
 	return SUCCESS;		// this function should never fail to find free fd...
 }
 
@@ -66,10 +67,12 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
 int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
     cli();
 
-    int b_written;
+    int b_written = 0, i;
     // Display the passed in data
-    b_written = printf("%s", (uint8_t *)buf);
-
+    for(i=0; i<nbytes; ++i){
+        putc(*((uint8_t *)buf + i));
+        ++b_written;
+    }
     sti();
     return b_written;
 }

@@ -21,9 +21,6 @@
 #include "file_system.h"
 #include "x86_desc.h"
 
-extern f_ops_table rtc_jt;
-extern f_ops_table dir_jt;
-extern f_ops_table regf_jt;
 
 /* The actual system calls */
 int32_t sys_halt(uint8_t status);

@@ -20,6 +20,7 @@ extern uint32_t rtc_freq;
 
 extern void rtc_init();
 extern void rtc_interrupt();
+extern struct f_ops_table rtc_jt;
 
 extern int32_t rtc_open(const uint8_t* filename);
 extern int32_t rtc_close(int32_t fd);

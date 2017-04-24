@@ -90,7 +90,7 @@ void switch_stackframe(int new_term_id) {
         "pushal;"
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
-        :"=m"(terminals[cur_term_id].esp), "=m"(terminals[cur_term_id].ebp)
+        :"=r"(terminals[cur_term_id].esp), "=r"(terminals[cur_term_id].ebp)
     );
     cur_term_id = new_term_id;
     // If this terminal hasn't been run yet, start shell on it
@@ -107,10 +107,9 @@ void switch_stackframe(int new_term_id) {
         asm volatile(
             "movl %0, %%esp;"
             "movl %1, %%ebp;"
-            "popal"
-            ""
+            "popal;"
             : 
-            : "m"(terminals[new_term_id].esp), "m"(terminals[new_term_id].ebp)
+            : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );
     }
     return;

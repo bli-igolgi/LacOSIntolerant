@@ -3,25 +3,29 @@
  */
 #define ASM	1
 
+// Macro to define all of the system interrupts
+.macro InterruptWrap asm_wrap, c_wrap
+    .GLOBL \asm_wrap          
+    \asm_wrap:  
+        pushal
+        call \c_wrap
+        popal
+        iret                  
+.endm
+
+// Macro to define all of the system exceptions
+.macro ExceptionWrap asm_wrap, c_wrap
+    .GLOBL \asm_wrap          
+    \asm_wrap:                
+        call    \c_wrap       
+        iret                     
+.endm
+
 .text
-
-/*	Exporting exception, interrupt, and system call handlers to be used by idt_handle.c */
-.globl _divide_by_zero, _reserved, _non_maskable_interrupt, _breakpoint, _overflow                         # vector 0x00-0x04
-.globl _bound_range_exceeded, _undefined_opcode, _no_math_coprocessor, _double_fault, _coprocessor_overrun # 0x05 - 0x09
-.globl _invalid_tss, _segment_not_present, _stack_segment_fault, _general_protection, _page_fault          # 0x0A - 0x0E
-.globl _intel_reserved, _floating_point_error, _alignment_check, _machine_check, _floating_point_except    # 0x0F - 0x13
-
-.globl _keyboard_intr, _rtc_intr, _mouse_intr
 
 .globl _syscall                     # 0x80
 
 .align 4
-
-/*
-MP3.4
-    Should be able to run all executables except sigtest
-
-*/
 
 /* ========= SYSTEM CALL ========= */
 
@@ -70,201 +74,32 @@ _sys_call_jmp_tab:
     .long sys_halt, sys_execute, sys_read, sys_write
     .long sys_open, sys_close, sys_getargs
     .long sys_vidmap, sys_set_handler, sys_sigreturn
-    
-/* ========= INTERRUPTS ========= */
 
-# Description: wrapper to service KEYBOARD interrupts
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none; all registers are explicitly preserved
-_keyboard_intr:
-    pushal
-    call keyboard_interrupt
-    popal
-    iret
+InterruptWrap _keyboard_intr, keyboard_interrupt
+InterruptWrap _rtc_intr, rtc_interrupt
+InterruptWrap _mouse_intr, mouse_interrupt
 
-# Description: wrapper to service RTC interrupts
-#      Inputs: none
-#     Outputs: none
-#    Clobbers: none; all registers are explicitly preserved
-_rtc_intr:
-    pushal
-    call rtc_interrupt
-    popal
-    iret
 
-# Description: wrapper to service mouse interrupts
-#      Inputs: none
-#     Outputs: none
-#    Clobbers: none; all registers are explicitly preserved
-_mouse_intr:
-    pushal
-    call mouse_interrupt
-    popal
-    iret
+ExceptionWrap _divide_by_zero, div_zero_fault
+ExceptionWrap _reserved, reserved_fault
+ExceptionWrap _non_maskable_interrupt, nmi_intr
+ExceptionWrap _breakpoint, breakpoint_trap
+ExceptionWrap _overflow, overflow_trap
 
-/* ========= EXCEPTIONS ========= */
-/*
- * All of these call their respective C exception handler with interrupts masked.
- * No registers are explicitly preserved under current [tag] 5.1.7 code, as it's not necessary.
- */
+ExceptionWrap _bound_range_exceeded, bound_range_fault
+ExceptionWrap _undefined_opcode, invalid_opcode_fault
+ExceptionWrap _no_math_coprocessor, device_na_fault
+ExceptionWrap _double_fault, double_fault_abort
+ExceptionWrap _coprocessor_overrun, seg_overrun_fault
 
-# Description: exception wrapper for vector 0x00
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_divide_by_zero:
-    call    div_zero_fault
-    iret
+ExceptionWrap _invalid_tss, tss_fault
+ExceptionWrap _segment_not_present, seg_np_fault
+ExceptionWrap _stack_segment_fault, ss_fault
+ExceptionWrap _general_protection, gen_pro_fault
+ExceptionWrap _page_fault, page_fault
 
-# Description: exception wrapper for vector 0x01
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_reserved:
-    call    reserved_fault
-    iret
-
-# Description: exception wrapper for vector 0x02
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_non_maskable_interrupt:
-    call    nmi_intr
-    iret
-
-# Description: exception wrapper for vector 0x03
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_breakpoint:
-    call    breakpoint_trap
-    iret
-
-# Description: exception wrapper for vector 0x04
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_overflow:
-    call    overflow_trap
-    iret
-    
-# Description: exception wrapper for vector 0x05
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_bound_range_exceeded:
-    call    bound_range_fault
-    iret
-    
-# Description: exception wrapper for vector 0x06
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_undefined_opcode:
-    call    invalid_opcode_fault
-    iret
-    
-# Description: exception wrapper for vector 0x07
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_no_math_coprocessor:
-    call    device_na_fault
-    iret
-    
-# Description: exception wrapper for vector 0x08
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_double_fault:
-    call    double_fault_abort
-    iret
-    
-# Description: exception wrapper for vector 0x09
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_coprocessor_overrun:
-    call    seg_overrun_fault
-    iret
-    
-# Description: exception wrapper for vector 0x0A
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_invalid_tss:
-    call    tss_fault
-    iret
-    
-# Description: exception wrapper for vector 0x0B
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_segment_not_present:
-    call    seg_np_fault
-    iret
-
-# Description: exception wrapper for vector 0x0C
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_stack_segment_fault:
-    call    ss_fault
-    iret
-    
-# Description: exception wrapper for vector 0x0D
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_general_protection:
-    call    gen_pro_fault
-    iret
-
-# Description: exception wrapper for vector 0x0E
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_page_fault:
-    call    page_fault
-    iret
-    
-# Description: exception wrapper for vector 0x0F
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_intel_reserved:
-    call    dne_entry
-    iret
-    
-# Description: exception wrapper for vector 0x10
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_floating_point_error:
-    call    fpu_math_fault
-    iret
-    
-# Description: exception wrapper for vector 0x11
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_alignment_check:
-    call    align_fault
-    iret
-    
-# Description: exception wrapper for vector 0x12
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_machine_check:
-    call    machine_chk_abort
-    iret
-    
-# Description: exception wrapper for vector 0x13
-#	   Inputs: none
-#	  Outputs: none
-#	 Clobbers: none
-_floating_point_except:
-    call    simd_fpe_fault
-    iret
+ExceptionWrap _intel_reserved, dne_entry
+ExceptionWrap _floating_point_error, fpu_math_fault
+ExceptionWrap _alignment_check, align_fault
+ExceptionWrap _machine_check, machine_chk_abort
+ExceptionWrap  _floating_point_except, simd_fpe_fault

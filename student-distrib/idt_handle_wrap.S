@@ -75,6 +75,8 @@ _sys_call_jmp_tab:
     .long sys_open, sys_close, sys_getargs
     .long sys_vidmap, sys_set_handler, sys_sigreturn
 
+
+InterruptWrap _pit_intr, pit_interrupt
 InterruptWrap _keyboard_intr, keyboard_interrupt
 InterruptWrap _rtc_intr, rtc_interrupt
 InterruptWrap _mouse_intr, mouse_interrupt

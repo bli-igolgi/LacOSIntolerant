@@ -14,8 +14,8 @@ void (*except_ptr[20]) = {
 
 // Function pointer array for all 16 PIC interrupt lines handlers (wrapper)
 void (*intr_ptr[16]) = {
-    0, _keyboard_intr, 0, 0, 0, 0, 0, 0,        // master PIC ([2] is slave, is not used)
-	_rtc_intr, 0, 0, 0, _mouse_intr, 0, 0, 0    // slave PIC
+    _pit_intr, _keyboard_intr, 0, 0, 0, 0, 0, 0,       // master PIC ([2] is slave, is not used)
+	_rtc_intr, 0, 0, 0, _mouse_intr, 0, 0, 0           // slave PIC
 };
 
 /*
@@ -72,10 +72,7 @@ void idt_init(){
 	EFFECTS: prints offending error msg, squashes user program
 */
 void div_zero_fault() {
-    printf("Divide-by-zero fault occurred. Do you even math?\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Divide-by-zero fault occurred. Do you even math?\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x01
@@ -84,10 +81,7 @@ void div_zero_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void reserved_fault() {
-    printf("RESERVED. You got an exception for intel used only...\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("RESERVED. You got an exception for intel used only...\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x02
@@ -96,10 +90,7 @@ void reserved_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void nmi_intr() {
-    printf("Non-maskable interrupt triggered. Hardware wants attention bad.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Non-maskable interrupt triggered. Hardware wants attention bad.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x03
@@ -108,10 +99,7 @@ void nmi_intr() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void breakpoint_trap() {
-    printf("Breakpoint thrown. How long is this going to take?\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Breakpoint thrown. How long is this going to take?\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x04
@@ -120,10 +108,7 @@ void breakpoint_trap() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void overflow_trap() {
-    printf("Overflow detected. It's too big.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Overflow detected. It's too big.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x05
@@ -132,10 +117,7 @@ void overflow_trap() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void bound_range_fault() {
-    printf("Bounds exceeded. Try a tigher fit.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Bounds exceeded. Try a tigher fit.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x06
@@ -144,10 +126,7 @@ void bound_range_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void invalid_opcode_fault() {
-    printf("Invalid opcode used. This is x86, bruh...\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Invalid opcode used. This is x86, bruh...\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x07
@@ -156,10 +135,7 @@ void invalid_opcode_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void device_na_fault() {
-    printf("Device not available fault. You gonna wait today.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Device not available fault. You gonna wait today.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x08
@@ -168,10 +144,7 @@ void device_na_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void double_fault_abort() {
-    printf("Double fault, abort! RIP, GG.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Double fault, abort! RIP, GG.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x09
@@ -180,10 +153,7 @@ void double_fault_abort() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void seg_overrun_fault() {
-    printf("Coprocessor Segment Overrun (reserved). Really shouldn't be getting this...\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Coprocessor Segment Overrun (reserved). Really shouldn't be getting this...\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x0A
@@ -192,10 +162,7 @@ void seg_overrun_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void tss_fault() {
-    printf("Invalid task state segment. No context switching for you, ha.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Invalid task state segment. No context switching for you, ha.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x0B
@@ -204,10 +171,7 @@ void tss_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void seg_np_fault() {
-    printf("Segment not present. Is your brain segment present?\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Segment not present. Is your brain segment present?\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x0C
@@ -216,10 +180,7 @@ void seg_np_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void ss_fault() {
-    printf("Stack segment fault. Have fun debugging.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Stack segment fault. Have fun debugging.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x0D
@@ -228,10 +189,7 @@ void ss_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void gen_pro_fault() {
-    printf("General protection fault. You're violating me.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("General protection fault. You're violating me.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x0E
@@ -263,10 +221,7 @@ void page_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void dne_entry() {
-    printf("Intel reserved. Why are you even getting this?!\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Intel reserved. Why are you even getting this?!\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x10
@@ -275,10 +230,7 @@ void dne_entry() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void fpu_math_fault() {
-    printf("x87 FPU Floating-Point Error. No one actually knows...\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("x87 FPU Floating-Point Error. No one actually knows...\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x11
@@ -287,10 +239,7 @@ void fpu_math_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void align_fault() {
-    printf("Alignment check faulted. Guess your brain also needs re-alignment.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Alignment check faulted. Guess your brain also needs re-alignment.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x12
@@ -299,10 +248,7 @@ void align_fault() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void machine_chk_abort() {
-    printf("Machine check failed, abort! Another RIP, GG.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Machine check failed, abort! Another RIP, GG.\n");
 }
 
 /*	DESCRIPTION: exception invoked for IDT vector 0x13
@@ -311,8 +257,5 @@ void machine_chk_abort() {
 	EFFECTS: prints offending error msg, stalls system indefinitely
 */
 void simd_fpe_fault() {
-    printf("Floating point exception. IDEK, but GL.\n");
-    except_raised = 1;
-    sys_halt(0);
-    return;
+    PRINT_MESSAGE("Floating point exception. IDEK, but GL.\n");
 }

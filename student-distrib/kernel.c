@@ -162,43 +162,40 @@ entry (unsigned long magic, unsigned long addr)
     }
     
     /* Initialize devices, memory, filesystem, enable device interrupts on the
-     * PIC, any other initialization stuff... */	
-	
+     * PIC, any other initialization stuff... */
+
     // Init the PIC
     i8259_init();
 
 	// Initialize the IDT
     idt_init();
-	
+
     // Init the keyboard
     keyboard_init();
     // Init the rtc
     rtc_init();
     // Init the mouse
-    // mouse_init();
+    mouse_init();
 
     // Initialize paging
     paging_init();
+
+    // Initialize the programmable interrupt timer
+    pit_init();
+
+    clear_screen();
+
+    // Initialize multiple terminals
+    multi_term_init();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    printf("Enabling Interrupts\n");
     sti();
-    
-    // Testing terminal read/write
-    /* while(1) {
-        unsigned char temp_buf[BUF_SIZE+1];
-        terminal_write(0, "> ", 0);
-        terminal_read(0, temp_buf, 0);
-        terminal_write(0, temp_buf, 0);
-    } */
-
-    clear_screen();
 
     /* Execute the first program ('shell') ... */
-    sys_execute((uint8_t *)"     shell        fun");
+    sys_execute((uint8_t *)"shell");
 
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile(".1: hlt; jmp .1;");

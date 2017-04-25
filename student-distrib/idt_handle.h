@@ -10,6 +10,7 @@
 
 #include "x86_desc.h"
 #include "lib.h"
+#include "timer.h"
 #include "keyboard.h"
 #include "rtc.h"
 #include "syscalls.h"
@@ -42,6 +43,14 @@ do {                                \
     str.present = 1;                \
 } while(0)
 
+// Prints the exception message, then calls sys_halt
+#define PRINT_MESSAGE(message)      \
+do {                                \
+    printf(message);                \
+    except_raised = 1;              \
+    sys_halt(0);                    \
+    return;                         \
+} while(0)
 
 // Initializes interrupt descriptor table
 extern void idt_init(void);
@@ -55,7 +64,7 @@ void _divide_by_zero(void), _reserved(void), _non_maskable_interrupt(void), _bre
     _floating_point_error(void), _alignment_check(void), _machine_check(void), _floating_point_except(void);
 
 // Interrupt handler functions #32 - #47
-void _keyboard_intr(void), _rtc_intr(void), _mouse_intr(void);
+void _pit_intr(void), _keyboard_intr(void), _rtc_intr(void), _mouse_intr(void);
     
 // System call function #128
 uint32_t _syscall();

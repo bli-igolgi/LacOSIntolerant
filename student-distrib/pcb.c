@@ -61,6 +61,7 @@ pcb_t * init_pcb() {
  */
 int32_t close_pcb(pcb_t *blk) {
     int i;
+    if(!blk) return -1;
     for(i = 0; i < MAX_DESC; i++) {
         if(cur_pcb->io_files[i].file_ops->close)
             cur_pcb->io_files[i].file_ops->close(i);
@@ -83,6 +84,7 @@ int32_t open_file_desc(pcb_t *blk, uint8_t *filename) {
     char* stdinstr = "stdin", *stdoutstr = "stdout";
 	dentry_t temp_dentry;
     fdesc_t *fd;
+    if(!blk) return -1;
     for(idx = 0; idx < MAX_DESC; idx++) {
         // Rename the accessor
         fd = &(blk->io_files[idx]);
@@ -120,7 +122,7 @@ int32_t open_file_desc(pcb_t *blk, uint8_t *filename) {
  */
 int32_t close_file_desc(pcb_t *blk, uint32_t fd) {
     // Don't try to free if doesn't exist
-    if(MAX_DESC <= fd || fd < 0) return -1;
+    if(MAX_DESC <= fd || fd < 0 || !blk) return -1;
     cur_pcb->io_files[fd].file_ops = &empty_f_ops_tab;
     // note: fdesc data is not cleared; use flags as access var!
     blk->io_files[fd].flags = NOT_USED;

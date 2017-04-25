@@ -37,6 +37,7 @@ void multi_term_init() {
  *               updating video memory and switching to the other process
  */
 void switch_terminal(int new_term_id) {
+    if(new_term_id < 0 || new_term_id >= MAX_TERM_NUM) return;
     // Clear interrupts to prevent terminal switching to happen again
     cli();
     switch_screen(new_term_id);

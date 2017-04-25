@@ -43,7 +43,7 @@ do {                                \
     str.present = 1;                \
 } while(0)
 
-// Prints the exception message, then calls sys_halt
+// Prints the exception message, then calls sys_halt to terminate the program
 #define PRINT_MESSAGE(message)      \
 do {                                \
     printf(message);                \

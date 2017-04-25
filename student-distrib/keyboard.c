@@ -207,35 +207,7 @@ void process_input(char c) {
 
                 break;
 
-
             /* MP3.2 Test Cases */
-            case ONE_KEY_P:
-                // Test case 1, press CTRL+1
-                if(ctrl) {
-                    // Print file name, file type, and file size for all files
-                    test_access_by_index();
-                }
-                // Treat it as a regular character
-                else goto print_char;
-                break;
-            case TWO_KEY_P:
-                // Test case 2, press CTRL+2
-                if(ctrl) {
-                    // Read file by name (print name at end)
-                    test_access_by_file_name();
-                }
-                // Treat it as a regular character
-                else goto print_char;
-                break;
-            case THREE_KEY_P:
-                // Test case 3, press CTRL+3
-                if(ctrl) {
-                    // Read file by index (print name at end)
-                    test_data_printing();
-                }
-                // Treat it as a regular character
-                else goto print_char;
-                break;
             case FOUR_KEY_P:
                 // Test case 4, press CTRL+4
                 if(ctrl) {
@@ -245,16 +217,6 @@ void process_input(char c) {
                     if(rtc_freq > 0x400)
                         rtc_freq = 2;
                     rtc_write(0, &rtc_freq, 0);
-                    
-                    /*
-                    clear_screen();
-                    clear_buffer();
-                    rtc_loop = true;
-                    do {
-                        rtc_read(0,0,0);
-                        putc('1');
-                    } while(rtc_loop);
-                    */
                     break;
                 }
                 // Treat it as a regular character
@@ -263,8 +225,8 @@ void process_input(char c) {
                 // Test case 5, press CTRL+5
                 if(ctrl) {
                     rtc_loop = false;
-                    clear_screen();
-                    clear_buffer();
+                    // clear_screen();
+                    // clear_buffer();
                     break;
                 }
                 // Treat it as a regular character
@@ -310,7 +272,7 @@ uint8_t get_keymap(char c) {
 }
 
 /*
- * void clear_cur_cmd(void);
+ * void clear_cur_cmd();
  *   Inputs: none
  *   Return Value: none
  *   Function: Clears the command currently displayed on the screen,
@@ -327,7 +289,7 @@ void clear_cur_cmd() {
 }
 
 /*
- * void add_to_history(void);
+ * void add_to_history(int8_t *command);
  *   Inputs: command - the command to add to the history buffer
  *   Return Value: none
  *   Function: Put the last command into the history buffer,
@@ -347,7 +309,7 @@ void add_to_history(int8_t *command) {
 }
 
 /*
- * void clear_buffer(void);
+ * void clear_buffer();
  *   Inputs: void
  *   Return Value: none
  *   Function: Resets the read buffer

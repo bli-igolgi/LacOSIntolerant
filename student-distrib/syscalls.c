@@ -69,8 +69,6 @@ int32_t sys_execute(const uint8_t *command) {
     // Set the stack pointer to be just before the bottom of the page
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
 
-
-    // TEMPORARY: Only allow there to be 2 running tasks
     if(our_popcount(pcb_status) == MAX_PROCESSES) {
         printf("Only %d tasks are currently supported\n", MAX_PROCESSES);
         return 0;
@@ -178,7 +176,8 @@ int32_t sys_execute(const uint8_t *command) {
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
     // Check that the file descriptor is in range and the read function exists
-    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops->read)
+    if(fd < 0 || fd >= MAX_DESC || !buf || nbytes < 0
+            || !cur_pcb->io_files[fd].file_ops->read)
         return -1;
     return cur_pcb->io_files[fd].file_ops->read(fd, buf, nbytes);
 }
@@ -192,7 +191,8 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes) {
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
     // Check that the file descriptor is in range and the write function exists
-    if(fd < 0 || fd >= MAX_DESC || !cur_pcb->io_files[fd].file_ops->write)
+    if(fd < 0 || fd >= MAX_DESC || !buf || nbytes < 0
+            || !cur_pcb->io_files[fd].file_ops->write)
         return -1;
     return cur_pcb->io_files[fd].file_ops->write(fd, buf, nbytes);
 }
@@ -206,7 +206,7 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes) {
 int32_t sys_open(const uint8_t *filename) {
     dentry_t cur_dentry;
     
-    if(read_dentry_by_name(filename, &cur_dentry))
+    if(read_dentry_by_name(filename, &cur_dentry) == -1)
         return -1;
     if(cur_dentry.file_type >= 3) // 3 file types
         return -1;
@@ -232,13 +232,10 @@ int32_t sys_close(int32_t fd) {
  *   Function: get stored arg parsed from command at time of sys_execute
  */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes) {
-    int32_t arg_len;
-    
-    // return if arg and NULL char cannot fit in buffer
-    if((arg_len = strlen((int8_t *)cur_pcb->arg)+1) > nbytes)
-        return -1;
+    int32_t arg_len = strlen((int8_t *)cur_pcb->arg) + 1;
 
-    if (arg_len <= 1)
+    // return if arg and NULL char cannot fit in buffer
+    if(arg_len > nbytes || arg_len <= 1 || nbytes < 0 || !buf)
         return -1;
     
     memcpy(buf, cur_pcb->arg, arg_len);

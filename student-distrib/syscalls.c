@@ -46,8 +46,7 @@ bool except_raised = 0;
             : "g"(cur_pcb->esp), "g"(cur_pcb->ebp), "g"(ret_val)
             : "%eax"
         );
-    } else
-        sys_execute((uint8_t *)"shell");
+    } else sys_execute((uint8_t *)"shell");
     
     // This should never be reached
     return ret_val;
@@ -61,11 +60,10 @@ bool except_raised = 0;
  *   Function: Performs the command
  */
 int32_t sys_execute(const uint8_t *command) {
-    uint8_t cmd[15], file_data[FILE_H_SIZE];
-    uint32_t entry = 0;
+    uint8_t cmd_buf_size = 32;
+    uint8_t cmd[cmd_buf_size], file_data[FILE_H_SIZE];
+    uint32_t entry = 0, i = 0, j = 0, ret_val;
     dentry_t cmd_dentry;
-    int i = 0, j = 0;
-    uint32_t ret_val;
     // Set the stack pointer to be just before the bottom of the page
     uint32_t stackp = PROGRAM_VIRT + FOUR_MB - 0x4;
 
@@ -73,14 +71,6 @@ int32_t sys_execute(const uint8_t *command) {
         printf("Only %d tasks are currently supported\n", MAX_PROCESSES);
         return 0;
     }
-
-    /* ==== Parse command ==== */
-    // Skip spaces in front of the command
-    while(command[i] == ' ' && command[i] != '\0') i++;
-    // Copy command into cmd until the next space
-    while(command[i] != ' ' && command[i] != '\0') cmd[j++] = command[i++];
-    cmd[j] = '\0';
-    j = 0;
     
     /* ==== Check file validity ==== */
     // Make sure the name of the file is in the file system
@@ -92,8 +82,16 @@ int32_t sys_execute(const uint8_t *command) {
     if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
         return -1;
 
+    /* ==== Parse command ==== */
+    // Skip spaces in front of the command
+    while(command[i] == ' ' && command[i] != '\0') i++;
+    // Copy command into cmd until the next space
+    while(command[i] != ' ' && command[i] != '\0' && j < cmd_buf_size) cmd[j++] = command[i++];
+    cmd[j] = '\0';
+    j = 0;
+
     /* ==== Create PCB ==== */
-    pcb_t* new_pcb = init_pcb();    
+    pcb_t* new_pcb = init_pcb();
 
     /* ==== Store arg in PCB ==== */
     // Skip spaces in front of argument

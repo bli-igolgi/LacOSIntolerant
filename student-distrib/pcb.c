@@ -14,7 +14,7 @@ uint32_t find_empty_pcb() {
     // Get the current PCB status, and set the current offset to 0.
     uint32_t temp_pcb_status = pcb_status, offset = 0;
     // As long as the bit 0 of the PCB status we have is set...
-    while(__builtin_ffs(temp_pcb_status) == 1) {
+    while(temp_pcb_status & 0x1) {
         // Increase the offset and shift the status we have.
         offset++;
         temp_pcb_status >>= 1;

@@ -6,22 +6,7 @@
 #include "i8259.h"
 #include "pcb.h"
 
-#define BUF_SIZE        128     // The size of the read buffer for the keyboard
-#define TIME_QUANTUM    40      // The length each task will get, in milliseconds
-
-
-typedef struct term_t {
-    uint8_t term_id;                        // Which terminal this is
-    uint8_t curs_x, curs_y, key_x, key_y;   // The cursor and keyboard positions
-    uint8_t *vid_mem;                       // Pointer to this terminal's video memory
-    uint8_t key_buf[BUF_SIZE+1];            // Buffer for the input data from the keyboard
-    uint32_t key_buf_index;
-    uint32_t esp, ebp;                      // The current terminals esp and ebp
-    struct pcb_t *cur_task;                 // The task that is currently executing on the terminal
-} term_t;
-
-extern term_t terminals[3];
-extern int cur_term_id;
+#define TIME_QUANTUM    40              // The length each task will get, in milliseconds
 
 void multi_term_init(void);
 void switch_terminal(int new_term_id);

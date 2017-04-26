@@ -17,11 +17,27 @@ extern int screen_y;
 extern int cursor_x;
 extern int cursor_y;
 
-void set_keyboard_pos(int x, int y);
-void set_cursor_pos(int row, int col);
+typedef struct term_t {
+    uint8_t term_id;                        // Which terminal this is
+    uint8_t curs_r, curs_c, scrn_c, scrn_r; // The cursor and keyboard positions
+    uint8_t *vid_mem;                       // Pointer to this terminal's video memory
+    uint8_t key_buf[KEY_BUF_SIZE+1];        // Buffer for the input data from the keyboard
+    uint32_t key_buf_index;
+    uint32_t esp, ebp;                      // The current terminals esp and ebp
+    struct pcb_t *cur_task;                 // The task that is currently executing on the terminal
+} term_t;
+
+extern term_t terminals[3];
+extern int vis_term_id;                     // The ID of the terminal that is currently visible
+extern int sched_term_id;                   // The ID of the terminal that is being run by the scheduler
+
+
+void set_keyboard_pos(int term_id, int x, int y);
+void set_cursor_pos(int term_id, int row, int col);
 
 int32_t printf(int8_t *format, ...);
-void putc(uint8_t c);
+void putc_sched(uint8_t c);
+void putc_vis(uint8_t c);
 int32_t puts(int8_t *s);
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);

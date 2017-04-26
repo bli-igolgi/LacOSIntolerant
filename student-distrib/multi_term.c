@@ -7,8 +7,6 @@
 
 static char* video_mem = (char *)VIDEO_ADDR;
 
-term_t terminals[MAX_TERM_NUM];
-int cur_term_id = 0;
 
 /*
  * void multi_term_init();
@@ -21,8 +19,8 @@ void multi_term_init() {
     for(i = 0; i < MAX_TERM_NUM; i++) {
         terminals[i].term_id = i;
         terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
-        terminals[i].key_x = terminals[i].key_y = 0;
-        terminals[i].curs_x = terminals[i].curs_y = 0;
+        terminals[i].scrn_c = terminals[i].scrn_r = 0;
+        terminals[i].curs_r = terminals[i].curs_c = 0;
         terminals[i].key_buf_index = terminals[i].esp = terminals[i].ebp = 0;
         terminals[i].cur_task = NULL;
     }
@@ -45,7 +43,6 @@ void switch_terminal(int new_term_id) {
     cli();
     switch_screen(new_term_id);
 
-    switch_keyboard_and_cursor_pos(new_term_id);
 
     switch_stackframe(new_term_id);
 }
@@ -54,16 +51,16 @@ void switch_terminal(int new_term_id) {
  * void switch_keyboard_and_cursor_pos(int new_term_id);
  *   Inputs: new_term_id - the ID of the terminal to switch to
  *   Return Value: none
- *   Function: Saves and switches the current keyboard and cursor positions
+ *   Function: Switches the current keyboard and cursor positions
  */
 void switch_keyboard_and_cursor_pos(int new_term_id) {
-    terminals[cur_term_id].key_x = screen_x;
-    terminals[cur_term_id].key_y = screen_y;
-    terminals[cur_term_id].curs_x = cursor_x;
-    terminals[cur_term_id].curs_y = cursor_y;
+    // terminals[vis_term_id].scrn_c = screen_x;
+    // terminals[vis_term_id].scrn_r = screen_y;
+    // terminals[vis_term_id].curs_r = cursor_x;
+    // terminals[vis_term_id].curs_c = cursor_y;
 
-    set_keyboard_pos(terminals[new_term_id].key_x, terminals[new_term_id].key_y);
-    set_cursor_pos(terminals[new_term_id].curs_x, terminals[new_term_id].curs_y);
+    set_keyboard_pos(new_term_id, terminals[new_term_id].scrn_r, terminals[new_term_id].scrn_c);
+    set_cursor_pos(new_term_id, terminals[new_term_id].curs_r, terminals[new_term_id].curs_c);
 }
 
 /*
@@ -75,11 +72,15 @@ void switch_keyboard_and_cursor_pos(int new_term_id) {
  */
 void switch_screen(int new_term_id) {
     int32_t i;
+    // Put the visible memory terminal back to the "fake" video memory location
+    terminals[vis_term_id].vid_mem = (uint8_t *)(VIDEO_ADDR + (vis_term_id+1)*FOUR_KB);
     // Multiply by 2 so the attribute part of video memory is also copied
     for(i = 0; i < 2 * NUM_COLS * NUM_ROWS; i++) {
-        *(terminals[cur_term_id].vid_mem + i) = *(video_mem + i);
+        *(terminals[vis_term_id].vid_mem + i) = *(video_mem + i);
         *(video_mem + i) = *(terminals[new_term_id].vid_mem + i);
     }
+    // Point the new terminal video memory to actual video memory
+    terminals[new_term_id].vid_mem = (uint8_t *)VIDEO_ADDR;
 }
 
 /*
@@ -94,9 +95,13 @@ void switch_stackframe(int new_term_id) {
         //"pushal;"
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
-        :"=r"(terminals[cur_term_id].esp), "=r"(terminals[cur_term_id].ebp)
+        :"=m"(terminals[vis_term_id].esp), "=m"(terminals[vis_term_id].ebp)
     );
-    cur_term_id = new_term_id;
+    vis_term_id = new_term_id;
+    sched_term_id = new_term_id;
+
+    switch_keyboard_and_cursor_pos(new_term_id);
+
     // If this terminal hasn't been run yet, start shell on it
     cur_pcb = terminals[new_term_id].cur_task;
     if(!terminals[new_term_id].cur_task) {
@@ -110,12 +115,11 @@ void switch_stackframe(int new_term_id) {
         flush_tlb();
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;
+        // sti();
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"
             "movl %1, %%ebp;"
-            //"popal"
-            ""
             : 
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );

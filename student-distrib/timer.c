@@ -46,28 +46,28 @@ void pit_interrupt() {
     if(++timer_ticks >= TIME_QUANTUM) {
         // printf("%d milliseconds has passed\n", TIME_QUANTUM);
         timer_ticks = 0;
-        // uint8_t next_tid = (cur_term_id + 1) % MAX_TERM_NUM;
+        // uint8_t next_tid = (sched_term_id + 1) % MAX_TERM_NUM;
 
-        // if(terminals[next_tid].cur_task) switch_tasks(next_tid);
+        send_eoi(PIT_IRQ);
+        // if(terminals[next_tid].cur_task)
+        //     switch_tasks(next_tid);
         // else if(terminals[(next_tid = ((next_tid + 1) % MAX_TERM_NUM))].cur_task)
         //     switch_tasks(next_tid);
     }
+    else send_eoi(PIT_IRQ);
 
-    send_eoi(PIT_IRQ);
     sti();
 }
 
 void switch_tasks(int new_term_id) {
-    if(terminals[new_term_id].cur_task && new_term_id != cur_term_id) {
+    if(terminals[new_term_id].cur_task && new_term_id != sched_term_id) {
         // Push registers and save the esp and ebp
         asm volatile(
-            //"pushal;"
             "movl %%esp, %0;"
             "movl %%ebp, %1;"
-            :"=r"(terminals[cur_term_id].esp), "=r"(terminals[cur_term_id].ebp)
+            :"=r"(terminals[sched_term_id].esp), "=r"(terminals[sched_term_id].ebp)
         );
-        cur_term_id = new_term_id;
-        // If this terminal hasn't been run yet, start shell on it
+        sched_term_id = new_term_id;
         cur_pcb = terminals[new_term_id].cur_task;
 
         map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
@@ -79,8 +79,6 @@ void switch_tasks(int new_term_id) {
         asm volatile(
             "movl %0, %%esp;"
             "movl %1, %%ebp;"
-            //"popal"
-            ""
             : 
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );

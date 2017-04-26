@@ -48,7 +48,7 @@ pcb_t * init_pcb() {
     }
 	
 	// clear junk from stored arg buffer
-	memset(newBlk->arg, '\0', BUF_SIZE);
+	memset(newBlk->arg, '\0', KEY_BUF_SIZE);
 
     return newBlk;
 }

@@ -37,9 +37,9 @@ extern unsigned char caps_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 
 // Buffer for the input data from the keyboard
-// unsigned char read_buf[BUF_SIZE+1];
+// unsigned char read_buf[KEY_BUF_SIZE+1];
 // Buffer for the last several commands
-unsigned char hist_buf[HIST_COM_NUM][BUF_SIZE+1];
+unsigned char hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1];
 // Holds the location of the next char in the array
 // uint32_t read_buf_index = 0;
 
@@ -97,8 +97,8 @@ void process_input(char c) {
     uint8_t c_print;
     int32_t buf_size, last, prev_size;
     static volatile bool rtc_loop;
-    uint8_t *read_buf = terminals[cur_term_id].key_buf;
-    uint32_t *read_buf_index = &terminals[cur_term_id].key_buf_index;
+    uint8_t *read_buf = terminals[vis_term_id].key_buf;
+    uint32_t *read_buf_index = &terminals[vis_term_id].key_buf_index;
     // Positive scan codes (key down)
     if(c >= 0) {
         switch(c) {
@@ -109,21 +109,21 @@ void process_input(char c) {
                     // If the character to remove is on the previous line
                     if(!screen_x) {
                         screen_y -= 1;
-                        // x is decremented before putc, so this is not an error
+                        // x is decremented before putc_sched, so this is not an error
                         screen_x = NUM_COLS;
                     }
                     // Display the backspace
-                    putc('\b');
+                    putc_sched('\b');
                 }
                 break;
             case ENTER_KEY_P:
                 // Set the last index to the last free spot in the array
-                last = (*read_buf_index < BUF_SIZE) ? *read_buf_index : BUF_SIZE-1;
+                last = (*read_buf_index < KEY_BUF_SIZE) ? *read_buf_index : KEY_BUF_SIZE-1;
                 // Set the last character in the buffer to be the newline
                 read_buf[last] = '\n';
                 // Null terminate the string
                 read_buf[last+1] = '\0';
-                putc('\n');
+                putc_sched('\n');
                 // Reset the index so backspace doesn't go to previous line
                 *read_buf_index = 0;
                 // Tells terminal read that there is no more data to read
@@ -162,7 +162,7 @@ void process_input(char c) {
                 if(alt) {
                     int tid = c - F1_KEY_P;
                     // If already on the terminal that was selected, don't do anything
-                    if(cur_term_id != tid)
+                    if(vis_term_id != tid)
                         switch_terminal(tid);
                 }
                 break;
@@ -235,13 +235,13 @@ void process_input(char c) {
             // Regular key press
             default:
 print_char:
-                if(*read_buf_index == BUF_SIZE) return;
+                if(*read_buf_index == KEY_BUF_SIZE) return;
 
                 c_print = get_keymap(c);
                 // Don't print non-printing characters like F1
                 if(c_print) {
                     read_buf[(*read_buf_index)++] = c_print;
-                    putc(c_print);
+                    putc_vis(c_print);
                 }
                 break;
         }
@@ -279,7 +279,7 @@ uint8_t get_keymap(char c) {
  *              as well as the read buffer holding the command
  */
 void clear_cur_cmd() {
-    int char_cnt = terminals[cur_term_id].key_buf_index;
+    int char_cnt = terminals[vis_term_id].key_buf_index;
     // Clear the screen
     while(char_cnt-- > 0)
         process_input(BACKSPACE_P);
@@ -315,6 +315,6 @@ void add_to_history(int8_t *command) {
  *   Function: Resets the read buffer
  */
 void clear_buffer() {
-    memset(terminals[cur_term_id].key_buf, 0, strlen((int8_t *)terminals[cur_term_id].key_buf));
-    terminals[cur_term_id].key_buf_index = 0;
+    memset(terminals[vis_term_id].key_buf, 0, strlen((int8_t *)terminals[vis_term_id].key_buf));
+    terminals[vis_term_id].key_buf_index = 0;
 }

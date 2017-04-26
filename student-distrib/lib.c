@@ -8,6 +8,11 @@ int screen_x;
 int screen_y;
 int cursor_x;
 int cursor_y;
+
+term_t terminals[MAX_TERM_NUM];
+int vis_term_id = 0;
+int sched_term_id = 0;
+
 static char* video_mem = (char *)VIDEO_ADDR;
 
 /*
@@ -16,10 +21,15 @@ static char* video_mem = (char *)VIDEO_ADDR;
  *   Return Value: none
  *	 Function: Puts the keyboard cursor at the specified location
  */
-void set_keyboard_pos(int x, int y) {
+void set_keyboard_pos(int term_id, int row, int col) {
 	// TODO: need to make this only update the screen for the current terminal
-	screen_x = x;
-	screen_y = y;
+	terminals[term_id].scrn_r = row;
+	terminals[term_id].scrn_c = col;
+	// If the terminal we are executing on is the current visible terminal
+	if(term_id == vis_term_id) {
+		screen_y = row;
+		screen_x = col;
+	}
 }
 
 /*
@@ -28,18 +38,22 @@ void set_keyboard_pos(int x, int y) {
  *   Return Value: none
  *	 Function: Puts the cursor at the specified location
  */
-void set_cursor_pos(int row, int col) {
+void set_cursor_pos(int term_id, int row, int col) {
 	// TODO: need to make this only update the screen for the current terminal
-	uint16_t position = (row * 80) + col;
-	cursor_x = row;
-	cursor_y = col;
-
-	// Cursor LOW port to vga INDEX register
-	outb(0x0F, 0x3D4);
-	outb((unsigned char)(position & 0xFF), 0x3D5);
-	// Cursor HIGH port to vga INDEX register
-	outb(0x0E, 0x3D4);
-	outb((unsigned char )((position >> 8) & 0xFF), 0x3D5);
+	terminals[term_id].curs_r = row;
+	terminals[term_id].curs_c = col;
+	// If the terminal we are executing on is the current visible terminal
+	if(term_id == vis_term_id) {
+		uint16_t position = (row * 80) + col;
+		cursor_x = row;
+		cursor_y = col;
+		// Cursor LOW port to vga INDEX register
+		outb(0x0F, 0x3D4);
+		outb((unsigned char)(position & 0xFF), 0x3D5);
+		// Cursor HIGH port to vga INDEX register
+		outb(0x0E, 0x3D4);
+		outb((unsigned char )((position >> 8) & 0xFF), 0x3D5);
+	}
 }
 
 /*
@@ -49,20 +63,20 @@ void set_cursor_pos(int row, int col) {
  *	 Function: Scrolls the screen up if necessary
  */
 void scroll(void) {
-    // If we have reached the bottom of the screen
-    if(screen_y >= NUM_ROWS) {
-	    uint32_t blank, temp;
+	// If we have reached the bottom of the screen
+	if(screen_y >= NUM_ROWS) {
+		uint32_t blank, temp;
 
-	    blank = 0x20 | (ATTRIB << 8);
-        temp = screen_y - NUM_ROWS + 1;
-        // Copy the screen, offset by one row, into the start of video memory
-        // This effectively erases the first line of the terminal
-        memcpy(video_mem, video_mem + temp * NUM_COLS * 2, (NUM_ROWS - temp) * NUM_COLS * 2);
+		blank = 0x20 | (ATTRIB << 8);
+		temp = screen_y - NUM_ROWS + 1;
+		// Copy the screen, offset by one row, into the start of video memory
+		// This effectively erases the first line of the terminal
+		memcpy(video_mem, video_mem + temp * NUM_COLS * 2, (NUM_ROWS - temp) * NUM_COLS * 2);
 
-        // Set the last line to blank
-        memset_word(video_mem + (NUM_ROWS - temp) * NUM_COLS * 2, blank, NUM_COLS);
-        screen_y = NUM_ROWS - 1;
-    }
+		// Set the last line to blank
+		memset_word(video_mem + (NUM_ROWS - temp) * NUM_COLS * 2, blank, NUM_COLS);
+		screen_y = NUM_ROWS - 1;
+	}
 }
 
 
@@ -76,13 +90,13 @@ void scroll(void) {
 void
 clear_screen(void)
 {
-    int32_t i;
-    for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
-    }
-    set_keyboard_pos(0, 0);
-    set_cursor_pos(0, 0);
+	int32_t i;
+	for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+		*(uint8_t *)(video_mem + (i << 1)) = ' ';
+		*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+	}
+	set_keyboard_pos(sched_term_id, 0, 0);
+	set_cursor_pos(sched_term_id, 0, 0);
 }
 
 /* Standard printf().
@@ -125,7 +139,7 @@ format_char_switch:
 					switch(*buf) {
 						/* Print a literal '%' character */
 						case '%':
-							putc('%');
+							putc_sched('%');
 							break;
 
 						/* Use alternate formatting */
@@ -187,7 +201,7 @@ format_char_switch:
 
 						/* Print a single character */
 						case 'c':
-							putc( (uint8_t) *((int32_t *)esp) );
+							putc_sched( (uint8_t) *((int32_t *)esp) );
 							esp++;
 							break;
 
@@ -205,7 +219,7 @@ format_char_switch:
 				break;
 
 			default:
-				putc(*buf);
+				putc_sched(*buf);
 				break;
 		}
 		buf++;
@@ -226,7 +240,7 @@ puts(int8_t* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
-		putc(s[index]);
+		putc_sched(s[index]);
 		index++;
 	}
 
@@ -234,42 +248,81 @@ puts(int8_t* s)
 }
 
 /*
-* void putc(uint8_t c);
+* void putc_sched(uint8_t c);
 *   Inputs: uint_8* c = character to print
 *   Return Value: void
-*	Function: Output a character to the console 
+*	Function: Output a character to the terminal running on the scheduler
 */
-
 void
-putc(uint8_t c)
+putc_sched(uint8_t c)
 {
-    if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
-    	scroll();
-    }
-    // Support for backspace
-    else if(c == '\b') {
-    	// Don't allow negative x values
-    	if(screen_x == 0) return;
-    	// Remove previous character
-    	screen_x--;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-    }
-    else {
-    	// Move to the next line if necessary
-        screen_y = (screen_y + (screen_x / NUM_COLS));
-        screen_x %= NUM_COLS;
-        // Scroll if necessary
-    	scroll();
-    	// Update video memory at the current location
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-        // Move to the next column
-        screen_x++;
-    }
-    set_cursor_pos(screen_y, screen_x);
+	if(c == '\n' || c == '\r') {
+		screen_y++;
+		screen_x = 0;
+		scroll();
+	}
+	// Support for backspace
+	else if(c == '\b') {
+		// Don't allow negative x values
+		if(screen_x == 0) return;
+		// Remove previous character
+		screen_x--;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+	}
+	else {
+		// Move to the next line if necessary
+		screen_y = (screen_y + (screen_x / NUM_COLS));
+		screen_x %= NUM_COLS;
+		// Scroll if necessary
+		scroll();
+		// Update video memory at the current location
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		// Move to the next column
+		screen_x++;
+	}
+	set_cursor_pos(sched_term_id, screen_y, screen_x);
+	set_keyboard_pos(sched_term_id, screen_y, screen_x);
+}
+
+/*
+* void putc_vis(uint8_t c);
+*   Inputs: uint_8* c = character to print
+*   Return Value: void
+*	Function: Output a character to the visible terminal
+*/
+void
+putc_vis(uint8_t c)
+{
+	if(c == '\n' || c == '\r') {
+		screen_y++;
+		screen_x = 0;
+		scroll();
+	}
+	// Support for backspace
+	else if(c == '\b') {
+		// Don't allow negative x values
+		if(screen_x == 0) return;
+		// Remove previous character
+		screen_x--;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+	}
+	else {
+		// Move to the next line if necessary
+		screen_y = (screen_y + (screen_x / NUM_COLS));
+		screen_x %= NUM_COLS;
+		// Scroll if necessary
+		scroll();
+		// Update video memory at the current location
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		// Move to the next column
+		screen_x++;
+	}
+	set_cursor_pos(vis_term_id, screen_y, screen_x);
+	set_keyboard_pos(vis_term_id, screen_y, screen_x);
 }
 
 /*

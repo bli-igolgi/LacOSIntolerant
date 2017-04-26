@@ -6,7 +6,6 @@
 #define PROGRAM_1_PHYS   0x800000       // 8MB
 #define PROGRAM_VIRT     0x8000000      // 128MB
 #define PROGRAM_VIRT_OFF 0x48000        // Where to start copying the program image within the virtual space
-#define MAX_PROCESSES    6
 
 /* File type constants
 #define RTC_DEV		0

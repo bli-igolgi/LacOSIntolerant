@@ -17,6 +17,7 @@ static char* video_mem = (char *)VIDEO_ADDR;
  *	 Function: Puts the keyboard cursor at the specified location
  */
 void set_keyboard_pos(int x, int y) {
+	// TODO: need to make this only update the screen for the current terminal
 	screen_x = x;
 	screen_y = y;
 }
@@ -28,6 +29,7 @@ void set_keyboard_pos(int x, int y) {
  *	 Function: Puts the cursor at the specified location
  */
 void set_cursor_pos(int row, int col) {
+	// TODO: need to make this only update the screen for the current terminal
 	uint16_t position = (row * 80) + col;
 	cursor_x = row;
 	cursor_y = col;

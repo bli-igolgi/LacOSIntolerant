@@ -1,5 +1,5 @@
 /*
- *
+ * Driver for the Programmable Interrupt Timer
  */
 
 // http://www.osdever.net/bkerndev/index.php

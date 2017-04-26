@@ -71,16 +71,6 @@ int32_t sys_execute(const uint8_t *command) {
         printf("Only %d tasks are currently supported\n", MAX_PROCESSES);
         return 0;
     }
-    
-    /* ==== Check file validity ==== */
-    // Make sure the name of the file is in the file system
-    if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
-    // Read the first 30 bytes into file_data
-    read_data(cmd_dentry.inode_num, 0, file_data, FILE_H_SIZE);
-
-    // Check that the first 4 bytes match executable format
-    if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
-        return -1;
 
     /* ==== Parse command ==== */
     // Skip spaces in front of the command
@@ -100,6 +90,16 @@ int32_t sys_execute(const uint8_t *command) {
     while(command[i] != '\0') 
         new_pcb->arg[j++] = command[i++];
     new_pcb->arg[j] = '\0';
+    
+    /* ==== Check file validity ==== */
+    // Make sure the name of the file is in the file system
+    if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
+    // Read the first 30 bytes into file_data
+    read_data(cmd_dentry.inode_num, 0, file_data, FILE_H_SIZE);
+
+    // Check that the first 4 bytes match executable format
+    if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
+        return -1;
     
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory

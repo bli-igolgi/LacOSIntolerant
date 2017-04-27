@@ -54,11 +54,6 @@ void switch_terminal(int new_term_id) {
  *   Function: Switches the current keyboard and cursor positions
  */
 void switch_keyboard_and_cursor_pos(int new_term_id) {
-    // terminals[vis_term_id].scrn_c = screen_x;
-    // terminals[vis_term_id].scrn_r = screen_y;
-    // terminals[vis_term_id].curs_r = cursor_x;
-    // terminals[vis_term_id].curs_c = cursor_y;
-
     set_keyboard_pos(new_term_id, terminals[new_term_id].scrn_r, terminals[new_term_id].scrn_c);
     set_cursor_pos(new_term_id, terminals[new_term_id].curs_r, terminals[new_term_id].curs_c);
 }
@@ -92,7 +87,6 @@ void switch_screen(int new_term_id) {
 void switch_stackframe(int new_term_id) {
     // Push registers and save the esp and ebp
     asm volatile(
-        //"pushal;"
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
         :"=m"(terminals[vis_term_id].esp), "=m"(terminals[vis_term_id].ebp)
@@ -115,7 +109,6 @@ void switch_stackframe(int new_term_id) {
         flush_tlb();
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;
-        // sti();
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"
@@ -124,5 +117,6 @@ void switch_stackframe(int new_term_id) {
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );
     }
+    sti();
     return;
 }

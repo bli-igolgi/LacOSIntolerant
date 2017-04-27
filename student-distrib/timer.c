@@ -46,13 +46,13 @@ void pit_interrupt() {
     if(++timer_ticks >= TIME_QUANTUM) {
         // printf("%d milliseconds has passed\n", TIME_QUANTUM);
         timer_ticks = 0;
-        // uint8_t next_tid = (sched_term_id + 1) % MAX_TERM_NUM;
-
         send_eoi(PIT_IRQ);
-        // if(terminals[next_tid].cur_task)
-        //     switch_tasks(next_tid);
-        // else if(terminals[(next_tid = ((next_tid + 1) % MAX_TERM_NUM))].cur_task)
-        //     switch_tasks(next_tid);
+        uint8_t next_tid = (sched_term_id + 1) % MAX_TERM_NUM;
+
+        if(terminals[next_tid].cur_task)
+            switch_tasks(next_tid);
+        else if(terminals[(next_tid = ((next_tid + 1) % MAX_TERM_NUM))].cur_task)
+            switch_tasks(next_tid);
     }
     else send_eoi(PIT_IRQ);
 
@@ -60,7 +60,7 @@ void pit_interrupt() {
 }
 
 void switch_tasks(int new_term_id) {
-    if(terminals[new_term_id].cur_task && new_term_id != sched_term_id) {
+    if(new_term_id != sched_term_id) {
         // Push registers and save the esp and ebp
         asm volatile(
             "movl %%esp, %0;"

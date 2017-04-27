@@ -78,7 +78,6 @@ void switch_tasks(int new_term_id) {
         flush_tlb();
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;
-        sti();
         // Move the old stack frame back and pop registers to return to old task
         asm volatile(
             "movl %0, %%esp;"
@@ -86,6 +85,7 @@ void switch_tasks(int new_term_id) {
             : 
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );
+        sti();
     }
     return;
 }

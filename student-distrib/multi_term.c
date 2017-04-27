@@ -18,7 +18,10 @@ void multi_term_init() {
     uint32_t i;
     for(i = 0; i < MAX_TERM_NUM; i++) {
         terminals[i].term_id = i;
-        terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
+        if(!i)
+            terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR);
+        else 
+            terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
         terminals[i].scrn_c = terminals[i].scrn_r = 0;
         terminals[i].curs_r = terminals[i].curs_c = 0;
         terminals[i].key_buf_index = terminals[i].esp = terminals[i].ebp = 0;

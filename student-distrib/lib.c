@@ -62,20 +62,20 @@ void set_cursor_pos(int term_id, int row, int col) {
  *   Return Value: none
  *	 Function: Scrolls the screen up if necessary
  */
-void scroll(void) {
+void scroll(int term_id) {
 	// If we have reached the bottom of the screen
-	if(screen_y >= NUM_ROWS) {
+	if(terminals[term_id].scrn_r >= NUM_ROWS) {
 		uint32_t blank, temp;
 
 		blank = 0x20 | (ATTRIB << 8);
-		temp = screen_y - NUM_ROWS + 1;
+		temp = terminals[term_id].scrn_r - NUM_ROWS + 1;
 		// Copy the screen, offset by one row, into the start of video memory
 		// This effectively erases the first line of the terminal
-		memcpy(video_mem, video_mem + temp * NUM_COLS * 2, (NUM_ROWS - temp) * NUM_COLS * 2);
+		memcpy(terminals[term_id].vid_mem, terminals[term_id].vid_mem + temp * NUM_COLS * 2, (NUM_ROWS - temp) * NUM_COLS * 2);
 
 		// Set the last line to blank
-		memset_word(video_mem + (NUM_ROWS - temp) * NUM_COLS * 2, blank, NUM_COLS);
-		screen_y = NUM_ROWS - 1;
+		memset_word(terminals[term_id].vid_mem + (NUM_ROWS - temp) * NUM_COLS * 2, blank, NUM_COLS);
+		terminals[term_id].scrn_r = NUM_ROWS - 1;
 	}
 }
 
@@ -257,33 +257,33 @@ void
 putc_sched(uint8_t c)
 {
 	if(c == '\n' || c == '\r') {
-		screen_y++;
-		screen_x = 0;
-		scroll();
+		terminals[sched_term_id].scrn_r++;
+		terminals[sched_term_id].scrn_c = 0;
+		scroll(sched_term_id);
 	}
 	// Support for backspace
 	else if(c == '\b') {
 		// Don't allow negative x values
-		if(screen_x == 0) return;
+		if(terminals[sched_term_id].scrn_c == 0) return;
 		// Remove previous character
-		screen_x--;
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		terminals[sched_term_id].scrn_c--;
+		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1)) = ' ';
+		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1) + 1) = ATTRIB;
 	}
 	else {
 		// Move to the next line if necessary
-		screen_y = (screen_y + (screen_x / NUM_COLS));
-		screen_x %= NUM_COLS;
+		terminals[sched_term_id].scrn_r = (terminals[sched_term_id].scrn_r + (terminals[sched_term_id].scrn_c / NUM_COLS));
+		terminals[sched_term_id].scrn_c %= NUM_COLS;
 		// Scroll if necessary
-		scroll();
+		scroll(sched_term_id);
 		// Update video memory at the current location
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1)) = c;
+		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1) + 1) = ATTRIB;
 		// Move to the next column
-		screen_x++;
+		terminals[sched_term_id].scrn_c++;
 	}
-	set_cursor_pos(sched_term_id, screen_y, screen_x);
-	set_keyboard_pos(sched_term_id, screen_y, screen_x);
+	set_cursor_pos(sched_term_id, terminals[sched_term_id].scrn_r, terminals[sched_term_id].scrn_c);
+	set_keyboard_pos(sched_term_id, terminals[sched_term_id].scrn_r, terminals[sched_term_id].scrn_c);
 }
 
 /*
@@ -298,7 +298,7 @@ putc_vis(uint8_t c)
 	if(c == '\n' || c == '\r') {
 		screen_y++;
 		screen_x = 0;
-		scroll();
+		scroll(vis_term_id);
 	}
 	// Support for backspace
 	else if(c == '\b') {
@@ -314,7 +314,7 @@ putc_vis(uint8_t c)
 		screen_y = (screen_y + (screen_x / NUM_COLS));
 		screen_x %= NUM_COLS;
 		// Scroll if necessary
-		scroll();
+		scroll(vis_term_id);
 		// Update video memory at the current location
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;

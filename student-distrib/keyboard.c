@@ -110,11 +110,11 @@ void process_input(char c) {
                     // If the character to remove is on the previous line
                     if(!screen_x) {
                         screen_y -= 1;
-                        // x is decremented before putc_sched, so this is not an error
+                        // x is decremented before putc_vis, so this is not an error
                         screen_x = NUM_COLS;
                     }
                     // Display the backspace
-                    putc_sched('\b');
+                    putc_vis('\b');
                 }
                 break;
             case ENTER_KEY_P:
@@ -124,7 +124,7 @@ void process_input(char c) {
                 read_buf[last] = '\n';
                 // Null terminate the string
                 read_buf[last+1] = '\0';
-                putc_sched('\n');
+                putc_vis('\n');
                 // Reset the index so backspace doesn't go to previous line
                 *read_buf_index = 0;
                 // Tells terminal read that there is no more data to read

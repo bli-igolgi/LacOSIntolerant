@@ -104,7 +104,6 @@ void switch_stackframe(int new_term_id) {
     if(!terminals[new_term_id].cur_task) {
         // Send end of interrupt for the keyboard
         send_eoi(1);
-        sti();
         sys_execute((uint8_t *)"shell");
     }
     else {

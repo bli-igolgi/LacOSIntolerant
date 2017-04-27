@@ -114,7 +114,7 @@ void process_input(char c) {
                         screen_x = NUM_COLS;
                     }
                     // Display the backspace
-                    putc_vis('\b');
+                    putc(vis_term_id,'\b');
                 }
                 break;
             case ENTER_KEY_P:
@@ -124,7 +124,7 @@ void process_input(char c) {
                 read_buf[last] = '\n';
                 // Null terminate the string
                 read_buf[last+1] = '\0';
-                putc_vis('\n');
+                putc(vis_term_id,'\n');
                 // Reset the index so backspace doesn't go to previous line
                 *read_buf_index = 0;
                 // Tells terminal read that there is no more data to read
@@ -242,7 +242,7 @@ print_char:
                 // Don't print non-printing characters like F1
                 if(c_print) {
                     read_buf[(*read_buf_index)++] = c_print;
-                    putc_vis(c_print);
+                    putc(vis_term_id,c_print);
                 }
                 break;
         }

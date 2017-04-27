@@ -22,7 +22,6 @@ static char* video_mem = (char *)VIDEO_ADDR;
  *	 Function: Puts the keyboard cursor at the specified location
  */
 void set_keyboard_pos(int term_id, int row, int col) {
-	// TODO: need to make this only update the screen for the current terminal
 	terminals[term_id].scrn_r = row;
 	terminals[term_id].scrn_c = col;
 	// If the terminal we are executing on is the current visible terminal
@@ -39,7 +38,6 @@ void set_keyboard_pos(int term_id, int row, int col) {
  *	 Function: Puts the cursor at the specified location
  */
 void set_cursor_pos(int term_id, int row, int col) {
-	// TODO: need to make this only update the screen for the current terminal
 	terminals[term_id].curs_r = row;
 	terminals[term_id].curs_c = col;
 	// If the terminal we are executing on is the current visible terminal
@@ -139,7 +137,7 @@ format_char_switch:
 					switch(*buf) {
 						/* Print a literal '%' character */
 						case '%':
-							putc_sched('%');
+							putc(sched_term_id,'%');
 							break;
 
 						/* Use alternate formatting */
@@ -201,7 +199,7 @@ format_char_switch:
 
 						/* Print a single character */
 						case 'c':
-							putc_sched( (uint8_t) *((int32_t *)esp) );
+							putc(sched_term_id, (uint8_t) *((int32_t *)esp) );
 							esp++;
 							break;
 
@@ -219,7 +217,7 @@ format_char_switch:
 				break;
 
 			default:
-				putc_sched(*buf);
+				putc(sched_term_id,*buf);
 				break;
 		}
 		buf++;
@@ -240,7 +238,7 @@ puts(int8_t* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
-		putc_sched(s[index]);
+		putc(sched_term_id,s[index]);
 		index++;
 	}
 
@@ -248,81 +246,43 @@ puts(int8_t* s)
 }
 
 /*
-* void putc_sched(uint8_t c);
+* void putc(sched_term_id,uint8_t c);
 *   Inputs: uint_8* c = character to print
 *   Return Value: void
 *	Function: Output a character to the terminal running on the scheduler
 */
 void
-putc_sched(uint8_t c)
+putc(int term_id, uint8_t c)
 {
+	term_t *term = &terminals[term_id];
 	if(c == '\n' || c == '\r') {
-		terminals[sched_term_id].scrn_r++;
-		terminals[sched_term_id].scrn_c = 0;
-		scroll(sched_term_id);
+		term->scrn_r++;
+		term->scrn_c = 0;
+		scroll(term_id);
 	}
 	// Support for backspace
 	else if(c == '\b') {
 		// Don't allow negative x values
-		if(terminals[sched_term_id].scrn_c == 0) return;
+		if(term->scrn_c == 0) return;
 		// Remove previous character
-		terminals[sched_term_id].scrn_c--;
-		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1)) = ' ';
-		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1) + 1) = ATTRIB;
+		term->scrn_c--;
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1)) = ' ';
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = ATTRIB;
 	}
 	else {
 		// Move to the next line if necessary
-		terminals[sched_term_id].scrn_r = (terminals[sched_term_id].scrn_r + (terminals[sched_term_id].scrn_c / NUM_COLS));
-		terminals[sched_term_id].scrn_c %= NUM_COLS;
+		term->scrn_r = (term->scrn_r + (term->scrn_c / NUM_COLS));
+		term->scrn_c %= NUM_COLS;
 		// Scroll if necessary
-		scroll(sched_term_id);
+		scroll(term_id);
 		// Update video memory at the current location
-		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1)) = c;
-		*(uint8_t *)(terminals[sched_term_id].vid_mem + ((NUM_COLS*terminals[sched_term_id].scrn_r + terminals[sched_term_id].scrn_c) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1)) = c;
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = ATTRIB;
 		// Move to the next column
-		terminals[sched_term_id].scrn_c++;
+		term->scrn_c++;
 	}
-	set_cursor_pos(sched_term_id, terminals[sched_term_id].scrn_r, terminals[sched_term_id].scrn_c);
-	set_keyboard_pos(sched_term_id, terminals[sched_term_id].scrn_r, terminals[sched_term_id].scrn_c);
-}
-
-/*
-* void putc_vis(uint8_t c);
-*   Inputs: uint_8* c = character to print
-*   Return Value: void
-*	Function: Output a character to the visible terminal
-*/
-void
-putc_vis(uint8_t c)
-{
-	if(c == '\n' || c == '\r') {
-		screen_y++;
-		screen_x = 0;
-		scroll(vis_term_id);
-	}
-	// Support for backspace
-	else if(c == '\b') {
-		// Don't allow negative x values
-		if(screen_x == 0) return;
-		// Remove previous character
-		screen_x--;
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-	}
-	else {
-		// Move to the next line if necessary
-		screen_y = (screen_y + (screen_x / NUM_COLS));
-		screen_x %= NUM_COLS;
-		// Scroll if necessary
-		scroll(vis_term_id);
-		// Update video memory at the current location
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-		// Move to the next column
-		screen_x++;
-	}
-	set_cursor_pos(vis_term_id, screen_y, screen_x);
-	set_keyboard_pos(vis_term_id, screen_y, screen_x);
+	set_cursor_pos(term_id, term->scrn_r, term->scrn_c);
+	set_keyboard_pos(term_id, term->scrn_r, term->scrn_c);
 }
 
 /*

@@ -296,7 +296,7 @@ void test_access_by_file_name(){
         if(how_much < NUM_COLS)
             memset(temp_string+how_much, 0, NUM_COLS-how_much);
 		for(i = 0; i < how_much; ++i)
-            putc_sched(temp_string[i]);
+            putc(sched_term_id,temp_string[i]);
 		file_size -= are_we_good;
 		printed += are_we_good;
 	}
@@ -325,7 +325,7 @@ void test_data_printing(){
         if(howmuchtoprint < NUM_COLS)
             memset(temp_string+howmuchtoprint, 0, 80-howmuchtoprint);
 		for(i = 0; i < howmuchtoprint; ++i)
-            putc_sched(temp_string[i]);
+            putc(sched_term_id,temp_string[i]);
 		file_size -= are_we_good;
 		printed += are_we_good;
 	}

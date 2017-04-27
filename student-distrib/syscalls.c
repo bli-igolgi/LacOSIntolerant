@@ -72,6 +72,7 @@ int32_t sys_execute(const uint8_t *command) {
         return 0;
     }
 
+    cli();
     /* ==== Parse command ==== */
     // Skip spaces in front of the command
     while(command[i] == ' ' && command[i] != '\0') i++;
@@ -147,7 +148,12 @@ int32_t sys_execute(const uint8_t *command) {
         "movl %1, %%eax;"
         "pushl $0x2B;"      // Data segment selector
         "pushl %%eax;"      // ESP
-        "pushf;"
+
+        "pushfl;"
+        "pop %%eax;"        // Get EFLAGS back into EDX
+        "or $0x200, %%eax;" // Set the IF flag, to enable interrupts
+        "pushl %%eax;"
+
         "pushl $0x23;"      // Code segment selector
         "pushl %2;"         // EIP
         "iret;"

@@ -99,6 +99,7 @@ void process_input(char c) {
     static volatile bool rtc_loop;
     uint8_t *read_buf = terminals[vis_term_id].key_buf;
     uint32_t *read_buf_index = &terminals[vis_term_id].key_buf_index;
+    
     cli();
     // Positive scan codes (key down)
     if(c >= 0) {

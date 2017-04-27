@@ -59,6 +59,13 @@ void pit_interrupt() {
     sti();
 }
 
+/*
+ * void switch_tasks(int new_term_id);
+ *   Inputs: new_term_id - the task to switch to
+ *   Return Value: none
+ *   Function: Switches to the current task (PCB) located in
+ *              the terminal corresponding to the specified index
+ */
 void switch_tasks(int new_term_id) {
     if(new_term_id != sched_term_id) {
         // Push registers and save the esp and ebp
@@ -72,8 +79,7 @@ void switch_tasks(int new_term_id) {
 
         map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
         // Map the vidmap address to the correct terminal video memory
-        map_page((void *)terminals[new_term_id].vid_mem, (void *)VIDMAP_VIRT_ADDR,
-            false, true, true, false);
+        map_page((void *)terminals[new_term_id].vid_mem, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
 
         flush_tlb();
         tss.esp0 = cur_pcb->esp0;
@@ -85,7 +91,6 @@ void switch_tasks(int new_term_id) {
             : 
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );
-        sti();
     }
     return;
 }

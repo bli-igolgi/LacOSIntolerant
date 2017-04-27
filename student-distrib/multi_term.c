@@ -18,6 +18,7 @@ void multi_term_init() {
     uint32_t i;
     for(i = 0; i < MAX_TERM_NUM; i++) {
         terminals[i].term_id = i;
+        // Point the first terminal's video memory to regular video memory
         if(!i)
             terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR);
         else 
@@ -42,12 +43,12 @@ void switch_terminal(int new_term_id) {
     if(new_term_id < 0 || new_term_id >= MAX_TERM_NUM ||
        our_popcount(pcb_status) >= MAX_PROCESSES)
         return;
-    // Clear interrupts to prevent terminal switching to happen again
+
     cli();
     switch_screen(new_term_id);
 
-
     switch_stackframe(new_term_id);
+    sti();
 }
 
 /*
@@ -99,8 +100,8 @@ void switch_stackframe(int new_term_id) {
 
     switch_keyboard_and_cursor_pos(new_term_id);
 
-    // If this terminal hasn't been run yet, start shell on it
     cur_pcb = terminals[new_term_id].cur_task;
+    // If this terminal hasn't been run yet, start shell on it
     if(!terminals[new_term_id].cur_task) {
         // Send end of interrupt for the keyboard
         send_eoi(1);
@@ -119,6 +120,5 @@ void switch_stackframe(int new_term_id) {
             : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
         );
     }
-    sti();
     return;
 }

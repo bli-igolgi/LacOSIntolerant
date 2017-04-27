@@ -80,6 +80,13 @@ int32_t sys_execute(const uint8_t *command) {
     while(command[i] != ' ' && command[i] != '\0' && j < cmd_buf_size) cmd[j++] = command[i++];
     cmd[j] = '\0';
     j = 0;
+    
+    /* ==== Check file validity ==== */
+    // Make sure the name of the file is in the file system
+    if(read_dentry_by_name(cmd, &cmd_dentry) == -1) {
+        sti();
+        return -1;
+    }
 
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();
@@ -92,15 +99,14 @@ int32_t sys_execute(const uint8_t *command) {
         new_pcb->arg[j++] = command[i++];
     new_pcb->arg[j] = '\0';
     
-    /* ==== Check file validity ==== */
-    // Make sure the name of the file is in the file system
-    if(read_dentry_by_name(cmd, &cmd_dentry) == -1) return -1;
     // Read the first 30 bytes into file_data
     read_data(cmd_dentry.inode_num, 0, file_data, FILE_H_SIZE);
 
     // Check that the first 4 bytes match executable format
-    if(strncmp((int8_t*)file_data, "\177ELF", 4)) 
+    if(strncmp((int8_t*)file_data, "\177ELF", 4)) {
+        sti();
         return -1;
+    }
     
     /* ==== Set up paging ==== */
     // Map the process into the appropriate spot in physical memory
@@ -168,6 +174,7 @@ int32_t sys_execute(const uint8_t *command) {
         ret_val = 256;
         except_raised = 0;
     }
+    sti();
     return ret_val;
 }
 

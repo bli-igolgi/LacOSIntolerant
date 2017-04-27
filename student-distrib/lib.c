@@ -246,8 +246,9 @@ puts(int8_t* s)
 }
 
 /*
-* void putc(sched_term_id,uint8_t c);
-*   Inputs: uint_8* c = character to print
+* void putc(int term_id, uint8_t c);
+*   Inputs: term_id 	- the terminal to print the character on
+*			uint_8* c 	- character to print
 *   Return Value: void
 *	Function: Output a character to the terminal running on the scheduler
 */

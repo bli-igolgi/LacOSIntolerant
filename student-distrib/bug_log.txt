@@ -1,0 +1,2 @@
+Bug: Any time you type any characters into the terminal, the number of processes is incremented, even for non commands. This freezes up the terminal after 6 are typed in.
+Fixed by Cody in 10 minutes: Decrement the number of active processes when an invalid command is typed in.

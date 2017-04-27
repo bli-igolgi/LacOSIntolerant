@@ -108,7 +108,7 @@ void paging_init()
     }
 
     // Map the alternate video memory page for vidmap
-    map_page((void *)VIDMAP_PHYS_ADDR, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
+    map_page((void *)VIDEO_ADDR, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
 
     map_page((void *)PAGE_TABLE_STARTADDR, (void *)PAGE_TABLE_STARTADDR, 1, 0, 1, 0);
 

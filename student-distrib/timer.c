@@ -71,6 +71,10 @@ void switch_tasks(int new_term_id) {
         cur_pcb = terminals[new_term_id].cur_task;
 
         map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
+        // Map the vidmap address to the correct terminal video memory
+        map_page((void *)terminals[new_term_id].vid_mem, (void *)VIDMAP_VIRT_ADDR,
+            false, true, true, false);
+
         flush_tlb();
         tss.esp0 = cur_pcb->esp0;
         tss.ss0 = cur_pcb->ss0;

@@ -31,7 +31,6 @@
 #define SHIFT_FOR_TABLEENTRY 12           // number of bits to remove to isolate table entry number
 /****************************************************/
 
-#define VIDMAP_PHYS_ADDR VIDEO_ADDR
 // The preset virtual address for vidmap
 #define VIDMAP_VIRT_ADDR 0x8800000      // 136MB
 

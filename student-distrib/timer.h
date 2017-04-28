@@ -8,6 +8,8 @@
 #include "syscalls.h"
 
 #define PIT_IRQ         0
+#define TIME_QUANTUM    40
+#define PIT_FREQ        (1000/TIME_QUANTUM)              // The length each task will get, in milliseconds
 #define BASE_FREQ       1193180
 #define CHANNEL1_PORT   0x40
 #define COMMAND_PORT    0x43

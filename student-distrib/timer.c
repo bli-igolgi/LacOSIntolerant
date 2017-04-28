@@ -6,8 +6,6 @@
 
 #include "timer.h"
 
-static uint32_t timer_ticks = 0;
-
 /*
  * void pit_init();
  *   Inputs: none
@@ -16,7 +14,7 @@ static uint32_t timer_ticks = 0;
  */
 void pit_init() {
     // Set the frequency to 1000 Hz, so that interrupts can happen in milliseconds
-    set_pit_freq(1000);
+    set_pit_freq(PIT_FREQ);
     enable_irq(PIT_IRQ);
 }
 
@@ -42,19 +40,9 @@ void set_pit_freq(uint32_t hz) {
 void pit_interrupt() {
     cli();
 
-    // Perform the task switch
-    if(++timer_ticks >= TIME_QUANTUM) {
-        // printf("%d milliseconds has passed\n", TIME_QUANTUM);
-        timer_ticks = 0;
-        send_eoi(PIT_IRQ);
-        uint8_t next_tid = (sched_term_id + 1) % MAX_TERM_NUM;
-
-        if(terminals[next_tid].cur_task)
-            switch_tasks(next_tid);
-        else if(terminals[(next_tid = ((next_tid + 1) % MAX_TERM_NUM))].cur_task)
-            switch_tasks(next_tid);
-    }
-    else send_eoi(PIT_IRQ);
+    send_eoi(PIT_IRQ);
+    uint8_t next_tid = (sched_term_id + 1) % MAX_TERM_NUM;
+    switch_tasks(next_tid);
 
     sti();
 }
@@ -77,20 +65,26 @@ void switch_tasks(int new_term_id) {
         sched_term_id = new_term_id;
         cur_pcb = terminals[new_term_id].cur_task;
 
-        map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
-        // Map the vidmap address to the correct terminal video memory
-        map_page((void *)terminals[new_term_id].vid_mem, (void *)VIDMAP_VIRT_ADDR, false, true, true, false);
+        // If this terminal hasn't been run yet, start shell on it
+        if(!cur_pcb) {
+            sys_execute((uint8_t *)"shell");
+        }
+        else {
+            map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
+            // Map the vidmap address to the correct terminal video memory
+            map_page((void *)terminals[new_term_id].vid_mem, (void *)VIDMAP_VIRT_ADDR, false, true, true, true);
 
-        flush_tlb();
-        tss.esp0 = cur_pcb->esp0;
-        tss.ss0 = cur_pcb->ss0;
-        // Move the old stack frame back and pop registers to return to old task
-        asm volatile(
-            "movl %0, %%esp;"
-            "movl %1, %%ebp;"
-            : 
-            : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
-        );
+            flush_tlb();
+            tss.esp0 = cur_pcb->esp0;
+            tss.ss0 = cur_pcb->ss0;
+            // Move the old stack frame back and pop registers to return to old task
+            asm volatile(
+                "movl %0, %%esp;"
+                "movl %1, %%ebp;"
+                : 
+                : "r"(terminals[new_term_id].esp), "r"(terminals[new_term_id].ebp)
+            );
+        }
     }
     return;
 }

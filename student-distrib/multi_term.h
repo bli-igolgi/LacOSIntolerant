@@ -6,7 +6,6 @@
 #include "i8259.h"
 #include "pcb.h"
 
-#define TIME_QUANTUM    40              // The length each task will get, in milliseconds
 
 void multi_term_init(void);
 void switch_terminal(int new_term_id);

@@ -41,12 +41,12 @@ void rtc_interrupt() {
     intr_occured = true;
 
 	cli();
+    send_eoi(RTC_IRQ);
     // Need to read from register C so that new interrupts can be processed
     outb(0x0C, CMOS_REG_1);   // select register C
     inb(CMOS_REG_2);          // just throw away contents
 	sti();
 	
-    send_eoi(RTC_IRQ);
 }
 
 /*

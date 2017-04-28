@@ -78,13 +78,13 @@ void keyboard_init() {
  */
 void keyboard_interrupt() {
     char c;
+    send_eoi(KEYBOARD_IRQ);
     // wait until status register indicates that data is ready to be read
     while(!(inb(STATUS_PORT) & INBUF_MASK)) {
         c = inb(DATA_PORT);
         break;
     }
     process_input(c);
-    send_eoi(KEYBOARD_IRQ);
 }
 
 /*

@@ -25,10 +25,10 @@ void set_keyboard_pos(int term_id, int row, int col) {
 	terminals[term_id].scrn_r = row;
 	terminals[term_id].scrn_c = col;
 	// If the terminal we are executing on is the current visible terminal
-	if(term_id == vis_term_id) {
-		screen_y = row;
-		screen_x = col;
-	}
+	// if(term_id == vis_term_id) {
+	// 	screen_y = row;
+	// 	screen_x = col;
+	// }
 }
 
 /*

@@ -30,7 +30,7 @@ bool except_raised = 0;
 
     flush_tlb();
     // Go back to the parent task
-    terminals[vis_term_id].cur_task = cur_pcb->parent_task;
+    terminals[sched_term_id].cur_task = cur_pcb->parent_task;
     cur_pcb = cur_pcb->parent_task;
     // Restore the pointers to the stack
     if(cur_pcb) {
@@ -132,7 +132,7 @@ int32_t sys_execute(const uint8_t *command) {
         );
     }
     // Switch to the child task
-    terminals[vis_term_id].cur_task = new_pcb;
+    terminals[sched_term_id].cur_task = new_pcb;
     cur_pcb = new_pcb;
     // Open default stdin (fd #0) & stdout (fd #1) per process
     terminal_open(NULL);

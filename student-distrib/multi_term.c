@@ -19,10 +19,8 @@ void multi_term_init() {
     for(i = 0; i < MAX_TERM_NUM; i++) {
         terminals[i].term_id = i;
         // Point the first terminal's video memory to regular video memory
-        if(!i)
-            terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR);
-        else 
-            terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
+        if(!i) terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR);
+        else   terminals[i].vid_mem = (uint8_t *)(VIDEO_ADDR + (i+1)*FOUR_KB);
         terminals[i].scrn_c = terminals[i].scrn_r = 0;
         terminals[i].curs_r = terminals[i].curs_c = 0;
         terminals[i].key_buf_index = terminals[i].esp = terminals[i].ebp = 0;
@@ -47,7 +45,9 @@ void switch_terminal(int new_term_id) {
     cli();
     switch_screen(new_term_id);
 
-    switch_stackframe(new_term_id);
+    // switch_stackframe(new_term_id);
+    vis_term_id = new_term_id;
+    switch_keyboard_and_cursor_pos(new_term_id);
     sti();
 }
 
@@ -88,7 +88,7 @@ void switch_screen(int new_term_id) {
  *   Return Value: none
  *   Function: Switches the stack frame to the new terminal
  */
-void switch_stackframe(int new_term_id) {
+/*void switch_stackframe(int new_term_id) {
     // Push registers and save the esp and ebp
     asm volatile(
         "movl %%esp, %0;"
@@ -103,8 +103,6 @@ void switch_stackframe(int new_term_id) {
     cur_pcb = terminals[new_term_id].cur_task;
     // If this terminal hasn't been run yet, start shell on it
     if(!terminals[new_term_id].cur_task) {
-        // Send end of interrupt for the keyboard
-        send_eoi(1);
         sys_execute((uint8_t *)"shell");
     }
     else {
@@ -122,3 +120,4 @@ void switch_stackframe(int new_term_id) {
     }
     return;
 }
+*/

@@ -42,12 +42,14 @@ struct pcb_t {
     int fd_status;                      // bitmap of which fds are occupied
     uint8_t term_num;                   // which terminal am I on?
     // all general purpose registers along with base kernel stack pointer
-    uint32_t eax, ebx, ecx, edx, esi, edi, esp, ebp, esp0;
+    // uint32_t eax, ebx, ecx, edx, esi, edi;
+    // uint32_t term_esp, term_ebp;        // The esp/ebp associated with the terminal
+    uint32_t esp, ebp, esp0;
     uint16_t ss0;
     uint32_t* page_addr;                // pointer to process's page
     pcb_t* parent_task;                 // pointer to parent task's PCB
     uint32_t pcb_num;                   // number of the pcb (1-8)
-	uint8_t arg[KEY_BUF_SIZE];              // maximum possible chars (for simplicity)
+	uint8_t arg[KEY_BUF_SIZE];          // maximum possible chars (for simplicity)
 };
 
 pcb_t * init_pcb();

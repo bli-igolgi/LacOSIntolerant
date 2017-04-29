@@ -1,7 +1,4 @@
-#include "paging.h"
-#include "lib.h"
-#include "types.h"
-#include "paging.h"
+#include "malloc.h"
 
 
 
@@ -16,7 +13,7 @@
  *   SIDE EFFECTS: sets bits in the user's page table
  */
 void * malloc(uint32_t size) {
-
+/*
 	void * retval; // address of the memory the user requested
 
 	// check for the amount of memory the user wants
@@ -29,11 +26,12 @@ void * malloc(uint32_t size) {
 	}
 
 	return retval;
-
+*/
+	return NULL;
 }
 
-void * malloc_small(size) {
-
+void * malloc_small(uint32_t size) {
+/*
 	uint32_t mem_size; // the size of the memory chunck to allocate
 	uint32_t * page_start; // address of the start of the page we are considering
 	uint32_t * bookkeeping; // address of the bookkeeping info
@@ -79,10 +77,9 @@ void * malloc_small(size) {
 
 		// return the a pointer to this memory
 		return ret_val;
+
 	}
-
-
-
+*/
 
 	// return failure if we could not find a page
 	return NULL;
@@ -107,17 +104,217 @@ void * malloc_small(size) {
  *   SIDE EFFECTS: changes bits in the user's page table
  */
 void free(void *ptr){
-	// check if the page is present
 
-	// mark it as no longer present
+	uint32_t index; // index of the bookkeeping info
+	uint32_t * bookkeeping; // address at which bookkeeping info is stored
+	uint32_t memory_index; // index of the memory chunk
+	uint32_t bitmask; // bitmask to check for specific present bits in the bookkeeping info
 
-	// change the user's page table and page directory bits
+	/* check for a valid address */
+	// must be 8 trailing zeros
+	if (((uint32_t)ptr & MALLOC_TRAILING_8) != 0)
+		return;
 
-	// because the page table was changed, we might need to flush the tlb
+	// make sure the address is in the valid range
+	if ((uint32_t)ptr < MALLOC_FIRST_ADDR || (uint32_t)ptr > MALLOC_LAST_ADDR)
+		return;
+
+	/* compute the index of the entry in the bookkeeping info - same as number of the 4kb page */
+	// discard the upper bits and the lower 12 bits
+	index = ((uint32_t)ptr - MALLOC_FIRST_ADDR) >> 12;
+
+	/********** TEST POINT: make sure this is always a valid index **********/
+
+	// get the address at which bookkeeping info is stored
+	bookkeeping = (uint32_t *)(MALLOC_BOOK + index);
+
+	// check the present bit -- return if not present
+	if ((*bookkeeping & MALLOC_PRESENT) == 0)
+		return;
+
+	/* compute the "index" of the page */
+	// discard the upper 20 bits and the lower 8 bits
+	memory_index = (((uint32_t)ptr & MALLOC_TRAILING_12) >> 8);
+
+
+	/*********** SHOULD USE A DO WHILE LOOP HERE ***********/
+
+
+	// check for a 256 byte page
+	bitmask = MALLOC_256 >> memory_index;
+	if ((bitmask & *bookkeeping) == 1) {
+		/* found the correct page */
+		clear_bit(bookkeeping, memory_index, 256);
+		return;
+	}
+
+
+	/****** check for 512 byte page ******/
+	// check for invalid page alignment
+	if ((memory_index % 2) != 0)
+		return;
+
+	// readjust the memory index for 512 and recompute the bitmask
+	memory_index = memory_index >> 1;
+	bitmask = MALLOC_512 >> memory_index;
+
+	if ((bitmask & *bookkeeping) == 1) {
+		/* found the correct page */
+		clear_bit(bookkeeping, memory_index, 512);
+		return;
+	}
+
+
+	/****** check for 1024 byte page ******/
+	// check for invalid page alignment
+	if ((memory_index % 2) != 0)
+		return;
+
+	// readjust the memory index for 1024 and recompute the bitmask
+	memory_index = memory_index >> 1;
+	bitmask = MALLOC_1024 >> memory_index;
+
+	if ((bitmask & *bookkeeping) == 1) {
+		/* found the correct page */
+		clear_bit(bookkeeping, memory_index, 1024);
+		return;
+	}
+
+
+	/****** check for 2048 byte page ******/
+	// check for invalid page alignment
+	if ((memory_index % 2) != 0)
+		return;
+
+	// readjust the memory index for 2048 and recompute the bitmask
+	memory_index = memory_index >> 1;
+	bitmask = MALLOC_2048 >> memory_index;
+
+	if ((bitmask & *bookkeeping) == 1) {
+		/* found the correct page */
+		clear_bit(bookkeeping, memory_index, 2048);
+		return;
+	}
+
+
+	/****** check for 4096 byte page ******/
+	// check for invalid page alignment
+	if ((memory_index % 2) != 0)
+		return;
+
+	// readjust the memory index for 2048 and recompute the bitmask
+	memory_index = memory_index >> 1;
+	bitmask = MALLOC_4096 >> memory_index;
+
+	if ((bitmask & *bookkeeping) == 1) {
+		/* found the correct page */
+		clear_bit(bookkeeping, memory_index, 4096);
+		return;
+	}
+
+
 
 	return;
 }
 
+
+void clear_bit(uint32_t * bkkp_entry, uint32_t mem_index, uint32_t type)
+{
+	uint32_t sibling_index; // index to the sibling bit
+	uint32_t sibling_bitmask; // bitmask for the sibling
+	uint32_t bitmask; // bitmask for the bit we are considering
+
+	switch(type) {
+		case 256: {
+			// compute the bitmask
+			bitmask = MALLOC_256 >> mem_index;
+
+			// set the bit to zero
+			*bkkp_entry = *bkkp_entry & (~bitmask);
+
+			// get the index to the sibling bit - flip the LSB
+			sibling_index = mem_index ^ 0x1;
+			sibling_bitmask = MALLOC_256 >> sibling_index;
+
+			// check if the sibling is in use -- if not, keep going
+			if ((sibling_bitmask & *bkkp_entry) != 0)
+				break;
+
+			// shift the index for the next level
+			mem_index = mem_index >> 1;
+		}
+
+		case 512: {
+			// compute the bitmask
+			bitmask = MALLOC_512 >> mem_index;
+
+			// set the bit to zero
+			*bkkp_entry = *bkkp_entry & (~bitmask);
+
+			// get the index to the sibling bit - flip the LSB
+			sibling_index = mem_index ^ 0x1;
+			sibling_bitmask = MALLOC_512 >> sibling_index;
+
+			// check if the sibling is in use -- if not, keep going
+			if ((sibling_bitmask & *bkkp_entry) != 0)
+				break;
+
+			// shift the index for the next level
+			mem_index = mem_index >> 1;
+		}
+
+		case 1024: {
+			// compute the bitmask
+			bitmask = MALLOC_1024 >> mem_index;
+
+			// set the bit to zero
+			*bkkp_entry = *bkkp_entry & (~bitmask);
+
+			// get the index to the sibling bit - flip the LSB
+			sibling_index = mem_index ^ 0x1;
+			sibling_bitmask = MALLOC_1024 >> sibling_index;
+
+			// check if the sibling is in use -- if not, keep going
+			if ((sibling_bitmask & *bkkp_entry) != 0)
+				break;
+
+			// shift the index for the next level
+			mem_index = mem_index >> 1;
+		}
+
+		case 2048: {
+			// compute the bitmask
+			bitmask = MALLOC_2048 >> mem_index;
+
+			// set the bit to zero
+			*bkkp_entry = *bkkp_entry & (~bitmask);
+
+			// get the index to the sibling bit - flip the LSB
+			sibling_index = mem_index ^ 0x1;
+			sibling_bitmask = MALLOC_2048 >> sibling_index;
+
+			// check if the sibling is in use -- if not, keep going
+			if ((sibling_bitmask & *bkkp_entry) != 0)
+				break;
+
+			// shift the index for the next level
+			mem_index = mem_index >> 1;
+		}
+
+		case 4096: {
+			// compute the bitmask
+			bitmask = MALLOC_4096 >> mem_index;
+
+			// set the bit to zero
+			*bkkp_entry = *bkkp_entry & (~bitmask);
+
+			break;
+		}
+
+		default:
+			break;
+	}
+}
 
 
 /******** NOTE: init_heap() needs to be called during the initialization*****/
@@ -131,10 +328,11 @@ void free(void *ptr){
  */
 void init_heap() {
 	// get the address of the last page in memory
-	uint32_t * page = MEM_SIZE - SIZE_4kB;
+	uint32_t * page = (uint32_t *)MALLOC_BOOK;
+	uint32_t i; // counter for for loop
 
 	// map the last 4kB page -- 4kB page, kernel privileges, read/write
-	map_page(page, page, 0, 0, 1);
+	map_page(page, page, 0, 0, 1, 1);
 
 	// clear the last page (initialize bookkeeping info)
 	for(i=0;i<PAGE_ENTRIES;i++)

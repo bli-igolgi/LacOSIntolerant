@@ -10,35 +10,37 @@
  *   INPUTS:       size -- the number of bytes the user has requested
  *   RETURN VALUE: success -- a pointer to the memory allocated to the user program
  *                 failure -- NULL pointer
- *   SIDE EFFECTS: sets bits in the user's page table
+ *   SIDE EFFECTS: sets bits in the page tables
  */
 void * malloc(uint32_t size) {
-/*
+
 	void * retval; // address of the memory the user requested
+
 
 	// check for the amount of memory the user wants
 	if (size > PAGE_SIZE_4kB) {
-		// call function to allocate multiple pages
-		retval = malloc_large(size);
+		// return NULL becaue this is not currently supported
+		retval = NULL;
 	} else {
 		// call function to allocate all or part of a page
 		retval = malloc_small(size);
 	}
 
 	return retval;
-*/
-	return NULL;
 }
 
+
 void * malloc_small(uint32_t size) {
-/*
+
 	uint32_t mem_size; // the size of the memory chunck to allocate
 	uint32_t * page_start; // address of the start of the page we are considering
 	uint32_t * bookkeeping; // address of the bookkeeping info
 	void * ret_val;
+	uint32_t index; // counter for the for loop
 
 
-	// convert the size to the smallest power of two larger than the number
+
+	// convert the size to the smallest size we can allocate larger than that number
 	if (size <= 256) {
 		mem_size = 256;
 	} else if (size <= 512) {
@@ -52,20 +54,20 @@ void * malloc_small(uint32_t size) {
 	}
 
 	// search through the pages for a page with an open spot
-	for (index=1; index<PAGE_ENTRIES; index++) {
+	for (index=0; index<PAGE_ENTRIES - 1; index++) {
 		// compute the address of the start of the page
-		page_start = MEM_SIZE - PAGE_SIZE_4kB * (index + 1);
+		page_start = (uint32_t *)(MALLOC_FIRST_ADDR + PAGE_SIZE_4kB * index);
 
 		// compute the address of the bookkeeping entry
-		bookkeeping = MEM_SIZE - 4 * (index + 1); // 4 bytes per long
+		bookkeeping = (uint32_t *) (MALLOC_BOOK + MALLOC_BOOK_ENTRY * index);
 
 		// if the page has not been mapped, map it and set up the bookkeeping info
-		if (*bookkeeping & MALLOC_PRESENT == 0) {
+		if ((*bookkeeping & MALLOC_PRESENT) == 0) {
 			// map the 4kB page with user privileges and read/write
-			map_page(page_start, page_start, 0, 1, 1);
+			map_page(page_start, page_start, 0, 1, 1, 1);
 
-			// set the "present bit" and "4096 bytes" bit
-			*bookkeeping  = MALLOC_PRESENT | MALLOC_4096;
+			// set the "present bit"
+			*bookkeeping  = MALLOC_PRESENT;
 		}
 
 		// check for the correct size chunk of memory
@@ -79,20 +81,11 @@ void * malloc_small(uint32_t size) {
 		return ret_val;
 
 	}
-*/
+
 
 	// return failure if we could not find a page
 	return NULL;
 }
-
-
-
-	// somehow mark it as present
-
-	// change the user's page table and page directory bits
-
-
-
 
 
 /* 
@@ -211,8 +204,6 @@ void free(void *ptr){
 		clear_bit(bookkeeping, memory_index, 4096);
 		return;
 	}
-
-
 
 	return;
 }

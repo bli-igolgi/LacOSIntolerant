@@ -24,6 +24,7 @@
 #define MALLOC_LAST_ADDR  0xffffe000 // address of the start of the last address space
 #define MALLOC_BOOK       0xfffff000 // address of the start of bookkeeping info
 
+#define MALLOC_BOOK_ENTRY 0x04       // size of a bookkeeping entry
 #define NUM_256 256 // the number 256
 
 // malloc and free functions -- description in implementation

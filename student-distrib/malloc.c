@@ -12,7 +12,8 @@
  *                 failure -- NULL pointer
  *   SIDE EFFECTS: sets bits in the page tables
  */
-void * malloc(uint32_t size) {
+void * malloc(uint32_t size)
+{
 
 	void * retval; // address of the memory the user requested
 
@@ -30,27 +31,26 @@ void * malloc(uint32_t size) {
 }
 
 
-void * malloc_small(uint32_t size) {
+void * malloc_small(uint32_t size)
+{
 
-	uint32_t mem_size; // the size of the memory chunck to allocate
+	uint32_t mem_size_type; // type of the size of memory to be allocated
 	uint32_t * page_start; // address of the start of the page we are considering
 	uint32_t * bookkeeping; // address of the bookkeeping info
-	void * ret_val;
 	uint32_t index; // counter for the for loop
+	uint32_t mem_size; // actual size of the memory
 
-
-
-	// convert the size to the smallest size we can allocate larger than that number
+	// choose a type of memory size (described in malloc.h) based on the number of bytes we need
 	if (size <= 256) {
-		mem_size = 256;
+		mem_size_type = 4;
 	} else if (size <= 512) {
-		mem_size = 512;
+		mem_size_type = 3;
 	} else if (size <= 1024) {
-		mem_size = 1024;
+		mem_size_type = 2;
 	} else if (size <= 2048) {
-		mem_size = 2048;
+		mem_size_type = 1;
 	} else {
-		mem_size = 4096;
+		mem_size_type = 0;
 	}
 
 	// search through the pages for a page with an open spot
@@ -70,22 +70,124 @@ void * malloc_small(uint32_t size) {
 			*bookkeeping  = MALLOC_PRESENT;
 		}
 
-		// check for the correct size chunk of memory
-
-		// check for the correct size
-		// if the correct size is not available, check for the next larger size
-		
-
-
-		// return the a pointer to this memory
-		return ret_val;
+		// check the availability of each address
+		for (index=0; index < NUM_AVAIL[mem_size_type]; index++) {
+			if (check_availability(bookkeeping, index, mem_size_type) == 0) {
+				// if it is available, set the bits and return the address
+				set_availability(bookkeeping, index, mem_size_type);
+				mem_size = PAGE_SIZE_4kB >> mem_size_type;
+				return (uint32_t *) (MALLOC_FIRST_ADDR + size * index);
+			}
+		}
 
 	}
-
 
 	// return failure if we could not find a page
 	return NULL;
 }
+
+
+uint32_t check_availability(uint32_t * bkkp_entry, uint32_t mem_index, uint32_t type)
+{
+	uint32_t bitmask; // bitmask to check if a chunck of memory is in use
+	uint32_t sibling_index; // index of the sibling
+	uint32_t sibling_bitmask; // bitmask to check if sibling is in use
+
+	// if we are checking the 4kB page, we just return success or failure
+	if (type == 0) {
+		if ((*bkkp_entry & first_present_bit[type]) == 0) {
+			return SUCCESS;
+		} else {
+			return FAILURE;
+		}
+	}
+
+	// if the page is marked in use, it is not available
+	bitmask = (first_present_bit[type]) >> mem_index;
+	if ((*bkkp_entry & bitmask) != 0)
+		return FAILURE;
+
+	// compute the index and the bitmask of the sibling
+	sibling_index = mem_index ^ 0x1;
+	sibling_bitmask = (first_present_bit[type]) >> sibling_index;
+
+	// if the page is not in use, but its sibling is in use, we can use it
+	if ((*bkkp_entry & sibling_bitmask) != 0)
+		return SUCCESS;
+
+	// otherwise, we need to check the availability of the parent
+	return check_availability(bkkp_entry, mem_index > 1, type - 1);
+}
+
+
+
+/* 
+ * set_availability
+ *   DESCRIPTION:  sets the bits necessary to use memory with a given size at a given index
+ *   INPUTS:       bkkp_entry - a pointer to the bookkeeping info
+ *                 mem_index - the index at which the memory we want to use is at
+ *                 type - the size of the page (types specified in malloc.h)
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: sets bits in the bookkeeping info
+ */
+void set_availability(uint32_t * bkkp_entry, uint32_t mem_index, uint32_t type)
+{
+	uint32_t bitmask; // bitmask to check if memory is in use
+
+	// set the "in use" bits all the way up
+	while (type >= 0) {
+		// set the "in use" bit
+		bitmask = (first_present_bit[type]) >> mem_index;
+		*bkkp_entry = *bkkp_entry | bitmask;
+
+		// remove the least significant bit and decrement the type
+		mem_index = mem_index >> 1;
+		type--;
+	}
+	return;
+}
+
+
+
+	// check for the correct size chunk of memory
+	// if they are all present, we continue through the for loop
+	// if they are not all present:
+		// if parent and sibling are 1, we can use it
+		// if parent is 1 and sibling is not, we can't use it
+
+		// if parent is 0, we need to keep checking upwards
+
+
+/*
+// return NULL pointer for failure and a pointer for success
+uint32_t * try1024(){
+	uint32_t index;
+
+	// check each page for an open one of the correct size -- exactly one sibling is occupied
+	for(index=0; index < 4; index++){
+		// compute the bitmask and the sibling's bitmask
+		bitmask = MALLOC_1024 >> index;
+		sibling_bitmask = MALLOC_1024 >> (index ^ 0x1);
+
+		// if index is not is use, but sibling is, we can use index
+		if((*bookkeeping & bitmask) == 0 && (*bookkeeping & sibling_bitmask) != 0) {
+			// set the bit and return the address
+			*bookkeeping = *bookkeeping | bitmask;
+			return NULL; // NEED TO RETURN AN ADDRESS HERE
+		}
+
+	}
+
+	// at this point there we no easy allocations, so we check parents for openings
+	for(index=0; index < 4; index = index + 2) {
+		// if this returns then, the parent's bit was set and we are free to use one of the siblings
+		if (try2048 != NULL) {
+
+		}
+	}
+
+}
+*/
 
 
 /* 

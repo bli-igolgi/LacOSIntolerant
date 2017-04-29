@@ -15,6 +15,7 @@
 #include "paging.h"
 #include "file_system.h"
 #include "syscalls.h"
+#include "malloc.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -180,6 +181,7 @@ entry (unsigned long magic, unsigned long addr)
     // Initialize paging
     paging_init();
 
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
@@ -196,6 +198,9 @@ entry (unsigned long magic, unsigned long addr)
     } */
 
     clear_screen();
+
+    // Initialize malloc
+    init_heap();
 
     /* Execute the first program ('shell') ... */
     sys_execute((uint8_t *)"     shell        fun");

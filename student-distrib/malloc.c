@@ -2,6 +2,25 @@
 
 
 
+// bitmasks for the first present bit in each type of page block
+uint32_t first_present_bit[5] = {
+	0x40000000, // 4096
+	0x20000000, // 2048
+	0x04000000, // 1024
+	0x00400000, // 512
+	0x00004000  // 256
+};
+
+// number of chunks of memory available per 4kB page
+uint32_t NUM_AVAIL[5] = {
+	1, // size is 4096 
+	2, // size is 2048
+	4, // size is 1024
+	8, // size is 512
+	16 // size is 256
+};
+
+
 /* 
  * malloc
  *   DESCRIPTION:  Allocates memory for a user program
@@ -410,8 +429,6 @@ void clear_bit(uint32_t * bkkp_entry, uint32_t mem_index, uint32_t type)
 }
 
 
-/******** NOTE: init_heap() needs to be called during the initialization*****/
-
 /*
  * init_heap
  *   DESCRIPTION: sets up the bookkeeping info for the heap
@@ -425,11 +442,12 @@ void init_heap() {
 	uint32_t i; // counter for for loop
 
 	// map the last 4kB page -- 4kB page, kernel privileges, read/write
-	map_page(page, page, 0, 0, 1, 1);
+	uint32_t temp = map_page(page, page, 0, 0, 1, 1);
 
 	// clear the last page (initialize bookkeeping info)
-	for(i=0;i<PAGE_ENTRIES;i++)
-		page[i] = 0;
+	for(i=0;i<(uint32_t)PAGE_ENTRIES;i++) {
+		page[i] = 0x0;
+	}
 
 	return;
 }

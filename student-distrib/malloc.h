@@ -28,30 +28,19 @@
  * 4 - 256B
  */
 // bitmasks for the first present bit in each type of page block
-uint32_t first_present_bit[5] = {
-	0x40000000, // 4096
-	0x20000000, // 2048
-	0x04000000, // 1024
-	0x00400000, // 512
-	0x00004000  // 256
-};
+extern uint32_t first_present_bit[5];
+
 
 // number of chunks of memory available per 4kB page
-uint32_t NUM_AVAIL[5] = {
-	1, // size is 4096 
-	2, // size is 2048
-	4, // size is 1024
-	8, // size is 512
-	16 // size is 256
-};
+extern uint32_t NUM_AVAIL[5];
 
 
 #define MALLOC_TRAILING_8  0x0ff // bitmask for the last 8 bits
 #define MALLOC_TRAILING_12 0xfff // bitmask for the last 12 bits
 
-#define MALLOC_FIRST_ADDR 0xffc00000 // address of the start of the first address space
-#define MALLOC_LAST_ADDR  0xffffe000 // address of the start of the last address space
-#define MALLOC_BOOK       0xfffff000 // address of the start of bookkeeping info
+#define MALLOC_FIRST_ADDR 0x0fc00000 // address of the start of the first address space
+#define MALLOC_LAST_ADDR  0x0fffe000 // address of the start of the last address space
+#define MALLOC_BOOK       0x0ffff000 // address of the start of bookkeeping info
 
 #define MALLOC_BOOK_ENTRY 0x04       // size of a bookkeeping entry
 #define NUM_256 256 // the number 256

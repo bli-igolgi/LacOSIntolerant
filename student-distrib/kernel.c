@@ -184,6 +184,15 @@ entry (unsigned long magic, unsigned long addr)
     // Initialize malloc
     init_heap();
 
+    /************ TESTING HARNESS FOR MALLOC **************/
+    uint32_t *test1;
+
+    test1 = malloc(4);
+    *test1 = 0xece391;
+    free(test1);
+
+    /************ SHOULD BE EVENTUALLY REMOVED *************/
+
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

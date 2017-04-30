@@ -33,9 +33,11 @@ uint32_t NUM_AVAIL[5] = {
  */
 void * malloc(uint32_t size)
 {
-
 	void * retval; // address of the memory the user requested
 
+	// if no memory is requested, don't do anything
+	if (size == 0)
+		return NULL;
 
 	// check for the amount of memory the user wants
 	if (size > PAGE_SIZE_4kB) {
@@ -95,8 +97,11 @@ void * malloc_small(uint32_t size)
 			// map the 4kB page with user privileges and read/write
 			map_page(page_start, page_start, 0, 1, 1, 1);
 
+			*page_start = 0xece391;
+
 			// set the "present bit"
-			*bookkeeping  = MALLOC_PRESENT;
+			//*bookkeeping  = MALLOC_PRESENT;
+			uint32_t temp = *bookkeeping;
 		}
 
 		// check the availability of each address
@@ -188,15 +193,6 @@ void set_availability(uint32_t * bkkp_entry, uint32_t mem_index, uint32_t type)
 
 
 
-	// check for the correct size chunk of memory
-	// if they are all present, we continue through the for loop
-	// if they are not all present:
-		// if parent and sibling are 1, we can use it
-		// if parent is 1 and sibling is not, we can't use it
-
-		// if parent is 0, we need to keep checking upwards
-
-
 /*
 // return NULL pointer for failure and a pointer for success
 uint32_t * try1024(){
@@ -245,13 +241,14 @@ void free(void *ptr){
 	uint32_t bitmask; // bitmask to check for specific present bits in the bookkeeping info
 
 	/* check for a valid address */
+	// make sure the address is in the valid range -- handles NULL pointer case
+	if ((uint32_t)ptr < MALLOC_FIRST_ADDR || (uint32_t)ptr >= MALLOC_BOOK)
+		return;
+
 	// must be 8 trailing zeros
 	if (((uint32_t)ptr & MALLOC_TRAILING_8) != 0)
 		return;
 
-	// make sure the address is in the valid range
-	if ((uint32_t)ptr < MALLOC_FIRST_ADDR || (uint32_t)ptr >= MALLOC_BOOK)
-		return;
 
 	/* compute the index of the entry in the bookkeeping info - same as number of the 4kb page */
 	// discard the upper bits and the lower 12 bits
@@ -462,7 +459,7 @@ void init_heap() {
 	uint32_t i; // counter for for loop
 
 	// map the last 4kB page -- 4kB page, kernel privileges, read/write
-	map_page(page, page, 0, 0, 1, 1);
+	map_page((void *)page, (void *)page, 0, 0, 1, 1);
 
 	// clear the last page (initialize bookkeeping info)
 	for(i=0;i<(uint32_t)PAGE_ENTRIES;i++) {

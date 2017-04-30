@@ -11,7 +11,7 @@ uint32_t first_present_bit[5] = {
 	0x00004000  // 256
 };
 
-// number of chunks of memory available per 4kB page
+// number of sections of memory available per 4kB page
 uint32_t NUM_AVAIL[5] = {
 	1, // size is 4096 
 	2, // size is 2048
@@ -50,6 +50,16 @@ void * malloc(uint32_t size)
 }
 
 
+/* 
+ * malloc_small
+ *   DESCRIPTION:  finds memory at least as big as the user requested for the user to have
+ *                 fills out the page table if necessary
+ *                 marks the memory as "in use" in the bookkeeping info
+ *   INPUTS:       the size of the memory the user wants
+ *   RETURN VALUE: the pointer to the memory we allocated
+ *   SIDE EFFECTS: may map a page in the page tables
+ *                 sets "in use" bits in the bookkeeping info
+ */
 void * malloc_small(uint32_t size)
 {
 
@@ -95,7 +105,7 @@ void * malloc_small(uint32_t size)
 				// if it is available, set the bits and return the address
 				set_availability(bookkeeping, index, mem_size_type);
 				mem_size = PAGE_SIZE_4kB >> mem_size_type;
-				return (uint32_t *) (MALLOC_FIRST_ADDR + size * index);
+				return (uint32_t *) (MALLOC_FIRST_ADDR + mem_size * index);
 			}
 		}
 
@@ -106,6 +116,16 @@ void * malloc_small(uint32_t size)
 }
 
 
+
+/* 
+ * check_availability
+ *   DESCRIPTION:  checks if memory of a given size at a given position is available
+ *   INPUTS:       bkkp_entry - the address of the bookkeeping long we are modifying
+ *                 mem_index - index of the memory we are seeing if available
+ *                 type - the size of the memory we want (types explained in malloc.h)
+ *   RETURN VALUE: 0 if memory is available, -1 if memory is not available
+ *   SIDE EFFECTS: none
+ */
 uint32_t check_availability(uint32_t * bkkp_entry, uint32_t mem_index, uint32_t type)
 {
 	uint32_t bitmask; // bitmask to check if a chunck of memory is in use
@@ -230,7 +250,7 @@ void free(void *ptr){
 		return;
 
 	// make sure the address is in the valid range
-	if ((uint32_t)ptr < MALLOC_FIRST_ADDR || (uint32_t)ptr > MALLOC_LAST_ADDR)
+	if ((uint32_t)ptr < MALLOC_FIRST_ADDR || (uint32_t)ptr >= MALLOC_BOOK)
 		return;
 
 	/* compute the index of the entry in the bookkeeping info - same as number of the 4kb page */
@@ -442,7 +462,7 @@ void init_heap() {
 	uint32_t i; // counter for for loop
 
 	// map the last 4kB page -- 4kB page, kernel privileges, read/write
-	uint32_t temp = map_page(page, page, 0, 0, 1, 1);
+	map_page(page, page, 0, 0, 1, 1);
 
 	// clear the last page (initialize bookkeeping info)
 	for(i=0;i<(uint32_t)PAGE_ENTRIES;i++) {
@@ -483,6 +503,4 @@ If there are no free blocks of a large enough size, we check the next page
 
 
 This assumes that the user will only write the exact amount of bytes he requested
-
-*For this implementation, I need to decide on the basic unit of memory
 */

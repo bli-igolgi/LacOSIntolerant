@@ -21,7 +21,7 @@
 
 
 /* types:
- * 0 - 4kB
+ * 0 - 4kB piece of memory
  * 1 - 2kB
  * 2 - 1kB
  * 3 - 512B
@@ -39,7 +39,6 @@ extern uint32_t NUM_AVAIL[5];
 #define MALLOC_TRAILING_12 0xfff // bitmask for the last 12 bits
 
 #define MALLOC_FIRST_ADDR 0x0fc00000 // address of the start of the first address space
-#define MALLOC_LAST_ADDR  0x0fffe000 // address of the start of the last address space
 #define MALLOC_BOOK       0x0ffff000 // address of the start of bookkeeping info
 
 #define MALLOC_BOOK_ENTRY 0x04       // size of a bookkeeping entry

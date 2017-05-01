@@ -1,5 +1,145 @@
-Bug: Any time you type any characters into the terminal, the number of processes is incremented, even for non commands. This freezes up the terminal after 6 are typed in.
+Bug: S U C C
+Fixer: 
+Time Spent: 
+Solution: 
+------------
+Bug: T H I C C
+Fixer: 
+Time Spent: 
+Solution: 
+------------
+Bug: D I C C
+Fixer: 
+Time Spent: 
+Solution: 
+------------
+Bug: I HAVE S.T.D. & NOW ALL I NEED IS U.
+Fixer: 
+Time Spent: 
+Solution: 
+------------
+Bug: 
+Fixer: 
+Time Spent: 
+Solution: 
+------------
+Bug: Can't initialize pa-pa-p-page page p..page for uhhhhhhhh uhm bookkeeping info for malloc.
+Fixer: Joe 
+Time Spent: 30 mins 
+Solution: Changed end of memory to 256 megabytes instead of 4 GB.
+------------
+Bug: Invalid commands counted as processes and increments the max number of processes allowed.
+Fixer: Joe
+Time Spent: 30 mins 
+Solution: Decrement number of active processes when invalid command is entered (so net is 0).
+------------
+Bug: Background processes also write to video memory.
 Fixer: Cody
-Time Spent: 10 minutes
-Solution: Decrement the number of active processes when an invalid command is typed in.
+Time Spent: 1 hr
+Solution: Fixed the background pages for processes so that only one writes to physical vid mem at a time.
+------------
+Bug: Fix video mapping problems; add ability to set screen and cursor positions for not active terminals
+Fixer:
+Time Spent:
+Solution:
+------------
+Bug: Switching terminal when the max num of processes are already running causes an error.
+Fixer: Cody
+Time Spent: 40 mins
+Solution: Don't allow terminal switch when the max processes running.
+------------
+Bug: Too long of a command name breaks program and causes a page fault.
+Fixer: Mahir
+Time Spent: 20 mins
+Solution: Buffer size overflow is checked for when parsing command.
+------------
+Bug: PIT just wasn't working.
+Fixer: Cody
+Time Spent: 45 mins
+Solution: Proper out words were added and frequency set.
+------------
+Bug: Page fault when switching terminals quickly.
+Fixer: Ben
+Time Spent: 15 mins
+Solution: Put part of switch terminal code inside of a critical section.
+------------
+Bug: Command history not displayed correctly when up then back down to most recent commands.
+Fixer: Joe
+Time Spent: 30 mins
+Solution: Increment the counter in the case when the command was the most recent one.
+------------
+Bug: File descriptors were not properly closed.
+Fixer: Ben
+Time Spent: 10 mins
+Solution: Set each file operation table pointers to a dummy.
+------------
+Bug: Fix errors noticed by syserr; allow ctrl+4 to just increase the rtc rate without printing
+Fixer:
+Time Spent:
+Solution:
+------------
+Bug: Typing incorrect commands (those with repeat of end char) still runs the program.
+Fixer: Majir
+Time Spent: 15 mins
+Solution: Checked for correct command length and repeats.
+------------
+Bug: Unpredicatable behavior and page faulting due to an incorrect page size
+Fixer: Cody
+Time Spent: 5 mins
+Solution: Redefined constant in hex rather than decimal.
+------------
+Bug: Page fault when executing new program from shell after returning to shell from prev program (2nd time running prog).
+Fixer: Mayear
+Time Spent: 6 hrs
+Solution: Add a variable to tell paging function to overwrite previous page entries.
+------------
+Bug: RTC read blocked so that Ctrl+4 functionality for chkpt 3 didn't work.
+Fixer: Ben
+Time Spent: 2 hrs
+Solution: Changed order of EOI being sent to PIC and keyboard char input processing.
+------------
+Bug: Program couldn't write to its virtual memory.
+Fixer: Joe
+Time Spent: 20 mins
+Solution: Change the program virtual mem mapping from read-only to read+write.
+------------
+Bug: Command argument into syscall was not being interpreted correctly.
+Fixer: Cody
+Time Spent: 5 mins
+Solution: Jump in assembly wrapper for syscall from jle to jl.
+------------
+Bug: Some data blocks were not being fully read.
+Fixer: Mahere
+Time Spent: 45 mins
+Solution: Added logic to continue reading next data block if one ends before entire length of inode was read.
+------------
+Bug: Backspace key when current line is blank moves up the screen to previous, supposedly set, lines.
+Fixer: Cody
+Time Spent: 1 hr
+Solution: Keyboard buffer current index variable was reset every time enter key pressed.
+------------
+Bug: fixed some bugs in ctrl+2 and ctrl+3; uncertain about fsys_*
+Fixer: Majeer
+Time Spent:
+Solution:
+------------
+Bug: Fix scrolling early; add file system functions; comments
+Fixer:
+Time Spent:
+Solution:
+------------
+Bug: Wrong bitmap being used in paging.
+Fixer: Joe
+Time Spent: 30 mins
+Solution: Changed the bitmap from the last 12 bits to the last 22 bits.
+------------
+Bug: Interrupts were randomly going off causing a hemorrhage of exceptions & errors.
+Fixer: Ben
+Time Spent: 15 mins
+Solution: Corrected PIC masks variables.
+------------
+Bug: Junk in page table directories causing random faults.
+Fixer: Mahear
+Time Spent: 10 mins
+Solution: Clear page table memory region when being initialized.
 ------------

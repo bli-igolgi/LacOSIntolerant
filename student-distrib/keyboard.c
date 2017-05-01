@@ -160,41 +160,45 @@ void process_input(char c) {
 
             /* Command History */
             case UP_KEY_P:
-                buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1]);
-                if(!buf_size) break;
+                if(ENABLE_CMD_HIST) {
+                    buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1]);
+                    if(!buf_size) break;
 
-                /* Clear any current input */
-                clear_cur_cmd();
-                clear_buffer();
+                    /* Clear any current input */
+                    clear_cur_cmd();
+                    clear_buffer();
 
-                /* Copy the next history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1], buf_size);
-                (*cur_hist_index)--;
-                *read_buf_index = buf_size;
-                printf((int8_t *)read_buf);
+                    /* Copy the next history command into the read buffer and display it */
+                    memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1], buf_size);
+                    (*cur_hist_index)--;
+                    *read_buf_index = buf_size;
+                    printf((int8_t *)read_buf);
+                }
 
                 break;
             case DOWN_KEY_P:
-                prev_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[*cur_hist_index]);
-                buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1]);
+                if(ENABLE_CMD_HIST) {
+                    prev_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[*cur_hist_index]);
+                    buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1]);
 
-                /* Clear any current input */
-                clear_cur_cmd();
-                clear_buffer();
+                    /* Clear any current input */
+                    clear_cur_cmd();
+                    clear_buffer();
 
-                // Allow input to be cleared if come to end of list
-                if(!buf_size) {
-                    if (prev_size != 0) {
-                        (*cur_hist_index)++;
+                    // Allow input to be cleared if come to end of list
+                    if(!buf_size) {
+                        if (prev_size != 0) {
+                            (*cur_hist_index)++;
+                        }
+                        break;
                     }
-                    break;
-                }
 
-                /* Copy the previous history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1], buf_size);
-                (*cur_hist_index)++;
-                *read_buf_index = buf_size;
-                printf((int8_t *)read_buf);
+                    /* Copy the previous history command into the read buffer and display it */
+                    memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1], buf_size);
+                    (*cur_hist_index)++;
+                    *read_buf_index = buf_size;
+                    printf((int8_t *)read_buf);
+                }
 
                 break;
 

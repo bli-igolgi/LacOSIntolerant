@@ -1,23 +1,3 @@
-Bug: S U C C
-Fixer: 
-Time Spent: 
-Solution: 
-------------
-Bug: T H I C C
-Fixer: 
-Time Spent: 
-Solution: 
-------------
-Bug: D I C C
-Fixer: 
-Time Spent: 
-Solution: 
-------------
-Bug: I HAVE S.T.D. & NOW ALL I NEED IS U.
-Fixer: 
-Time Spent: 
-Solution: 
-------------
 Bug: 
 Fixer: 
 Time Spent: 
@@ -28,8 +8,18 @@ Fixer: Joe
 Time Spent: 30 mins 
 Solution: Changed end of memory to 256 megabytes instead of 4 GB.
 ------------
+Bug: Executing programs don't always write to the visible terminal
+Fixer: Cody
+Time Spent: 15 hours 
+Solution: Include a newline flag for each terminal so pressing enter checks that the specific terminal's enter was called
+------------
+Bug: Ctrl+L doesn't always return cursor pointer to top left
+Fixer: Cody
+Time Spent: 2 mins 
+Solution: Change clear_screen() to depend on vis_term_id
+------------
 Bug: Invalid commands counted as processes and increments the max number of processes allowed.
-Fixer: Joe
+Fixer: Cody
 Time Spent: 30 mins 
 Solution: Decrement number of active processes when invalid command is entered (so net is 0).
 ------------
@@ -39,9 +29,9 @@ Time Spent: 1 hr
 Solution: Fixed the background pages for processes so that only one writes to physical vid mem at a time.
 ------------
 Bug: Fix video mapping problems; add ability to set screen and cursor positions for not active terminals
-Fixer:
-Time Spent:
-Solution:
+Fixer: Cody
+Time Spent: 2 hours
+Solution: Create separate putc functions for visible and scheduled terminals
 ------------
 Bug: Switching terminal when the max num of processes are already running causes an error.
 Fixer: Cody
@@ -56,7 +46,7 @@ Solution: Buffer size overflow is checked for when parsing command.
 Bug: PIT just wasn't working.
 Fixer: Cody
 Time Spent: 45 mins
-Solution: Proper out words were added and frequency set.
+Solution: Set pit frequency to 1000hz to be able to break in terms of ms
 ------------
 Bug: Page fault when switching terminals quickly.
 Fixer: Ben
@@ -73,10 +63,10 @@ Fixer: Ben
 Time Spent: 10 mins
 Solution: Set each file operation table pointers to a dummy.
 ------------
-Bug: Fix errors noticed by syserr; allow ctrl+4 to just increase the rtc rate without printing
-Fixer:
-Time Spent:
-Solution:
+Bug: Fix errors noticed by syserr
+Fixer: Cody 
+Time Spent: 1.5 hours
+Solution: Add bounds checking on file descriptors in sys calls
 ------------
 Bug: Typing incorrect commands (those with repeat of end char) still runs the program.
 Fixer: Majir
@@ -123,10 +113,10 @@ Fixer: Majeer
 Time Spent:
 Solution:
 ------------
-Bug: Fix scrolling early; add file system functions; comments
-Fixer:
-Time Spent:
-Solution:
+Bug: Fix scrolling early
+Fixer: Cody
+Time Spent: 20 minutes
+Solution: Put scroll() inside if statements in putc()
 ------------
 Bug: Wrong bitmap being used in paging.
 Fixer: Joe

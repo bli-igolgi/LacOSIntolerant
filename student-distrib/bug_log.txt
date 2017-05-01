@@ -69,7 +69,7 @@ Time Spent: 1.5 hours
 Solution: Add bounds checking on file descriptors in sys calls
 ------------
 Bug: Typing incorrect commands (those with repeat of end char) still runs the program.
-Fixer: Majir
+Fixer: Mahir
 Time Spent: 15 mins
 Solution: Checked for correct command length and repeats.
 ------------
@@ -79,7 +79,7 @@ Time Spent: 5 mins
 Solution: Redefined constant in hex rather than decimal.
 ------------
 Bug: Page fault when executing new program from shell after returning to shell from prev program (2nd time running prog).
-Fixer: Mayear
+Fixer: Mahir
 Time Spent: 6 hrs
 Solution: Add a variable to tell paging function to overwrite previous page entries.
 ------------
@@ -99,7 +99,7 @@ Time Spent: 5 mins
 Solution: Jump in assembly wrapper for syscall from jle to jl.
 ------------
 Bug: Some data blocks were not being fully read.
-Fixer: Mahere
+Fixer: Mahir
 Time Spent: 45 mins
 Solution: Added logic to continue reading next data block if one ends before entire length of inode was read.
 ------------
@@ -109,7 +109,7 @@ Time Spent: 1 hr
 Solution: Keyboard buffer current index variable was reset every time enter key pressed.
 ------------
 Bug: fixed some bugs in ctrl+2 and ctrl+3; uncertain about fsys_*
-Fixer: Majeer
+Fixer: Mahir
 Time Spent:
 Solution:
 ------------
@@ -129,7 +129,7 @@ Time Spent: 15 mins
 Solution: Corrected PIC masks variables.
 ------------
 Bug: Junk in page table directories causing random faults.
-Fixer: Mahear
+Fixer: Mahir
 Time Spent: 10 mins
 Solution: Clear page table memory region when being initialized.
 ------------

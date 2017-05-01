@@ -1,7 +1,12 @@
-Bug: 
-Fixer: 
-Time Spent: 
-Solution: 
+Bug: Exiting shell (in the multi-terminal configuration) page faulted endlessly.
+Fixer: Mahir
+Time Spent: 30 minutes
+Solution: Set flag to execute shell if the halted process has no parent task.
+------------
+Bug: When running three processes, switching terminals was impossible.
+Fixer: Mahir
+Time Spent: 30 minutes
+Solution: Only disallow switching terminals if number running _exceeds_ max limit.
 ------------
 Bug: Can't initialize pa-pa-p-page page p..page for uhhhhhhhh uhm bookkeeping info for malloc.
 Fixer: Joe 
@@ -110,8 +115,8 @@ Solution: Keyboard buffer current index variable was reset every time enter key 
 ------------
 Bug: fixed some bugs in ctrl+2 and ctrl+3; uncertain about fsys_*
 Fixer: Mahir
-Time Spent:
-Solution:
+Time Spent: 3 hours
+Solution: Replaced printf with looped putc and revised condition sequence prior to file copying.
 ------------
 Bug: Fix scrolling early
 Fixer: Cody

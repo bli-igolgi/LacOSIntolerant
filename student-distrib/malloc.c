@@ -90,18 +90,18 @@ void * malloc_small(uint32_t size)
 		page_start = (uint32_t *)(MALLOC_FIRST_ADDR + PAGE_SIZE_4kB * index);
 
 		// compute the address of the bookkeeping entry
-		bookkeeping = (uint32_t *) (MALLOC_BOOK + MALLOC_BOOK_ENTRY * index);
+		bookkeeping = (uint32_t *) MALLOC_BOOK;
+		//bookkeeping = (uint32_t *) (MALLOC_BOOK + MALLOC_BOOK_ENTRY * index);
 
 		// if the page has not been mapped, map it and set up the bookkeeping info
-		if ((*bookkeeping & MALLOC_PRESENT) == 0) {
+		if ((bookkeeping[index] & MALLOC_PRESENT) == 0) {
+		//if ((*bookkeeping & MALLOC_PRESENT) == 0) {
 			// map the 4kB page with user privileges and read/write
 			map_page(page_start, page_start, 0, 1, 1, 1);
 
-			*page_start = 0xece391;
-
 			// set the "present bit"
-			//*bookkeeping  = MALLOC_PRESENT;
-			uint32_t temp = *bookkeeping;
+			bookkeeping[index] = MALLOC_PRESENT;
+			//*bookkeeping  = (uint32_t)MALLOC_PRESENT;
 		}
 
 		// check the availability of each address
@@ -459,7 +459,7 @@ void init_heap() {
 	uint32_t i; // counter for for loop
 
 	// map the last 4kB page -- 4kB page, kernel privileges, read/write
-	map_page((void *)page, (void *)page, 0, 0, 1, 1);
+	map_page((void *)page, (void *)page, 0, 0, 0, 1);
 
 	// clear the last page (initialize bookkeeping info)
 	for(i=0;i<(uint32_t)PAGE_ENTRIES;i++) {

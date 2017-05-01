@@ -10,7 +10,7 @@
 #define NULL            0
 #define FOUR_MB         0x400000
 #define FOUR_KB         0x1000
-#define KEY_BUF_SIZE    128             // The size of the read buffer for the keyboard
+#define KEY_BUF_SIZE    129             // The size of the read buffer for the keyboard
 #define MAX_TERM_NUM    3               // The number of terminals we support
 #define MAX_PROCESSES   6               // The number of processes we can run
 #define HIST_COM_NUM    10              // The number of commands to keep in the history buffer

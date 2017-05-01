@@ -1,3 +1,13 @@
+Bug: When the keyboard buffer goes to the next line, backspacing enough does not return to the previous line.
+Fixer: Mahir
+Time Spent: 10 seconds
+Solution: Adjust the x- and y- positions on the screen for the current terminal, rather than globally.
+------------
+Bug: The last character in hello's input is not printed after a name is requested.
+Fixer: Mahir
+Time Spent: 90 minutes
+Solution: Increase buffer size to 129 characters, preserving 128 and leaving the last for terminators.
+------------
 Bug: Exiting shell (in the multi-terminal configuration) page faulted endlessly.
 Fixer: Mahir
 Time Spent: 30 minutes

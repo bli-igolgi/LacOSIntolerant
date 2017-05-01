@@ -47,7 +47,7 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
 
     int32_t buf_size = strlen((int8_t *)terminals[sched_term_id].key_buf);
     // Move the data entered since the last newline into the buf
-    memcpy(buf, terminals[sched_term_id].key_buf, buf_size);
+    memcpy(buf, terminals[sched_term_id].key_buf, nbytes);
     add_to_history((int8_t *)terminals[sched_term_id].key_buf);
 
     // Clear the old keyboard data buffer

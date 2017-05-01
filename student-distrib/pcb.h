@@ -5,7 +5,7 @@
 #define MAX_DESC            8
 #define END_OF_KERNEL_PAGE  0x800000
 #define PCB_PLUS_STACK      0x2000
-#define KEY_BUF_SIZE            128
+#define KEY_BUF_SIZE            129
 
 #include "lib.h"
 #include "file_system.h"
@@ -50,7 +50,7 @@ struct pcb_t {
     pcb_t* parent_task;                 // pointer to parent task's PCB
     uint32_t pcb_num;                   // number of the pcb (1-8)
 	uint8_t arg[KEY_BUF_SIZE];          // maximum possible chars (for simplicity)
-    uint8_t cmd_name[33];
+    uint8_t cmd_name[33];               // name of the command (defined to be this long in execute)
 };
 
 pcb_t * init_pcb();

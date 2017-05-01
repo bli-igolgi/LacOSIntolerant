@@ -61,7 +61,7 @@ bool starting_new_shell = false;
  */
 int32_t sys_execute(const uint8_t *command) {
     cli();
-    uint8_t cmd_buf_size = 32;
+    uint8_t cmd_buf_size = 32; // this is purely arbitrary
     uint8_t cmd[cmd_buf_size+1], file_data[FILE_H_SIZE];
     uint32_t entry = 0, i = 0, j = 0, ret_val;
     dentry_t cmd_dentry;

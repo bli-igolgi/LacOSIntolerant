@@ -103,10 +103,10 @@ void process_input(char c) {
                 if(*read_buf_index) {
                     read_buf[--(*read_buf_index)] = 0;
                     // If the character to remove is on the previous line
-                    if(!screen_x) {
-                        screen_y -= 1;
+                    if(!terminals[vis_term_id].scrn_c) {
+                        terminals[vis_term_id].scrn_r -= 1;
                         // x is decremented before putc_vis, so this is not an error
-                        screen_x = NUM_COLS;
+                        terminals[vis_term_id].scrn_c = NUM_COLS;
                     }
                     // Display the backspace
                     putc(vis_term_id,'\b');
@@ -231,7 +231,7 @@ void process_input(char c) {
             // Regular key press
             default:
 print_char:
-                if(*read_buf_index == KEY_BUF_SIZE) return;
+                if(*read_buf_index+1 == KEY_BUF_SIZE) return;
 
                 c_print = get_keymap(c);
                 // Don't print non-printing characters like F1

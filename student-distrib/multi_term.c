@@ -39,7 +39,7 @@ void multi_term_init() {
 void switch_terminal(int new_term_id) {
     // Make sure we switch to a terminal in range, and that we have room for this process
     if(new_term_id < 0 || new_term_id >= MAX_TERM_NUM ||
-       our_popcount(pcb_status) >= MAX_PROCESSES)
+       our_popcount(pcb_status) > MAX_PROCESSES)
         return;
 
     cli();

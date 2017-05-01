@@ -46,7 +46,7 @@ bool starting_new_shell = false;
             : "g"(cur_pcb->esp), "g"(cur_pcb->ebp), "g"(ret_val)
             : "%eax"
         );
-    } else sys_execute((uint8_t *)"shell");
+    } else{starting_new_shell = 1;sys_execute((uint8_t *)"shell");}
     
     // This should never be reached
     return ret_val;

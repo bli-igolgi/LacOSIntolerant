@@ -13,6 +13,7 @@
 #define KEY_BUF_SIZE    128             // The size of the read buffer for the keyboard
 #define MAX_TERM_NUM    3               // The number of terminals we support
 #define MAX_PROCESSES   6               // The number of processes we can run
+#define HIST_COM_NUM    10              // The number of commands to keep in the history buffer
 
 #ifndef ASM
 

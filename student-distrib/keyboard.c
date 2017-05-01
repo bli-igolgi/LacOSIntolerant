@@ -37,11 +37,11 @@ extern unsigned char caps_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 
 // Buffer for the last several commands
-unsigned char hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1];
-// Holds the location of the next command to put in the array
-uint32_t hist_buf_index = 0;
-// Holds the location of the current history command index
-uint32_t cur_hist_index = 0;
+// unsigned char hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1];
+// // Holds the location of the next command to put in the array
+// uint32_t hist_buf_index = 0;
+// // Holds the location of the current history command index
+// uint32_t cur_hist_index = 0;
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
@@ -91,6 +91,8 @@ void process_input(char c) {
     static volatile bool rtc_loop;
     uint8_t *read_buf = terminals[vis_term_id].key_buf;
     uint32_t *read_buf_index = &terminals[vis_term_id].key_buf_index;
+
+    uint32_t *cur_hist_index = &terminals[vis_term_id].cur_hist_index;
     
     cli();
     // Positive scan codes (key down)
@@ -163,7 +165,7 @@ void process_input(char c) {
 
             /* Command History */
             case UP_KEY_P:
-                buf_size = strlen((int8_t *)hist_buf[cur_hist_index-1]);
+                buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1]);
                 if(!buf_size) break;
 
                 /* Clear any current input */
@@ -171,15 +173,15 @@ void process_input(char c) {
                 clear_buffer();
 
                 /* Copy the next history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index-1], buf_size);
-                cur_hist_index--;
+                memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1], buf_size);
+                (*cur_hist_index)--;
                 *read_buf_index = buf_size;
                 printf((int8_t *)read_buf);
 
                 break;
             case DOWN_KEY_P:
-                prev_size = strlen((int8_t *)hist_buf[cur_hist_index]);
-                buf_size = strlen((int8_t *)hist_buf[cur_hist_index+1]);
+                prev_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[*cur_hist_index]);
+                buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1]);
 
                 /* Clear any current input */
                 clear_cur_cmd();
@@ -188,14 +190,14 @@ void process_input(char c) {
                 // Allow input to be cleared if come to end of list
                 if(!buf_size) {
                     if (prev_size != 0) {
-                        cur_hist_index++;
+                        (*cur_hist_index)++;
                     }
                     break;
                 }
 
                 /* Copy the previous history command into the read buffer and display it */
-                memcpy(read_buf, (int8_t *)hist_buf[cur_hist_index+1], buf_size);
-                cur_hist_index++;
+                memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1], buf_size);
+                (*cur_hist_index)++;
                 *read_buf_index = buf_size;
                 printf((int8_t *)read_buf);
 
@@ -276,7 +278,7 @@ uint8_t get_keymap(char c) {
 void clear_cur_cmd() {
     int char_cnt = terminals[vis_term_id].key_buf_index;
     // Clear the screen
-    while(char_cnt-- > 0)
+    while(char_cnt-- > 0) 
         process_input(BACKSPACE_P);
 
     // Clear the buffer
@@ -291,16 +293,17 @@ void clear_cur_cmd() {
  *              if it exists and isn't the same as the previous command
  */
 void add_to_history(int8_t *command) {
+    uint32_t *hist_buf_index = &terminals[vis_term_id].hist_buf_index;
     // TODO: Need to implement data shifting so new commands are placed in array
-    if(hist_buf_index >= HIST_COM_NUM) return;
+    if(*hist_buf_index >= HIST_COM_NUM) return;
     // Don't include the newline character
     int32_t buf_size = strlen((int8_t *)command)-1;
     // Put the last command into the history buffer,
     // if it exists and isn't the same as the previous command
-    if(buf_size && strncmp((int8_t *)hist_buf[hist_buf_index-1], command, buf_size)) {
-        strncpy((int8_t *)hist_buf[hist_buf_index++], command, buf_size);
+    if(buf_size && strncmp((int8_t *)terminals[vis_term_id].hist_buf[(*hist_buf_index)-1], command, buf_size)) {
+        strncpy((int8_t *)terminals[vis_term_id].hist_buf[(*hist_buf_index)++], command, buf_size);
     }
-    cur_hist_index = hist_buf_index;
+    terminals[vis_term_id].cur_hist_index = *hist_buf_index;
 }
 
 /*

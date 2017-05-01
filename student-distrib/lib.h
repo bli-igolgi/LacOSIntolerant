@@ -21,9 +21,15 @@ typedef struct term_t {
     uint8_t term_id;                        // Which terminal this is
     uint8_t curs_r, curs_c, scrn_c, scrn_r; // The cursor and keyboard positions
     uint8_t *vid_mem;                       // Pointer to this terminal's video memory
+
     uint8_t key_buf[KEY_BUF_SIZE+1];        // Buffer for the input data from the keyboard
     uint32_t key_buf_index;
     bool new_line;
+
+	uint8_t hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1]; // Buffer for the last several commands
+	uint32_t hist_buf_index; 				// Holds the location of the next command to put in the array
+	uint32_t cur_hist_index;				// Holds the location of the current history command index
+
     uint32_t esp, ebp;                      // The current terminals esp and ebp
     struct pcb_t *cur_task;                 // The task that is currently executing on the terminal
 } term_t;

@@ -93,8 +93,8 @@ clear_screen(void)
 		*(uint8_t *)(video_mem + (i << 1)) = ' ';
 		*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
 	}
-	set_keyboard_pos(sched_term_id, 0, 0);
-	set_cursor_pos(sched_term_id, 0, 0);
+	set_keyboard_pos(vis_term_id, 0, 0);
+	set_cursor_pos(vis_term_id, 0, 0);
 }
 
 /* Standard printf().

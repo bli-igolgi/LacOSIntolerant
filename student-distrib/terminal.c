@@ -41,9 +41,9 @@ int32_t terminal_close(int32_t fd) {
  */
 int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
     // Wait for enter to be pressed
-    while(!new_line);
+    while(!terminals[sched_term_id].new_line);
     cli();
-    new_line = false;
+    terminals[vis_term_id].new_line = false;
 
     int32_t buf_size = strlen((int8_t *)terminals[vis_term_id].key_buf);
     // Move the data entered since the last newline into the buf
@@ -70,7 +70,7 @@ int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
     int b_written = 0, i;
     // Display the passed in data
     for(i = 0; i < nbytes; i++){
-        putc(cur_pcb?cur_pcb->term_num:sched_term_id,*((uint8_t *)buf + i));
+        putc(sched_term_id,*((uint8_t *)buf + i));
         b_written++;
     }
     sti();

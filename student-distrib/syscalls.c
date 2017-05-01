@@ -8,6 +8,7 @@
 pcb_t *cur_pcb = NULL;
 uint32_t numproc = 0;
 bool except_raised = 0;
+bool starting_new_shell = false;
 
 /*
  *   Inputs: status - the 8 bit return value
@@ -35,7 +36,6 @@ bool except_raised = 0;
     // Restore the pointers to the stack
     if(cur_pcb) {
         tss.esp0 = cur_pcb->esp0;
-        // tss.ss0 = cur_pcb->ss0;
         // Restores the esp and ebp, and puts return value in eax
         asm volatile (
             "movl %2, %%eax;"
@@ -60,6 +60,7 @@ bool except_raised = 0;
  *   Function: Performs the command
  */
 int32_t sys_execute(const uint8_t *command) {
+    cli();
     uint8_t cmd_buf_size = 32;
     uint8_t cmd[cmd_buf_size+1], file_data[FILE_H_SIZE];
     uint32_t entry = 0, i = 0, j = 0, ret_val;
@@ -72,7 +73,6 @@ int32_t sys_execute(const uint8_t *command) {
         return 0;
     }
 
-    cli();
     /* ==== Parse command ==== */
     // Skip spaces in front of the command
     while(command[i] == ' ' && command[i] != '\0') i++;
@@ -90,8 +90,10 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();
+
     memset(new_pcb->cmd_name, 0, cmd_buf_size+1);
     memcpy(new_pcb->cmd_name, cmd, cmd_buf_size+1);
+
     /* ==== Store arg in PCB ==== */
     // Skip spaces in front of argument
     while(command[i] == ' ' && command[i] != '\0') i++;
@@ -120,11 +122,10 @@ int32_t sys_execute(const uint8_t *command) {
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
     new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pcb_num)*PCB_PLUS_STACK - 4);
-    new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
-    new_pcb->term_num = sched_term_id;
 
     /* ==== Prepare for context switch ==== */
-    if(terminals[vis_term_id].cur_task) {
+    // If we are running a regular process
+    if(!starting_new_shell) {
         new_pcb->parent_task = terminals[vis_term_id].cur_task;
         new_pcb->term_num = vis_term_id;
         // Saves the current esp and ebp in the parent task
@@ -133,9 +134,15 @@ int32_t sys_execute(const uint8_t *command) {
             "movl %%esp, %0;"
             : "=m"(new_pcb->parent_task->esp), "=m"(new_pcb->parent_task->ebp)
         );
+        terminals[vis_term_id].cur_task = new_pcb;
     }
+    // If we are starting a new shell
+    else {
+        terminals[sched_term_id].cur_task = new_pcb;
+        new_pcb->term_num = sched_term_id;
+    }
+
     // Switch to the child task
-    terminals[cur_pcb?vis_term_id:sched_term_id].cur_task = new_pcb;
     cur_pcb = new_pcb;
     // Open default stdin (fd #0) & stdout (fd #1) per process
     terminal_open(NULL);

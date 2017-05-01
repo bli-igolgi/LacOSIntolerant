@@ -23,6 +23,7 @@ typedef struct term_t {
     uint8_t *vid_mem;                       // Pointer to this terminal's video memory
     uint8_t key_buf[KEY_BUF_SIZE+1];        // Buffer for the input data from the keyboard
     uint32_t key_buf_index;
+    bool new_line;
     uint32_t esp, ebp;                      // The current terminals esp and ebp
     struct pcb_t *cur_task;                 // The task that is currently executing on the terminal
 } term_t;

@@ -3,7 +3,7 @@
  */
 
 #include "lib.h"
-#include "pcb.h"
+
 int screen_x;
 int screen_y;
 int cursor_x;
@@ -11,7 +11,7 @@ int cursor_y;
 
 term_t terminals[MAX_TERM_NUM];
 int vis_term_id = 0;
-int sched_term_id = 3;
+int sched_term_id = 0;
 
 static char* video_mem = (char *)VIDEO_ADDR;
 
@@ -137,7 +137,7 @@ format_char_switch:
 					switch(*buf) {
 						/* Print a literal '%' character */
 						case '%':
-							putc(cur_pcb?cur_pcb->term_num:sched_term_id,'%');
+							putc(sched_term_id,'%');
 							break;
 
 						/* Use alternate formatting */
@@ -199,7 +199,7 @@ format_char_switch:
 
 						/* Print a single character */
 						case 'c':
-							putc(cur_pcb?cur_pcb->term_num:sched_term_id, (uint8_t) *((int32_t *)esp) );
+							putc(sched_term_id, (uint8_t) *((int32_t *)esp) );
 							esp++;
 							break;
 
@@ -217,7 +217,7 @@ format_char_switch:
 				break;
 
 			default:
-				putc(cur_pcb?cur_pcb->term_num:sched_term_id,*buf);
+				putc(sched_term_id,*buf);
 				break;
 		}
 		buf++;
@@ -238,7 +238,7 @@ puts(int8_t* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
-		putc(cur_pcb?cur_pcb->term_num:sched_term_id,s[index]);
+		putc(sched_term_id,s[index]);
 		index++;
 	}
 

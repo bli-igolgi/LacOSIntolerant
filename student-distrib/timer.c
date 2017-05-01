@@ -67,16 +67,17 @@ void switch_tasks(int new_term_id) {
 
         // If this terminal hasn't been run yet, start shell on it
         if(!cur_pcb) {
+            starting_new_shell = true;
             sys_execute((uint8_t *)"shell");
         }
         else {
+            starting_new_shell = false;
             map_page((void *)(cur_pcb->page_addr), (void *)PROGRAM_VIRT, true, true, true, true);
             // Map the vidmap address to the correct terminal video memory
             map_page((void *)terminals[new_term_id].vid_mem, (void *)VIDMAP_VIRT_ADDR, false, true, true, true);
 
             flush_tlb();
             tss.esp0 = cur_pcb->esp0;
-            tss.ss0 = cur_pcb->ss0;
             // Move the old stack frame back and pop registers to return to old task
             asm volatile(
                 "movl %0, %%esp;"

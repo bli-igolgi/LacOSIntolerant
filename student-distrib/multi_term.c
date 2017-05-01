@@ -44,8 +44,6 @@ void switch_terminal(int new_term_id) {
 
     cli();
     switch_screen(new_term_id);
-
-    // switch_stackframe(new_term_id);
     vis_term_id = new_term_id;
     switch_keyboard_and_cursor_pos(new_term_id);
     sti();

@@ -36,20 +36,12 @@ extern unsigned char shift_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
 
-// Buffer for the input data from the keyboard
-// unsigned char read_buf[KEY_BUF_SIZE+1];
 // Buffer for the last several commands
 unsigned char hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1];
-// Holds the location of the next char in the array
-// uint32_t read_buf_index = 0;
-
 // Holds the location of the next command to put in the array
 uint32_t hist_buf_index = 0;
 // Holds the location of the current history command index
 uint32_t cur_hist_index = 0;
-
-// Flag for whether enter has been pressed
-bool new_line = false;
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
@@ -129,7 +121,7 @@ void process_input(char c) {
                 // Reset the index so backspace doesn't go to previous line
                 *read_buf_index = 0;
                 // Tells terminal read that there is no more data to read
-                new_line = true;
+                terminals[vis_term_id].new_line = true;
                 break;
             case CTRL_KEY_P:
                 ctrl = true;

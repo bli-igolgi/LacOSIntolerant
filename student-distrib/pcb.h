@@ -50,6 +50,7 @@ struct pcb_t {
     pcb_t* parent_task;                 // pointer to parent task's PCB
     uint32_t pcb_num;                   // number of the pcb (1-8)
 	uint8_t arg[KEY_BUF_SIZE];          // maximum possible chars (for simplicity)
+    uint8_t cmd_name[33];
 };
 
 pcb_t * init_pcb();

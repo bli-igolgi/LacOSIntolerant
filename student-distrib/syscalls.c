@@ -35,7 +35,7 @@ bool except_raised = 0;
     // Restore the pointers to the stack
     if(cur_pcb) {
         tss.esp0 = cur_pcb->esp0;
-        tss.ss0 = cur_pcb->ss0;
+        // tss.ss0 = cur_pcb->ss0;
         // Restores the esp and ebp, and puts return value in eax
         asm volatile (
             "movl %2, %%eax;"
@@ -61,7 +61,7 @@ bool except_raised = 0;
  */
 int32_t sys_execute(const uint8_t *command) {
     uint8_t cmd_buf_size = 32;
-    uint8_t cmd[cmd_buf_size], file_data[FILE_H_SIZE];
+    uint8_t cmd[cmd_buf_size+1], file_data[FILE_H_SIZE];
     uint32_t entry = 0, i = 0, j = 0, ret_val;
     dentry_t cmd_dentry;
     // Set the stack pointer to be just before the bottom of the page
@@ -90,7 +90,8 @@ int32_t sys_execute(const uint8_t *command) {
 
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();
-
+    memset(new_pcb->cmd_name, 0, cmd_buf_size+1);
+    memcpy(new_pcb->cmd_name, cmd, cmd_buf_size+1);
     /* ==== Store arg in PCB ==== */
     // Skip spaces in front of argument
     while(command[i] == ' ' && command[i] != '\0') i++;
@@ -115,24 +116,26 @@ int32_t sys_execute(const uint8_t *command) {
     flush_tlb();
 
     // Assign the parent task of the new pcb (will be NULL if this is the first process)
-    new_pcb->parent_task = cur_pcb;
+    new_pcb->parent_task = NULL;
     new_pcb->pid = numproc++;
     new_pcb->fd_status = 3; // fd's 0 and 1 are occupied
     new_pcb->esp0 = (tss.esp0 = END_OF_KERNEL_PAGE - (new_pcb->pcb_num)*PCB_PLUS_STACK - 4);
     new_pcb->ss0 = (tss.ss0 = KERNEL_DS);
-    new_pcb->term_num = vis_term_id;
+    new_pcb->term_num = sched_term_id;
 
     /* ==== Prepare for context switch ==== */
-    if(cur_pcb) {
+    if(terminals[vis_term_id].cur_task) {
+        new_pcb->parent_task = terminals[vis_term_id].cur_task;
+        new_pcb->term_num = vis_term_id;
         // Saves the current esp and ebp in the parent task
         asm volatile (
             "movl %%ebp, %1;"
             "movl %%esp, %0;"
-            : "=m"(cur_pcb->esp), "=m"(cur_pcb->ebp)
+            : "=m"(new_pcb->parent_task->esp), "=m"(new_pcb->parent_task->ebp)
         );
     }
     // Switch to the child task
-    terminals[sched_term_id].cur_task = new_pcb;
+    terminals[cur_pcb?vis_term_id:sched_term_id].cur_task = new_pcb;
     cur_pcb = new_pcb;
     // Open default stdin (fd #0) & stdout (fd #1) per process
     terminal_open(NULL);

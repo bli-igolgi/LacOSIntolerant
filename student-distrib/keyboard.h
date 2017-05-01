@@ -29,8 +29,4 @@ void clear_cur_cmd();
 void add_to_history(int8_t *command);
 void clear_buffer(void);
 
-extern unsigned char read_buf[KEY_BUF_SIZE+1];
-extern uint32_t read_buf_index;
-extern bool new_line;
-
 #endif

@@ -12,21 +12,16 @@
 #define NUM_ROWS 	25
 #define ATTRIB 		0x7
 
-extern int screen_x;
-extern int screen_y;
-extern int cursor_x;
-extern int cursor_y;
-
 typedef struct term_t {
     uint8_t term_id;                        // Which terminal this is
     uint8_t curs_r, curs_c, scrn_c, scrn_r; // The cursor and keyboard positions
     uint8_t *vid_mem;                       // Pointer to this terminal's video memory
 
-    uint8_t key_buf[KEY_BUF_SIZE+1];        // Buffer for the input data from the keyboard
+    uint8_t key_buf[KEY_BUF_SIZE];          // Buffer for the input data from the keyboard
     uint32_t key_buf_index;
     bool new_line;
 
-	uint8_t hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1]; // Buffer for the last several commands
+	uint8_t hist_buf[HIST_COM_NUM][KEY_BUF_SIZE]; // Buffer for the last several commands
 	uint32_t hist_buf_index; 				// Holds the location of the next command to put in the array
 	uint32_t cur_hist_index;				// Holds the location of the current history command index
 

@@ -4,11 +4,6 @@
 
 #include "lib.h"
 
-int screen_x;
-int screen_y;
-int cursor_x;
-int cursor_y;
-
 term_t terminals[MAX_TERM_NUM];
 int vis_term_id = 0;
 int sched_term_id = 0;
@@ -24,11 +19,6 @@ static char* video_mem = (char *)VIDEO_ADDR;
 void set_keyboard_pos(int term_id, int row, int col) {
 	terminals[term_id].scrn_r = row;
 	terminals[term_id].scrn_c = col;
-	// If the terminal we are executing on is the current visible terminal
-	// if(term_id == vis_term_id) {
-	// 	screen_y = row;
-	// 	screen_x = col;
-	// }
 }
 
 /*
@@ -43,8 +33,6 @@ void set_cursor_pos(int term_id, int row, int col) {
 	// If the terminal we are executing on is the current visible terminal
 	if(term_id == vis_term_id) {
 		uint16_t position = (row * 80) + col;
-		cursor_x = row;
-		cursor_y = col;
 		// Cursor LOW port to vga INDEX register
 		outb(0x0F, 0x3D4);
 		outb((unsigned char)(position & 0xFF), 0x3D5);

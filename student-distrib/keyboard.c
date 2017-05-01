@@ -30,18 +30,13 @@
 #define L_SHIFT_R   -86
 #define R_SHIFT_R   -74
 
+#define ENABLE_CMD_HIST 0
+
 // Key maps are defined in key_maps.c
 extern unsigned char reg_key_map[KEY_MAP_SIZE];
 extern unsigned char shift_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_key_map[KEY_MAP_SIZE];
 extern unsigned char caps_shift_key_map[KEY_MAP_SIZE];
-
-// Buffer for the last several commands
-// unsigned char hist_buf[HIST_COM_NUM][KEY_BUF_SIZE+1];
-// // Holds the location of the next command to put in the array
-// uint32_t hist_buf_index = 0;
-// // Holds the location of the current history command index
-// uint32_t cur_hist_index = 0;
 
 // Flags for whether certain special keys are pressed
 bool ctrl       = false,
@@ -114,7 +109,7 @@ void process_input(char c) {
                 break;
             case ENTER_KEY_P:
                 // Set the last index to the last free spot in the array
-                last = (*read_buf_index < KEY_BUF_SIZE) ? *read_buf_index : KEY_BUF_SIZE-1;
+                last = (*read_buf_index < KEY_BUF_SIZE-1) ? *read_buf_index : KEY_BUF_SIZE-2;
                 // Set the last character in the buffer to be the newline
                 read_buf[last] = '\n';
                 // Null terminate the string
@@ -221,8 +216,6 @@ void process_input(char c) {
                 // Test case 5, press CTRL+5
                 if(ctrl) {
                     rtc_loop = false;
-                    // clear_screen();
-                    // clear_buffer();
                     break;
                 }
                 // Treat it as a regular character
@@ -231,7 +224,7 @@ void process_input(char c) {
             // Regular key press
             default:
 print_char:
-                if(*read_buf_index+1 == KEY_BUF_SIZE) return;
+                if(*read_buf_index == (KEY_BUF_SIZE-1)) return;
 
                 c_print = get_keymap(c);
                 // Don't print non-printing characters like F1
@@ -313,6 +306,6 @@ void add_to_history(int8_t *command) {
  *   Function: Resets the read buffer
  */
 void clear_buffer() {
-    memset(terminals[vis_term_id].key_buf, 0, strlen((int8_t *)terminals[vis_term_id].key_buf));
+    memset(terminals[vis_term_id].key_buf, NULL, strlen((int8_t *)terminals[vis_term_id].key_buf));
     terminals[vis_term_id].key_buf_index = 0;
 }

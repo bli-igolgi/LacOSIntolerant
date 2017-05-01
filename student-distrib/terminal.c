@@ -67,12 +67,10 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes) {
 int32_t terminal_write(int32_t fd, const void *buf, int32_t nbytes) {
     cli();
 
-    int b_written = 0, i;
+    int i;
     // Display the passed in data
-    for(i = 0; i < nbytes; i++){
+    for(i = 0; i < nbytes; i++)
         putc(sched_term_id,*((uint8_t *)buf + i));
-        b_written++;
-    }
     sti();
-    return b_written;
+    return nbytes;
 }

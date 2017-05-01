@@ -1,11 +1,9 @@
 #ifndef PCB_H
 #define PCB_H
 
-// max num of file descriptors is 8 per task
-#define MAX_DESC            8
+#define MAX_DESC            8           // Max num of file descriptors is 8 per task
 #define END_OF_KERNEL_PAGE  0x800000
-#define PCB_PLUS_STACK      0x2000
-#define KEY_BUF_SIZE            129
+#define PCB_PLUS_STACK      0x2000      // 8KB
 
 #include "lib.h"
 #include "file_system.h"
@@ -28,7 +26,7 @@ f_ops_table empty_f_ops_tab;
 
 /* One entry in the file descriptor array, specific to each PCB */
 typedef struct fdesc {
-    f_ops_table* file_ops;           // pointer to file operations jump table
+    f_ops_table* file_ops;          // pointer to file operations jump table
     uint32_t inode;                 // inode number
     uint32_t file_pos;              // current position in file
     status_t flags;                 // status of file at the moment
@@ -38,18 +36,14 @@ typedef struct fdesc {
 typedef struct pcb_t pcb_t;
 struct pcb_t {
     fdesc_t io_files[MAX_DESC];         // file descriptor array
-    uint32_t pid;                       // process id
-    int fd_status;                      // bitmap of which fds are occupied
-    uint8_t term_num;                   // which terminal am I on?
-    // all general purpose registers along with base kernel stack pointer
-    // uint32_t eax, ebx, ecx, edx, esi, edi;
-    // uint32_t term_esp, term_ebp;        // The esp/ebp associated with the terminal
     uint32_t esp, ebp, esp0;
-    uint16_t ss0;
-    uint32_t* page_addr;                // pointer to process's page
+    uint32_t *page_addr;                // pointer to process's page
     pcb_t* parent_task;                 // pointer to parent task's PCB
+    uint32_t fd_status;                 // bitmap of which fds are occupied
+    uint8_t term_num;                   // which terminal am I on?
+    uint32_t pid;                       // process id
     uint32_t pcb_num;                   // number of the pcb (1-8)
-	uint8_t arg[KEY_BUF_SIZE];          // maximum possible chars (for simplicity)
+    uint8_t arg[KEY_BUF_SIZE];          // maximum possible chars (for simplicity)
     uint8_t cmd_name[33];               // name of the command (defined to be this long in execute)
 };
 

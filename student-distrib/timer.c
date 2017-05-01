@@ -2,8 +2,6 @@
  * Driver for the Programmable Interrupt Timer
  */
 
-// http://www.osdever.net/bkerndev/index.php
-
 #include "timer.h"
 
 /*
@@ -13,7 +11,6 @@
  *   Function: Initializes the PIT, and enables the IRQ line
  */
 void pit_init() {
-    // Set the frequency to 1000 Hz, so that interrupts can happen in milliseconds
     set_pit_freq(PIT_FREQ);
     enable_irq(PIT_IRQ);
 }
@@ -25,17 +22,17 @@ void pit_init() {
  *   Function: Sets the PIT to receive interrupts hz times every second
  */
 void set_pit_freq(uint32_t hz) {
-    int divisor = BASE_FREQ / hz;          /* Calculate our divisor */
-    outb(0x36, COMMAND_PORT);              /* Set our command byte 0x36 */
-    outb(divisor & 0xFF, CHANNEL1_PORT);   /* Set low byte of divisor */
-    outb(divisor >> 8, CHANNEL1_PORT);     /* Set high byte of divisor */
+    int divisor = BASE_FREQ / hz;           // Calculate the divisor
+    outb(0x36, COMMAND_PORT);               // Put the PIT in Square Wave Mode, select channel 0, and transfer 16 bit divisor
+    outb(divisor & 0xFF, CHANNEL1_PORT);    // Set low byte of divisor
+    outb(divisor >> 8, CHANNEL1_PORT);      // Set high byte of divisor
 }
 
 /*
  * void pit_interrupt();
  *   Inputs: none
  *   Return Value: none
- *   Function: PIT ISR
+ *   Function: Interrupt handler for the PIT
  */
 void pit_interrupt() {
     cli();

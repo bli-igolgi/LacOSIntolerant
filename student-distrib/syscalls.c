@@ -46,7 +46,10 @@ bool starting_new_shell = false;
             : "g"(cur_pcb->esp), "g"(cur_pcb->ebp), "g"(ret_val)
             : "%eax"
         );
-    } else{starting_new_shell = 1;sys_execute((uint8_t *)"shell");}
+    } else {
+        starting_new_shell = true;
+        sys_execute((uint8_t *)"shell");
+    }
     
     // This should never be reached
     return ret_val;
@@ -91,7 +94,7 @@ int32_t sys_execute(const uint8_t *command) {
     /* ==== Create PCB ==== */
     pcb_t* new_pcb = init_pcb();
 
-    memset(new_pcb->cmd_name, 0, cmd_buf_size+1);
+    memset(new_pcb->cmd_name, NULL, cmd_buf_size+1);
     memcpy(new_pcb->cmd_name, cmd, cmd_buf_size+1);
 
     /* ==== Store arg in PCB ==== */

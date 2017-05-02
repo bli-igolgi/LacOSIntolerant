@@ -22,4 +22,6 @@ int32_t mouse_close(int32_t fd);
 uint8_t mouse_read();
 void mouse_write(uint8_t a_write);
 
+extern int8_t mouse_x_pos, mouse_y_pos;
+
 #endif

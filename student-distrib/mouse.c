@@ -7,8 +7,8 @@
 
 static int cycle = 0;
 static uint8_t mouse_bytes[3];
-static uint8_t mouse_x = 0;
-static uint8_t mouse_y = 0;
+static bool x_neg = false, y_neg = false;
+int8_t mouse_x_pos = 0, mouse_y_pos = 0;
 
 /*
  * void mouse_init(void);
@@ -55,6 +55,7 @@ void mouse_init() {
  *   Function: 
  */
 void mouse_interrupt() {
+    int16_t delta_x = 0, delta_y = 0;
     mouse_bytes[cycle++] = inb(DATA_PORT);
 
     send_eoi(MOUSE_IRQ);
@@ -64,20 +65,42 @@ void mouse_interrupt() {
 
         // If mouse only sends overflow information
         if ((mouse_bytes[1] & 0x80) || (mouse_bytes[1] & 0x40)) return;
-        // Indicates if delta-y is a negative value
-        if (!(mouse_bytes[1] & 0x20)) mouse_y |= 0xFFFFFF00;
-        // Indicates if delta-x is a negative value
-        if (!(mouse_bytes[1] & 0x10)) mouse_x |= 0xFFFFFF00;
+
+        // Indicates if delta-y is towards the top
+        if (!(mouse_bytes[1] & 0x20)) y_neg = true;
+        else y_neg = false;
+        // Indicates if delta-x is towards the left
+        if (mouse_bytes[1] & 0x10) x_neg = true;
+        else x_neg = false;
+
+        // Middle click
         if (mouse_bytes[1] & 0x4)
             printf("Middle button is pressed!\n");
+        // Right click
         if (mouse_bytes[1] & 0x2)
             printf("Right button is pressed!\n");
+        // Left click
         if (mouse_bytes[1] & 0x1)
             printf("Left button is pressed!\n");
-        // do what you want here, just replace the puts's to execute an action for each button
-        // to use the coordinate data, use mouse_bytes[1] for delta-x, and mouse_bytes[2] for delta-y
+        
+        // X Movement
+        if((delta_x = (mouse_bytes[2] & 1))) {
+            if(x_neg) delta_x = -delta_x;
+            mouse_x_pos += delta_x;
+            if(mouse_x_pos < 0) mouse_x_pos = 0;
+            if(mouse_x_pos >= NUM_COLS) mouse_x_pos = NUM_COLS-1;
+        }
+        // Y Movement
+        if((delta_y = (mouse_bytes[0] & 1))) {
+            if(y_neg) delta_y = -delta_y;
+            mouse_y_pos += delta_y;
+            if(mouse_y_pos < 0) mouse_y_pos = 0;
+            if(mouse_y_pos >= NUM_ROWS) mouse_y_pos = NUM_ROWS-1;
+        }
+        printf("mouse_x: %d, mouse_y: %d\n", mouse_x_pos, mouse_y_pos);
     }
 }
+
 
 /*
  * void mouse_wait(unsigned char type);

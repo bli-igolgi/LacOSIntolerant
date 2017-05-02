@@ -30,8 +30,6 @@
 #define L_SHIFT_R   -86
 #define R_SHIFT_R   -74
 
-#define ENABLE_CMD_HIST 0
-
 // Key maps are defined in key_maps.c
 extern unsigned char reg_key_map[KEY_MAP_SIZE];
 extern unsigned char shift_key_map[KEY_MAP_SIZE];
@@ -82,7 +80,7 @@ void keyboard_interrupt() {
  */
 void process_input(char c) {
     uint8_t c_print;
-    int32_t buf_size, last, prev_size;
+    int32_t buf_size, last, prev_size, i;
     static volatile bool rtc_loop;
     uint8_t *read_buf = terminals[vis_term_id].key_buf;
     uint32_t *read_buf_index = &terminals[vis_term_id].key_buf_index;
@@ -160,45 +158,41 @@ void process_input(char c) {
 
             /* Command History */
             case UP_KEY_P:
-                if(ENABLE_CMD_HIST) {
-                    buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1]);
-                    if(!buf_size) break;
+                buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1]);
+                if(!buf_size) break;
 
-                    /* Clear any current input */
-                    clear_cur_cmd();
-                    clear_buffer();
+                /* Clear any current input */
+                clear_cur_cmd();
+                clear_buffer();
 
-                    /* Copy the next history command into the read buffer and display it */
-                    memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1], buf_size);
-                    (*cur_hist_index)--;
-                    *read_buf_index = buf_size;
-                    printf((int8_t *)read_buf);
-                }
+                /* Copy the next history command into the read buffer and display it */
+                memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)-1], buf_size);
+                (*cur_hist_index)--;
+                *read_buf_index = buf_size;
+                for(i = 0; i < buf_size; i++) putc(vis_term_id,*((int8_t *)read_buf + i));
 
                 break;
             case DOWN_KEY_P:
-                if(ENABLE_CMD_HIST) {
-                    prev_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[*cur_hist_index]);
-                    buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1]);
+                prev_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[*cur_hist_index]);
+                buf_size = strlen((int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1]);
 
-                    /* Clear any current input */
-                    clear_cur_cmd();
-                    clear_buffer();
+                /* Clear any current input */
+                clear_cur_cmd();
+                clear_buffer();
 
-                    // Allow input to be cleared if come to end of list
-                    if(!buf_size) {
-                        if (prev_size != 0) {
-                            (*cur_hist_index)++;
-                        }
-                        break;
+                // Allow input to be cleared if come to end of list
+                if(!buf_size) {
+                    if (prev_size != 0) {
+                        (*cur_hist_index)++;
                     }
-
-                    /* Copy the previous history command into the read buffer and display it */
-                    memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1], buf_size);
-                    (*cur_hist_index)++;
-                    *read_buf_index = buf_size;
-                    printf((int8_t *)read_buf);
+                    break;
                 }
+
+                /* Copy the previous history command into the read buffer and display it */
+                memcpy(read_buf, (int8_t *)terminals[vis_term_id].hist_buf[(*cur_hist_index)+1], buf_size);
+                (*cur_hist_index)++;
+                *read_buf_index = buf_size;
+                for(i = 0; i < buf_size; i++) putc(vis_term_id,*((int8_t *)read_buf + i));
 
                 break;
 

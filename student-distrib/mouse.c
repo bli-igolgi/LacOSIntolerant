@@ -3,6 +3,7 @@
  */
 
 /* http://wiki.osdev.org/%228042%22_PS/2_Controller#PS.2F2_Controller_IO_Ports */
+// forum.osdev.org/viewtopic.php?t=10247
 
 #include "mouse.h"
 

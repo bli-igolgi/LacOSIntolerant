@@ -10,12 +10,16 @@
 #define STATUS_PORT 0x64
 #define DATA_PORT   0x60
 
-extern void mouse_init(void);
-extern void mouse_interrupt(void);
+void mouse_init(void);
+void mouse_interrupt(void);
 
-extern int32_t mouse_open(const uint8_t* filename);
-extern int32_t mouse_close(int32_t fd);
-extern int32_t mouse_read(int32_t fd, void *buf, int32_t nbytes);
-extern int32_t mouse_write(int32_t fd, const void *buf, int32_t nbytes);
+void mouse_wait(bool type);
+
+int32_t mouse_open(const uint8_t* filename);
+int32_t mouse_close(int32_t fd);
+// extern int32_t mouse_read(int32_t fd, void *buf, int32_t nbytes);
+// extern int32_t mouse_write(int32_t fd, const void *buf, int32_t nbytes);
+uint8_t mouse_read();
+void mouse_write(uint8_t a_write);
 
 #endif

@@ -143,7 +143,7 @@ format_char_switch:
 								int8_t conv_buf[64];
 								if(alternate == 0) {
 									itoa(*((uint32_t *)esp), conv_buf, 16);
-									puts(conv_buf);
+									puts(sched_term_id, conv_buf);
 								} else {
 									int32_t starting_index;
 									int32_t i;
@@ -153,7 +153,7 @@ format_char_switch:
 										conv_buf[i] = '0';
 										i++;
 									}
-									puts(&conv_buf[starting_index]);
+									puts(sched_term_id, &conv_buf[starting_index]);
 								}
 								esp++;
 							}
@@ -164,7 +164,7 @@ format_char_switch:
 							{
 								int8_t conv_buf[36];
 								itoa(*((uint32_t *)esp), conv_buf, 10);
-								puts(conv_buf);
+								puts(sched_term_id, conv_buf);
 								esp++;
 							}
 							break;
@@ -180,7 +180,7 @@ format_char_switch:
 								} else {
 									itoa(value, conv_buf, 10);
 								}
-								puts(conv_buf);
+								puts(sched_term_id, conv_buf);
 								esp++;
 							}
 							break;
@@ -193,7 +193,7 @@ format_char_switch:
 
 						/* Print a NULL-terminated string */
 						case 's':
-							puts( *((int8_t **)esp) );
+							puts(sched_term_id,  *((int8_t **)esp) );
 							esp++;
 							break;
 
@@ -215,18 +215,33 @@ format_char_switch:
 }
 
 /*
-* int32_t puts(int8_t* s);
+* int32_t puts(sched_term_id, int8_t* s);
 *   Inputs: int_8* s = pointer to a string of characters
 *   Return Value: Number of bytes written
 *	Function: Output a string to the console 
 */
-
 int32_t
-puts(int8_t* s)
+puts(int term_id, int8_t* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
-		putc(sched_term_id,s[index]);
+		putc(term_id, s[index]);
+		index++;
+	}
+
+	return index;
+}
+
+/*
+* int32_t puts_color(int term_id, int8_t* s, uint8_t fg, uint8_t bg);
+*   Inputs: int_8* s = pointer to a string of characters
+*   Return Value: Number of bytes written
+*	Function: Output a string to the console 
+*/
+int32_t puts_color(int term_id, int8_t* s, uint8_t fg, uint8_t bg) {
+	register int32_t index = 0;
+	while(s[index] != '\0') {
+		putc_color(sched_term_id, s[index], fg, bg);
 		index++;
 	}
 
@@ -267,6 +282,42 @@ putc(int term_id, uint8_t c)
 		// Update video memory at the current location
 		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1)) = c;
 		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = ATTRIB;
+		// Move to the next column
+		term->scrn_c++;
+	}
+	set_cursor_pos(term_id, term->scrn_r, term->scrn_c);
+	set_keyboard_pos(term_id, term->scrn_r, term->scrn_c);
+}
+
+/*
+* void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg);
+*   Inputs: term_id 	- the terminal to print the character on
+*			uint_8* c 	- character to print
+*			fg			- the foreground color (text color)
+*			bg			- the background color
+*   Return Value: void
+*	Function: Output a character to the terminal running on the scheduler
+*				Colors can be found at http://wiki.osdev.org/Text_UI
+*/
+void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg) {
+	// Put the color in the correct format
+	uint8_t attrib = (bg << 4) | (fg & 0xF);
+
+	term_t *term = &terminals[term_id];
+	if(c == '\n' || c == '\r') {
+		term->scrn_r++;
+		term->scrn_c = 0;
+		scroll(term_id);
+	}
+	else {
+		// Move to the next line if necessary
+		term->scrn_r = (term->scrn_r + (term->scrn_c / NUM_COLS));
+		term->scrn_c %= NUM_COLS;
+		// Scroll if necessary
+		scroll(term_id);
+		// Update video memory at the current location
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1)) = c;
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = attrib;
 		// Move to the next column
 		term->scrn_c++;
 	}

@@ -187,6 +187,7 @@ entry (unsigned long magic, unsigned long addr)
 
     // Initialize multiple terminals
     multi_term_init();
+    puts_color(0, "testing\n", 3, 4);
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

@@ -228,7 +228,7 @@ print_char:
                 // Don't print non-printing characters like F1
                 if(c_print) {
                     read_buf[(*read_buf_index)++] = c_print;
-                    putc(vis_term_id,c_print);
+                    putc_color(vis_term_id, c_print, 1, 2);
                 }
                 break;
         }

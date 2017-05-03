@@ -34,6 +34,9 @@ extern int vis_term_id;                     // The ID of the terminal that is cu
 extern int sched_term_id;                   // The ID of the terminal that is being run by the scheduler
 
 
+extern uint8_t fg_color, bg_color;
+
+
 void set_keyboard_pos(int term_id, int x, int y);
 void set_cursor_pos(int term_id, int row, int col);
 
@@ -42,6 +45,10 @@ void putc(int term_id, uint8_t c);
 void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg);
 int32_t puts(int term_id, int8_t *s);
 int32_t puts_color(int term_id, int8_t* s, uint8_t fg, uint8_t bg);
+void set_color(uint8_t fg, uint8_t bg);
+
+uint8_t get_char(uint8_t row, uint8_t col);
+void set_char(uint8_t c, uint8_t fg, uint8_t bg, uint8_t x, uint8_t y);
 
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);

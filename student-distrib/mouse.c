@@ -8,7 +8,8 @@
 static int cycle = 0;
 static uint8_t mouse_bytes[3];
 static bool x_neg = false, y_neg = false;
-int8_t mouse_x_pos = 0, mouse_y_pos = 0;
+int8_t mouse_x_pos = NUM_COLS-1, mouse_y_pos = NUM_ROWS-1;
+uint8_t old_char = 0;
 
 /*
  * void mouse_init(void);
@@ -83,6 +84,7 @@ void mouse_interrupt() {
         if (mouse_bytes[1] & 0x1)
             printf("Left button is pressed!\n");
         
+        set_char(old_char, fg_color, bg_color, mouse_y_pos, mouse_x_pos);
         // X Movement
         if((delta_x = (mouse_bytes[2] & 1))) {
             if(x_neg) delta_x = -delta_x;
@@ -97,7 +99,10 @@ void mouse_interrupt() {
             if(mouse_y_pos < 0) mouse_y_pos = 0;
             if(mouse_y_pos >= NUM_ROWS) mouse_y_pos = NUM_ROWS-1;
         }
-        printf("mouse_x: %d, mouse_y: %d\n", mouse_x_pos, mouse_y_pos);
+        old_char = get_char(mouse_y_pos, mouse_x_pos);
+
+        set_char(' ', 3, 1, mouse_y_pos, mouse_x_pos);
+        // printf("mouse_x: %d, mouse_y: %d\n", mouse_x_pos, mouse_y_pos);
     }
 }
 

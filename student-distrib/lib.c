@@ -8,6 +8,10 @@ term_t terminals[MAX_TERM_NUM];
 int vis_term_id = 0;
 int sched_term_id = 0;
 
+// The foreground and background color
+uint8_t fg_color = 7, bg_color = 0;
+static uint8_t color = 0x7;
+
 static char* video_mem = (char *)VIDEO_ADDR;
 
 /*
@@ -53,7 +57,7 @@ void scroll(int term_id) {
 	if(terminals[term_id].scrn_r >= NUM_ROWS) {
 		uint32_t blank, temp;
 
-		blank = 0x20 | (ATTRIB << 8);
+		blank = 0x20 | (color << 8);
 		temp = terminals[term_id].scrn_r - NUM_ROWS + 1;
 		// Copy the screen, offset by one row, into the start of video memory
 		// This effectively erases the first line of the terminal
@@ -79,7 +83,7 @@ clear_screen(void)
 	int32_t i;
 	for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
 		*(uint8_t *)(video_mem + (i << 1)) = ' ';
-		*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+		*(uint8_t *)(video_mem + (i << 1) + 1) = color;
 	}
 	set_keyboard_pos(vis_term_id, 0, 0);
 	set_cursor_pos(vis_term_id, 0, 0);
@@ -271,7 +275,7 @@ putc(int term_id, uint8_t c)
 		// Remove previous character
 		term->scrn_c--;
 		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1)) = ' ';
-		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = color;
 	}
 	else {
 		// Move to the next line if necessary
@@ -281,7 +285,7 @@ putc(int term_id, uint8_t c)
 		scroll(term_id);
 		// Update video memory at the current location
 		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1)) = c;
-		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(term->vid_mem + ((NUM_COLS*term->scrn_r + term->scrn_c) << 1) + 1) = color;
 		// Move to the next column
 		term->scrn_c++;
 	}
@@ -290,15 +294,15 @@ putc(int term_id, uint8_t c)
 }
 
 /*
-* void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg);
-*   Inputs: term_id 	- the terminal to print the character on
-*			uint_8* c 	- character to print
-*			fg			- the foreground color (text color)
-*			bg			- the background color
-*   Return Value: void
-*	Function: Output a character to the terminal running on the scheduler
-*				Colors can be found at http://wiki.osdev.org/Text_UI
-*/
+ * void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg);
+ *   Inputs: term_id 	- the terminal to print the character on
+ *			uint_8* c 	- character to print
+ *			fg			- the foreground color (text color)
+ *			bg			- the background color
+ *   Return Value: void
+ *	Function: Output a character to the terminal running on the scheduler
+ *				Colors can be found at http://wiki.osdev.org/Text_UI
+ */
 void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg) {
 	// Put the color in the correct format
 	uint8_t attrib = (bg << 4) | (fg & 0xF);
@@ -323,6 +327,33 @@ void putc_color(int term_id, uint8_t c, uint8_t fg, uint8_t bg) {
 	}
 	set_cursor_pos(term_id, term->scrn_r, term->scrn_c);
 	set_keyboard_pos(term_id, term->scrn_r, term->scrn_c);
+}
+
+/*
+ * void set_color(uint8_t fg, uint8_t bg);
+ *   Inputs: fg - the foreground color (text color)
+ *			bg - the background color
+ *   Return Value: void
+ *	 Function: Sets the colors to be used when outputting
+ */
+void set_color(uint8_t fg, uint8_t bg) {
+	fg_color = fg;
+	bg_color = bg;
+	// Put the color in the correct format
+	uint8_t attrib = (bg << 4) | (fg & 0xF);
+	color = attrib;
+}
+
+uint8_t get_char(uint8_t row, uint8_t col) {
+	return *(uint8_t *)(VIDEO_ADDR + ((NUM_COLS*row + col) << 1));
+}
+
+void set_char(uint8_t c, uint8_t fg, uint8_t bg, uint8_t row, uint8_t col) {
+	// Put the color in the correct format
+	uint8_t attrib = (bg << 4) | (fg & 0xF);
+
+	*(uint8_t *)(VIDEO_ADDR + ((NUM_COLS*row + col) << 1)) = c;
+	*(uint8_t *)(VIDEO_ADDR + ((NUM_COLS*row + col) << 1) + 1) = attrib;
 }
 
 /*

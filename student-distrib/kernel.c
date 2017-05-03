@@ -185,6 +185,8 @@ entry (unsigned long magic, unsigned long addr)
 
     clear_screen();
 
+    set_color(3, 0);
+
     // Initialize multiple terminals
     multi_term_init();
     puts_color(0, "testing\n", 3, 4);
